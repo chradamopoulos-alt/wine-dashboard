@@ -581,9 +581,10 @@ tr:last-child td{border-bottom:none;}
             headers: {'Content-Type':'application/json','X-Master-Key': apiKey},
             body: JSON.stringify({log})
           });
-        } catch(e) {}
+        } catch(e) {} finally {
+          location.reload();
+        }
       })();
-      location.reload();
     }
 
     btn.addEventListener('click', attempt);
