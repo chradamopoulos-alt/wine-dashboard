@@ -447,6 +447,9 @@ tr:last-child td{border-bottom:none;}
   .wrap{padding:10px 10px;}
   .hdr{border-radius:8px;padding:12px 14px;}
   .hdr h1{font-size:15px;}
+  .hdr-top{flex-wrap:wrap;gap:8px;}
+  .hdr-top > div:last-child{display:flex;gap:6px;flex-wrap:wrap;width:100%;justify-content:stretch;}
+  .hdr-top > div:last-child > *{flex:1;min-width:0;text-align:center;justify-content:center;}
   .filter-toggle{display:block;}
   .filters{display:none;flex-direction:column;}
   .filters.open{display:flex;}
@@ -477,6 +480,63 @@ tr:last-child td{border-bottom:none;}
   .filter-toggle,.filters,.pager,.cbtn{display:none!important;}
   .wine-desc{display:block!important;}
 }
+
+/* ── ZEBRA ROWS + STICKY HEADER ── */
+table thead{position:sticky;top:0;z-index:10;}
+tbody tr:nth-child(even) td{background:#f8fafc;}
+tbody tr:hover td{background:#eef2ff!important;transition:background .15s;}
+tbody tr{transition:background .15s;}
+
+/* ── KPI ENTRANCE ANIMATION ── */
+.kpi{animation:kpiIn .4s cubic-bezier(.16,1,.3,1) both;transition:transform .2s,box-shadow .2s;}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1);}
+.kpi:nth-child(1){animation-delay:.05s}.kpi:nth-child(2){animation-delay:.1s}
+.kpi:nth-child(3){animation-delay:.15s}.kpi:nth-child(4){animation-delay:.2s}
+.kpi:nth-child(5){animation-delay:.25s}.kpi:nth-child(6){animation-delay:.3s}
+@keyframes kpiIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ── TAB TRANSITION ── */
+.tab{transition:color .2s,border-color .2s,background .2s;}
+.tab:hover{background:#f1f5f9;}
+
+/* ── CHART CARD ANIMATION ── */
+.card{animation:cardFade .5s ease both;}
+.crow:nth-child(1) .card:nth-child(1){animation-delay:.1s}
+.crow:nth-child(1) .card:nth-child(2){animation-delay:.15s}
+.crow:nth-child(2) .card:nth-child(1){animation-delay:.2s}
+.crow:nth-child(2) .card:nth-child(2){animation-delay:.25s}
+.crow:nth-child(3) .card:nth-child(1){animation-delay:.3s}
+.crow:nth-child(3) .card:nth-child(2){animation-delay:.35s}
+@keyframes cardFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── SCROLL TO TOP ── */
+.scroll-top{
+  position:fixed;bottom:24px;right:24px;z-index:900;
+  width:44px;height:44px;border-radius:50%;
+  background:var(--acc);color:#fff;border:none;
+  box-shadow:0 4px 16px rgba(123,63,158,.35);
+  cursor:pointer;font-size:18px;
+  opacity:0;transform:translateY(12px);
+  transition:opacity .3s,transform .3s;
+  pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+}
+.scroll-top.visible{opacity:1;transform:none;pointer-events:auto;}
+.scroll-top:hover{background:#5b2d7a;transform:translateY(-2px);}
+
+/* ── CSV EXPORT BTN ── */
+.btn-export{
+  padding:8px 14px;border:1px solid var(--border);border-radius:8px;
+  background:var(--card);color:var(--text);font-size:12px;font-weight:600;
+  cursor:pointer;transition:background .2s,border-color .2s;
+  display:inline-flex;align-items:center;gap:5px;
+}
+.btn-export:hover{background:#f1f5f9;border-color:var(--acc);}
+
+/* ── LOADING SKELETON ── */
+.skeleton-pulse{background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
+  background-size:200% 100%;animation:skeletonShimmer 1.5s infinite;border-radius:6px;}
+@keyframes skeletonShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 </style>
 
 <script>
@@ -491,40 +551,59 @@ tr:last-child td{border-bottom:none;}
       <style>
         #login-gate {
           min-height:100vh;
-          background:linear-gradient(135deg,#1c2340 0%,#2d3561 100%);
+          background:linear-gradient(135deg,#1c2340 0%,#2d3561 50%,#1c2340 100%);
+          background-size:400% 400%;
+          animation:gateGradient 12s ease infinite;
           display:flex;align-items:center;justify-content:center;
           font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+          position:relative;overflow:hidden;
+        }
+        @keyframes gateGradient{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        #login-gate::before{
+          content:'';position:absolute;inset:0;
+          background:radial-gradient(circle at 20% 80%,rgba(123,63,158,.25) 0%,transparent 50%),
+                     radial-gradient(circle at 80% 20%,rgba(200,149,42,.15) 0%,transparent 50%);
+          pointer-events:none;
         }
         .login-card {
-          background:#fff;border-radius:16px;padding:40px 36px;
-          width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3);
+          background:rgba(255,255,255,.97);backdrop-filter:blur(20px);
+          border-radius:20px;padding:44px 38px;
+          width:100%;max-width:380px;
+          box-shadow:0 24px 80px rgba(0,0,0,0.35),0 0 0 1px rgba(255,255,255,.1);
+          animation:cardIn .5s cubic-bezier(.16,1,.3,1);
+          position:relative;z-index:1;
         }
+        @keyframes cardIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
         .login-logo {
           text-align:center;margin-bottom:28px;
         }
-        .login-logo .title {font-size:22px;font-weight:800;color:#1c2340;line-height:1.2;}
-        .login-logo .sub {font-size:12px;color:#64748b;margin-top:4px;}
-        .login-logo .icon {font-size:40px;margin-bottom:10px;}
-        .form-group {margin-bottom:16px;}
+        .login-logo .title {font-size:24px;font-weight:800;color:#1c2340;line-height:1.2;letter-spacing:-.3px;}
+        .login-logo .sub {font-size:12px;color:#64748b;margin-top:6px;letter-spacing:.3px;}
+        .login-logo .icon {font-size:44px;margin-bottom:12px;display:inline-block;animation:wineFloat 3s ease-in-out infinite;}
+        @keyframes wineFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+        .form-group {margin-bottom:18px;}
         .form-group label {display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
         .form-group input {
-          width:100%;padding:12px 14px;border:1px solid #e2e8f0;border-radius:8px;
-          font-size:15px;outline:none;transition:border .2s;box-sizing:border-box;
-          font-family:inherit;
+          width:100%;padding:13px 16px;border:2px solid #e2e8f0;border-radius:10px;
+          font-size:15px;outline:none;transition:border .25s,box-shadow .25s;box-sizing:border-box;
+          font-family:inherit;background:#f8fafc;
         }
-        .form-group input:focus {border-color:#7b3f9e;}
+        .form-group input:focus {border-color:#7b3f9e;box-shadow:0 0 0 3px rgba(123,63,158,.12);background:#fff;}
         .btn-login {
-          width:100%;padding:14px;background:linear-gradient(135deg,#7b3f9e,#5b2d7a);
-          color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;
-          cursor:pointer;transition:opacity .2s;margin-top:6px;
+          width:100%;padding:15px;background:linear-gradient(135deg,#7b3f9e,#5b2d7a);
+          color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;
+          cursor:pointer;transition:transform .15s,box-shadow .15s;margin-top:8px;
+          box-shadow:0 4px 14px rgba(123,63,158,.35);
         }
-        .btn-login:hover {opacity:.9;}
+        .btn-login:hover {transform:translateY(-1px);box-shadow:0 6px 20px rgba(123,63,158,.45);}
+        .btn-login:active {transform:translateY(0);box-shadow:0 2px 8px rgba(123,63,158,.3);}
         .login-error {
-          background:#fef2f2;border:1px solid #fecaca;border-radius:8px;
+          background:#fef2f2;border:1px solid #fecaca;border-radius:10px;
           padding:10px 14px;color:#dc2626;font-size:13px;margin-top:14px;
-          display:none;text-align:center;
+          display:none;text-align:center;animation:shakeErr .4s ease;
         }
-        .login-footer {text-align:center;margin-top:20px;font-size:11px;color:#94a3b8;}
+        @keyframes shakeErr{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+        .login-footer {text-align:center;margin-top:22px;font-size:11px;color:#94a3b8;letter-spacing:.3px;}
       
 </style>
       <div class="login-card">
@@ -865,7 +944,9 @@ tr:last-child td{border-bottom:none;}
   <div class="tbl-wrap" id="tbl"></div>
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:8px;">
     <div class="pager" id="pgr"></div>
-    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);flex-wrap:wrap;">
+      <button class="btn-export" onclick="exportCSV()" title="Export filtered results to CSV">&#128229; Export CSV</button>
+      <span style="color:var(--border);">|</span>
       Show:
       <select id="ps-select" onchange="D.setPageSize(this.value)" aria-label="Results per page" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;cursor:pointer;">
         <option value="30">30</option>
@@ -881,7 +962,10 @@ tr:last-child td{border-bottom:none;}
 
 </div>
 
-<div class="summary-bar">
+<!-- SCROLL TO TOP -->
+<button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">&#8593;</button>
+
+<div class="summary-bar" id="dineout-summary" style="display:none">
   <div class="summary-info">
     <strong id="totalItems">0</strong>
     bottles selected
@@ -892,7 +976,7 @@ tr:last-child td{border-bottom:none;}
   </div>
 </div>
 
-<div class="modal-overlay" id="modalOverlay">
+<div class="modal-overlay" id="modalOverlay" style="display:none">
   <div class="modal">
     <div class="modal-eyebrow">Dine Out · Wine Order</div>
     <h3>Αποστολή Παραγγελίας</h3>
@@ -925,7 +1009,7 @@ tr:last-child td{border-bottom:none;}
 </div>
 
 <!-- BRIEFING MODAL -->
-<div class="briefing-overlay" id="briefingOverlay">
+<div class="briefing-overlay" id="briefingOverlay" style="display:none">
   <div class="briefing-modal">
     <h4 id="briefingTitle"></h4>
     <textarea class="briefing-textarea" id="briefingTextarea" readonly></textarea>
@@ -2116,6 +2200,10 @@ class Dash{
     // Restore elements hidden by pairing tab
     const pp2=document.getElementById('pairing-panel');if(pp2)pp2.style.display='none';
     const dop=document.getElementById('dine-out-panel');if(dop)dop.style.display='none';
+    // Hide dine-out order UI when not on dineout tab
+    const dSummary=document.getElementById('dineout-summary');if(dSummary)dSummary.style.display=tab==='dineout'?'':'none';
+    const dModal=document.getElementById('modalOverlay');if(dModal&&!dModal.classList.contains('active'))dModal.style.display=tab==='dineout'?'':'none';
+    const dBrief=document.getElementById('briefingOverlay');if(dBrief&&!dBrief.classList.contains('active'))dBrief.style.display=tab==='dineout'?'':'none';
     const kpiRow2=document.querySelector('.kpi-row');if(kpiRow2)kpiRow2.style.display='';
     const tblCard2=document.getElementById('tbl');
     if(tblCard2&&tblCard2.closest('.card'))tblCard2.closest('.card').style.display='';
@@ -2819,6 +2907,37 @@ async function _handleFileImportAsync(input){
   reader.readAsArrayBuffer(file);
 }
 
+
+// ── Scroll-to-top visibility ──
+window.addEventListener('scroll',function(){
+  const btn=document.getElementById('scrollTopBtn');
+  if(btn)btn.classList.toggle('visible',window.scrollY>400);
+},{passive:true});
+
+// ── CSV Export ──
+function exportCSV(){
+  if(!window.D||!D.searched)return;
+  const isStock=D.mode==='stock';
+  const rows=isStock?STOCK_DATA:D.searched;
+  if(!rows||!rows.length){alert('No data to export');return;}
+  let csv;
+  if(isStock){
+    csv='ERP Code,Description,Grape,Country,Visibility,Qty,Cost,Total\n';
+    rows.forEach(r=>{
+      csv+=`"${r.code}","${(r.description||'').replace(/"/g,'""')}","${r.grape||''}","${r.country||''}","${r.visibility}",${r.qty},${r.price.toFixed(2)},${(r.qty*r.price).toFixed(2)}\n`;
+    });
+  } else {
+    csv='ERP Code,Name,Category,Country,Grape,Cost,Stock,Consumption,Cover Months,Outlets\n';
+    rows.forEach(r=>{
+      csv+=`"${r.code}","${(r.name||'').replace(/"/g,'""')}","${r.category}","${r.country}","${(r.grape||'').replace(/"/g,'""')}",${r.price.toFixed(2)},${r.stock},${r.consumption},${r.stockCoverMonths||''},"${(r.outlets||[]).join(', ')}"\n`;
+    });
+  }
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`wine-${D.mode}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();URL.revokeObjectURL(url);
+}
 
 // Robust D initialization — always a real Dash when DOM is ready
 window.D = {};
