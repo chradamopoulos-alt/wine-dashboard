@@ -3124,13 +3124,14 @@ class Dash{
       const codeId='c_'+r.code.replace(/\W/g,'');
       const _mw=_stockMasterMap[r.code];
       const _wineDesc=r.wineDesc||(_mw&&_mw.description)||'';
-      h+=`<tr>
+      const rowStyle=r.qty===0?'background:#fff1f2;':'';
+      h+=`<tr style="${rowStyle}">
         <td><div class="code-cell">
           <span class="cpill">${r.code}</span>
           <button class="cbtn" onclick="copyCode(this,'${r.code}')">Copy</button>
         </div></td>
         <td>
-          <div class="wine-name" style="font-size:12px">${r.description}${(tagMap[r.code]||[]).map(t=>`<span class="wine-tag wine-tag-${t}">${t}</span>`).join('')}</div>
+          <div class="wine-name" style="font-size:12px${r.qty===0?';color:#dc2626':''}">${r.description}${r.qty===0?'<span style="margin-left:6px;background:#fee2e2;color:#dc2626;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;">OUT OF STOCK</span>':''}${(tagMap[r.code]||[]).map(t=>`<span class="wine-tag wine-tag-${t}">${t}</span>`).join('')}</div>
           ${r.grape?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${r.grape}</div>`:''}
           ${_wineDesc?`<div style="font-size:10px;color:var(--muted);margin-top:3px;font-style:italic;line-height:1.35">${_wineDesc}</div>`:''}
           <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
@@ -3139,12 +3140,32 @@ class Dash{
           </div>
         </td>
         <td>${visBadge(r.visibility)}</td>
-        <td><b>${r.qty.toLocaleString()}</b></td>
+        <td><b${r.qty===0?' style="color:#dc2626"':''}>${r.qty.toLocaleString()}</b></td>
         <td>€${r.price.toFixed(2)}</td>
         <td>€${parseFloat(total).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       </tr>`;
     });
-    h+='</tbody></table>';
+    const pageQty=page.reduce((s,r)=>s+r.qty,0);
+    const pageVal=page.reduce((s,r)=>s+r.qty*r.price,0);
+    const allQty=rows.reduce((s,r)=>s+r.qty,0);
+    const allVal=rows.reduce((s,r)=>s+r.qty*r.price,0);
+    h+=`</tbody><tfoot><tr style="background:#1c2340;color:#fff;font-weight:700;">
+      <td colspan="3" style="padding:10px 12px;font-size:12px;">
+        PAGE &nbsp;<span style="color:#94a3b8;font-weight:400">${page.length} SKUs</span>
+        &nbsp;&nbsp;|&nbsp;&nbsp; ALL FILTERED &nbsp;<span style="color:#94a3b8;font-weight:400">${rows.length} SKUs</span>
+      </td>
+      <td style="padding:10px 12px;font-size:13px;">
+        <span style="color:#fbbf24">${pageQty.toLocaleString()}</span><span style="color:#475569;font-size:10px;font-weight:400"> btl</span>
+        &nbsp;/&nbsp;
+        <span style="color:#a3e635">${allQty.toLocaleString()}</span><span style="color:#475569;font-size:10px;font-weight:400"> total</span>
+      </td>
+      <td></td>
+      <td style="padding:10px 12px;font-size:13px;">
+        <span style="color:#fbbf24">€${pageVal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+        &nbsp;/&nbsp;
+        <span style="color:#a3e635">€${allVal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+      </td>
+    </tr></tfoot></table>`;
     document.getElementById('tbl').innerHTML=h;
 
     const total2=rows.length, pages=Math.ceil(total2/ps);
