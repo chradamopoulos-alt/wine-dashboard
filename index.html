@@ -2571,28 +2571,29 @@ class Dash{
       return true;
     });
     rows.sort((a,b)=>b.qty-a.qty);
-    // Filtered summary (reflects the active search/visibility filter) — shown under the search box
-    const totalQty=rows.reduce((s,r)=>s+r.qty,0);
-    const totalVal=rows.reduce((s,r)=>s+r.qty*r.price,0);
-    const notVis=rows.filter(r=>r.visibility==='Not Visible').length;
+    // KPI cards + summary follow the ACTIVE filter. Counts are based on in-stock codes
+    // (qty>0) so sold-out/zeroed SKUs don't inflate the numbers.
+    const inStock=rows.filter(r=>r.qty>0);
+    const soldOut=rows.length-inStock.length;
+    const totalQty=inStock.reduce((s,r)=>s+r.qty,0);
+    const totalVal=inStock.reduce((s,r)=>s+r.qty*r.price,0);
+    const pricesWithVal=inStock.filter(r=>r.price>0).map(r=>r.price);
     document.getElementById('res-count').textContent=
-      `${rows.length} SKUs · ${totalQty.toLocaleString()} bottles · €${(totalVal/1000).toFixed(1)}K value · ${notVis} not visible`;
+      `${inStock.length} in-stock SKUs · ${totalQty.toLocaleString()} bottles · €${(totalVal/1000).toFixed(1)}K value · ${soldOut} sold out`;
 
-    // KPI cards always reflect the FULL warehouse (STOCK_DATA), independent of the filter
-    const allQty=STOCK_DATA.reduce((s,r)=>s+r.qty,0);
-    const allVal=STOCK_DATA.reduce((s,r)=>s+r.qty*r.price,0);
-    const allNotVis=STOCK_DATA.filter(r=>r.visibility==='Not Visible').length;
-    const allPrices=STOCK_DATA.filter(r=>r.price>0).map(r=>r.price);
-    document.getElementById('k-sku').textContent=STOCK_DATA.length;
-    document.getElementById('k-cost').textContent=fmt(allVal,'cur');
-    document.getElementById('k-stk').textContent=fmt(allQty);
-    document.getElementById('k-con').textContent=fmt(allNotVis);
-    document.getElementById('k-avg').textContent=allPrices.length?('€'+(allPrices.reduce((a,b)=>a+b,0)/allPrices.length).toFixed(2)):'—';
-    document.getElementById('k-pc').textContent=STOCK_DATA.filter(r=>r.visibility==='SPECIAL').length;
+    // Update the 6 KPI cards for Stock tab (reflect the active filter)
+    document.getElementById('k-sku').textContent=inStock.length;
+    document.getElementById('k-cost').textContent=fmt(totalVal,'cur');
+    document.getElementById('k-stk').textContent=fmt(totalQty);
+    document.getElementById('k-con').textContent=fmt(soldOut);
+    document.getElementById('k-avg').textContent=pricesWithVal.length?('€'+(pricesWithVal.reduce((a,b)=>a+b,0)/pricesWithVal.length).toFixed(2)):'—';
+    document.getElementById('k-pc').textContent=inStock.filter(r=>r.visibility==='SPECIAL').length;
     // Update KPI labels for Stock context
     document.getElementById('kpi6-lbl').textContent='Special';
     document.getElementById('kpi6-sub').textContent='Labels';
-    document.querySelector('#k-con').closest('.kpi').querySelector('.sub2').textContent='Not visible';
+    document.querySelector('#k-sku').closest('.kpi').querySelector('.sub2').textContent='In-stock codes';
+    document.querySelector('#k-con').closest('.kpi').querySelector('.lbl').textContent='Sold Out';
+    document.querySelector('#k-con').closest('.kpi').querySelector('.sub2').textContent='Zero stock';
     document.querySelector('#k-stk').closest('.kpi').querySelector('.sub2').textContent='Bottles in warehouse';
 
     // Build visibility filter if not already there
