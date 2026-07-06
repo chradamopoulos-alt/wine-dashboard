@@ -2596,6 +2596,11 @@ class Dash{
     document.querySelector('#k-con').closest('.kpi').querySelector('.sub2').textContent='Zero stock';
     document.querySelector('#k-stk').closest('.kpi').querySelector('.sub2').textContent='Bottles in warehouse';
 
+    // Hide sold-out (0 qty) rows from the table by default. They stay in the data and are
+    // revealed when the "Show sold-out" box is ticked or when the user searches for one.
+    const showSoldOut=document.getElementById('s-show-soldout')?document.getElementById('s-show-soldout').checked:false;
+    const displayRows=(showSoldOut||srch)?rows:rows.filter(r=>r.qty>0);
+
     // Build visibility filter if not already there
     let filterRow=document.querySelector('.stock-filter-row');
     if(!filterRow){
@@ -2608,6 +2613,7 @@ class Dash{
         <option value="Not Visible">🚫 Not Visible</option>
         <option value="SPECIAL">⭐ SPECIAL</option>
       </select>
+      <label style="font-size:12px;color:var(--muted);align-self:center;display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:6px;"><input type="checkbox" id="s-show-soldout" onchange="D.page=0;D.stockTable()" style="cursor:pointer;">Show sold-out (0 qty)</label>
       <span style="font-size:11px;color:var(--muted);align-self:center;">Filter by outlet visibility status</span>`;
       const tblWrap=document.getElementById('tbl');
       tblWrap.parentElement.insertBefore(filterRow,document.querySelector('.swipe-hint'));
@@ -2622,7 +2628,7 @@ class Dash{
 
     // Pager
     const ps=this.ps, start=this.page*ps;
-    const page=rows.slice(start,start+ps);
+    const page=displayRows.slice(start,start+ps);
 
     let h='<table><thead><tr>';
     h+='<th>ERP Code</th>';
@@ -2663,7 +2669,7 @@ class Dash{
     h+='</tbody></table>';
     document.getElementById('tbl').innerHTML=h;
 
-    const total2=rows.length, pages=Math.ceil(total2/ps);
+    const total2=displayRows.length, pages=Math.ceil(total2/ps);
     let pg=`<span>Showing ${Math.min(start+1,total2)}–${Math.min(start+ps,total2)} of ${total2}</span>`;
     pg+=`<button onclick="D.go(${this.page-1})" ${this.page===0?'disabled':''}>‹ Prev</button>`;
     pg+=`<button onclick="D.go(${this.page+1})" ${this.page>=pages-1?'disabled':''}>Next ›</button>`;
