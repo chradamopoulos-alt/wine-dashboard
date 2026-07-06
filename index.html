@@ -2299,9 +2299,9 @@ class Dash{
   kpis(){
     const d=this.filtered;
     document.getElementById('k-sku').textContent=d.length;
-    document.getElementById('k-cost').textContent=fmt(d.reduce((s,r)=>s+r.openingCost,0),'cur');
-    document.getElementById('k-stk').textContent=fmt(d.reduce((s,r)=>s+r.stock,0));
-    document.getElementById('k-con').textContent=fmt(d.reduce((s,r)=>s+r.consumption,0));
+    document.getElementById('k-cost').textContent='€'+d.reduce((s,r)=>s+r.openingCost,0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('k-stk').textContent=d.reduce((s,r)=>s+r.stock,0).toLocaleString();
+    document.getElementById('k-con').textContent=d.reduce((s,r)=>s+r.consumption,0).toLocaleString();
     const pp=d.filter(r=>r.price>0).map(r=>r.price);
     document.getElementById('k-avg').textContent=pp.length?('\u20ac'+(pp.reduce((a,b)=>a+b,0)/pp.length).toFixed(2)):'—';
     document.getElementById('k-pc').textContent=this.mode==='master'
