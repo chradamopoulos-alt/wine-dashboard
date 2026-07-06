@@ -2584,7 +2584,7 @@ class Dash{
     // Update the 6 KPI cards for Stock tab (reflect the active filter)
     document.getElementById('k-sku').textContent=inStock.length;
     document.getElementById('k-cost').textContent=fmt(totalVal,'cur');
-    document.getElementById('k-stk').textContent=fmt(totalQty);
+    document.getElementById('k-stk').textContent=totalQty.toLocaleString();
     document.getElementById('k-con').textContent=fmt(soldOut);
     document.getElementById('k-avg').textContent=pricesWithVal.length?('€'+(pricesWithVal.reduce((a,b)=>a+b,0)/pricesWithVal.length).toFixed(2)):'—';
     document.getElementById('k-pc').textContent=inStock.filter(r=>r.visibility==='SPECIAL').length;
