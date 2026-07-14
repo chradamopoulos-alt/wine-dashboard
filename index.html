@@ -2626,7 +2626,18 @@ class Dash{
   _wineColor(w){
     const c=(w.category||'').toUpperCase();
     if(c==='RED')return'red';if(c==='ROSE'||c==='ROSÉ')return'rose';
-    if(c==='SPARKLING'||c==='CHAMPAGNE')return'sparkling';return'white';
+    if(c==='SPARKLING'||c==='CHAMPAGNE')return'sparkling';
+    if(c==='WHITE')return'white';
+    // Category missing/unknown → infer from name/description
+    const n=((w.name||'')+' '+(w.description||'')+' '+(w.fullName||'')).toUpperCase();
+    if(/ΑΦΡΩΔ|CAVA|CHAMPAGNE|SPARKLING|PROSECCO|BRUT/.test(n))return'sparkling';
+    if(/ΡΟΖΕ|ROSE|ROSÉ|ROSATO/.test(n))return'rose';
+    if(/ΕΡΥΘΡ|\bRED\b|ROSSO|ROUGE|NERO|TINTO/.test(n))return'red';
+    if(/ΛΕΥΚ|WHITE|BLANC|BIANCO/.test(n))return'white';
+    // Still unknown → infer from grape
+    const g=(w.grape||'').toLowerCase();
+    for(const k in SOMM_GRAPES){ if(g.includes(k))return SOMM_GRAPES[k].c; }
+    return'white';
   }
   _wineProfile(w){
     const g=(w.grape||'').toLowerCase();
@@ -2636,17 +2647,12 @@ class Dash{
     if(col==='sparkling'){ch.add('bubbly');ch.add('crisp');}
     return {color:col,body:body,char:ch,sweet:this._wineSweet(w)};
   }
-  sommRun(){
-    const out=document.getElementById('somm-results'); if(!out) return;
-    const text=(document.getElementById('somm-text')?document.getElementById('somm-text').value:'').toLowerCase();
-    const chips=this.somm||new Set();
-    // Build desired profile
+  _sommWant(text,useChips){
     const want={color:null,sweet:null,body:null,char:new Set(),grapes:[],country:null,price:null};
-    chips.forEach(t=>{const[k,v]=t.split(':');
+    if(useChips)(this.somm||new Set()).forEach(t=>{const[k,v]=t.split(':');
       if(k==='color')want.color=v; else if(k==='sweet')want.sweet=v;
       else if(k==='body')want.body=(v==='light'?1:v==='full'?3:2);
       else if(k==='char')want.char.add(v);});
-    // Parse free text
     if(/κοκκιν|red|ερυθ/.test(text))want.color='red';
     if(/λευκ|white|ασπρ/.test(text))want.color='white';
     if(/ροζε|rose|rosé/.test(text))want.color='rose';
@@ -2666,43 +2672,40 @@ class Dash{
     if(/ακριβ|premium|expensive|luxury|πολυτελ|special|σπεσιαλ/.test(text))want.price='high';
     if(/φθην|cheap|οικονομ|budget/.test(text))want.price='low';
     SOMM_FOOD.forEach(f=>{ if(f.k.some(k=>text.includes(k))){const wv=f.w;if(wv.c&&!want.color)want.color=wv.c;if(wv.b&&!want.body)want.body=wv.b;if(wv.sw&&!want.sweet)want.sweet=wv.sw;(wv.ch||[]).forEach(c=>want.char.add(c));} });
-
-    const hasInput = text.trim() || chips.size;
-    if(!hasInput){ out.innerHTML=`<div style="padding:14px;color:var(--muted);font-size:13px;">Γράψε τι αρέσει στον πελάτη ή διάλεξε ιδιότητες παραπάνω και πάτα <b>Πρότεινε</b>. Π.χ. «του αρέσει το cabernet, θα φάει μοσχάρι, κάτι δυνατό».</div>`; return; }
-
-    // Candidate pool: ENTIRE warehouse (STOCK_DATA), in stock. Enrich style/tags from MASTER/SPECIAL when available.
+    return want;
+  }
+  _sommPool(){
     const meta={}; [...MASTER,...SPECIAL].forEach(w=>{ if(w.code&&!meta[w.code])meta[w.code]=w; });
-    const pool=STOCK_DATA.filter(r=>(r.qty||0)>0).map(r=>{ const m=meta[r.code]||{};
+    return STOCK_DATA.filter(r=>(r.qty||0)>0).map(r=>{ const m=meta[r.code]||{};
       return {code:r.code,name:r.description||r.fullName||m.name||r.code,grape:r.grape||m.grape||'',
         category:r.category||m.category||'',country:r.country||m.country||'',price:r.price||0,
         stock:r.qty,style:m.style||'',priceTier:priceTierOf(r.price||0)}; });
+  }
+  _sommScore(want){
     const TIER=['Economy (<€3)','Standard (€3-5)','Premium (€5-10)','Luxury (€10-20)','Ultra-Premium (>€20)'];
-
-    const scored=pool.map(w=>{
+    const CHW={fruity:'φρουτώδες',crisp:'δροσερό',mineral:'μεταλλικό',oaky:'βαρέλι',aromatic:'αρωματικό',tannic:'τανικό',bold:'δυνατό',bubbly:'φυσαλίδες',floral:'ανθώδες',savory:'γευστικό',soft:'απαλό',spicy:'μπαχαρωτό',elegant:'κομψό',round:'στρογγυλό'};
+    return this._sommPool().map(w=>{
       const p=this._wineProfile(w); let s=0; const why=[];
       if(want.color){ if(p.color===want.color){s+=6;} else if(want.color==='sparkling'&&p.color==='sparkling'){s+=6;} else {s-=7;} }
       if(want.sweet){ if(p.sweet===want.sweet){s+=5;why.push(want.sweet==='sweet'?'γλυκό':want.sweet==='offdry'?'ημίγλυκο':'ξηρό');} else {s-=4;} }
       if(want.body){ const d=Math.abs(p.body-want.body); s+=(3-d*2); if(d===0)why.push(want.body===3?'δυνατό σώμα':want.body===1?'ελαφρύ':'μέτριο σώμα'); }
-      want.char.forEach(c=>{ if(p.char.has(c)){s+=3;why.push({fruity:'φρουτώδες',crisp:'δροσερό',mineral:'μεταλλικό',oaky:'βαρέλι',aromatic:'αρωματικό',tannic:'τανικό',bold:'δυνατό',bubbly:'φυσαλίδες',floral:'ανθώδες',savory:'γευστικό',soft:'απαλό',spicy:'μπαχαρωτό',elegant:'κομψό',round:'στρογγυλό'}[c]||c);} });
+      want.char.forEach(c=>{ if(p.char.has(c)){s+=3;why.push(CHW[c]||c);} });
       const g=(w.grape||'').toLowerCase();
       want.grapes.forEach(k=>{ if(g.includes(k)){s+=7;why.unshift('ακριβώς η ποικιλία που ζήτησε');} });
       if(want.country&&(w.country||'').toUpperCase().includes(want.country)){s+=3;}
       if(want.price){ const ti=TIER.indexOf(w.priceTier); if(ti>=0)s+= want.price==='high'?ti*1.2:(4-ti)*1.2; }
       return {w,s,why:[...new Set(why)]};
     }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,5);
-
-    if(!scored.length){ out.innerHTML=`<div style="padding:14px;color:var(--muted);font-size:13px;">Δεν βρέθηκε κρασί σε στοκ που να ταιριάζει. Δοκίμασε λιγότερα κριτήρια.</div>`; return; }
-
-    // Dish links for current restaurant
+  }
+  _sommCards(scored,dishLinks){
     const outlet=(document.getElementById('pairing-outlet')||{value:'PROVENCE'}).value||'PROVENCE';
     const rdata=PAIRING_DATA.restaurants[outlet];
     const dishesFor=code=>{ const ds=[]; if(rdata)rdata.sections.forEach(sec=>sec.dishes.forEach(d=>{ if(d.pairings.some(p=>p.code===code))ds.push(d.dish); })); return ds; };
-
-    let h=`<div style="font-size:12px;color:var(--muted);margin:4px 0 12px;">🔮 ${scored.length} προτάσεις για τον πελάτη — από κρασιά σε στοκ:</div>`;
+    let h='';
     scored.forEach((x,i)=>{
       const w=x.w, p=this._wineProfile(w);
       const colEmoji={red:'🔴',white:'⚪',rose:'🌸',sparkling:'🥂'}[p.color]||'🍷';
-      const dishes=dishesFor(w.code).slice(0,3);
+      const dishes=dishLinks?dishesFor(w.code).slice(0,3):[];
       const reason=x.why.length?x.why.join(' · '):'καλή γενική επιλογή';
       h+=`<div style="border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;${i===0?'background:#f0fdf4;border-color:#86efac;':'background:var(--card);'}">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -2716,6 +2719,46 @@ class Dash{
         ${dishes.length?`<div style="font-size:12px;color:#0369a1;margin-top:5px;">🍽 Ταιριάζει με: ${dishes.join(', ')}</div>`:''}
       </div>`;
     });
+    return h;
+  }
+  sommRun(){
+    const out=document.getElementById('somm-results'); if(!out) return;
+    const dsel=document.getElementById('somm-dish'); if(dsel)dsel.value='';
+    const text=(document.getElementById('somm-text')?document.getElementById('somm-text').value:'').toLowerCase();
+    const chips=this.somm||new Set();
+    if(!(text.trim()||chips.size)){ out.innerHTML=`<div style="padding:14px;color:var(--muted);font-size:13px;">Γράψε τι αρέσει στον πελάτη, διάλεξε ιδιότητες, ή διάλεξε πιάτο από το μενού. Π.χ. «του αρέσει το cabernet, θα φάει μοσχάρι, κάτι δυνατό».</div>`; return; }
+    const scored=this._sommScore(this._sommWant(text,true));
+    if(!scored.length){ out.innerHTML=`<div style="padding:14px;color:var(--muted);font-size:13px;">Δεν βρέθηκε κρασί σε στοκ που να ταιριάζει. Δοκίμασε λιγότερα κριτήρια.</div>`; return; }
+    out.innerHTML=`<div style="font-size:12px;color:var(--muted);margin:4px 0 12px;">🔮 ${scored.length} προτάσεις για τον πελάτη — από όλο το στοκ:</div>`+this._sommCards(scored,true);
+  }
+  sommDish(){
+    const out=document.getElementById('somm-results'); if(!out) return;
+    const sel=document.getElementById('somm-dish'); if(!sel||!sel.value){ this.sommRun(); return; }
+    const outlet=(document.getElementById('pairing-outlet')||{value:'PROVENCE'}).value||'PROVENCE';
+    const rdata=PAIRING_DATA.restaurants[outlet]; if(!rdata){out.innerHTML='';return;}
+    const [si,di]=sel.value.split('|').map(Number);
+    const dish=(((rdata.sections||[])[si]||{}).dishes||[])[di]; if(!dish){out.innerHTML='';return;}
+    const stk={}; STOCK_DATA.forEach(r=>{stk[r.code]=r;});
+    let h=`<div style="font-size:13px;color:var(--text);margin:4px 0 4px;">🍽 <b>${dish.dish}</b>${dish.desc?` <span style="color:var(--muted);font-size:12px;">— ${dish.desc}</span>`:''}</div>`;
+    if(dish.allergen_labels&&dish.allergen_labels.length) h+=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Αλλεργιογόνα: ${dish.allergen_labels.join(', ')}</div>`;
+    h+=`<div style="font-size:11px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px;">📋 Προτάσεις μενού</div>`;
+    const curated=new Set();
+    dish.pairings.forEach((p,i)=>{ curated.add(p.code); const s=stk[p.code]; const oos=!(s&&s.qty>0);
+      h+=`<div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;${i===0?'background:#f0fdf4;border-color:#86efac;':'background:var(--card);'}">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          ${i===0?'<span style="font-size:10px;font-weight:800;background:#16a34a;color:#fff;padding:2px 8px;border-radius:20px;">TOP</span>':`<span style="font-size:11px;color:var(--muted);font-weight:700;">#${i+1}</span>`}
+          <span style="font-weight:700;font-size:14px;">${p.name}</span>
+          <span class="cpill" style="font-size:10px;">${p.code}</span>
+          ${oos?'<span style="font-size:10px;font-weight:700;background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:20px;">εκτός στοκ</span>':`<span style="font-size:11px;color:var(--muted);">${s.qty} btl · €${(s.price||0).toFixed(2)}</span>`}
+        </div>
+        <div style="font-size:13px;color:var(--text);margin-top:4px;"><b>Γιατί:</b> ${p.reason}</div>
+      </div>`; });
+    const want=this._sommWant((dish.dish+' '+(dish.desc||'')).toLowerCase(),false);
+    // Fallback: if the dish text yields no color, infer it from the menu's own curated pairings
+    if(!want.color){ const cnt={}; dish.pairings.forEach(p=>{ const s=stk[p.code]; if(s){const col=this._wineColor(s); cnt[col]=(cnt[col]||0)+1;} });
+      const best=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]; if(best)want.color=best; }
+    const scored=this._sommScore(want).filter(x=>!curated.has(x.w.code)).slice(0,3);
+    if(scored.length){ h+=`<div style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px;">🔮 Εναλλακτικές από όλο το στοκ</div>`+this._sommCards(scored,false); }
     out.innerHTML=h;
   }
   renderPairing(){
@@ -2775,6 +2818,13 @@ class Dash{
           onkeydown="if(event.key==='Enter')D.sommRun()"
           style="flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--border);border-radius:9px;font-size:13px;">
         <button onclick="D.sommRun()" style="padding:11px 20px;background:#16a34a;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;">🔮 Πρότεινε</button>
+      </div>
+      <div class="somm-row" style="margin-bottom:10px;">
+        <span class="somm-lbl">Ή πιάτο</span>
+        <select id="somm-dish" onchange="D.sommDish()" style="flex:1;min-width:220px;padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;background:#fff;">
+          <option value="">— διάλεξε πιάτο από το μενού →</option>
+          ${data.sections.map((sec,si)=>`<optgroup label="${sec.name}">${sec.dishes.map((d,di)=>`<option value="${si}|${di}">${d.dish}</option>`).join('')}</optgroup>`).join('')}
+        </select>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;">
         <div class="somm-row"><span class="somm-lbl">Χρώμα</span>${chip('color:red','🔴 Κόκκινο')}${chip('color:white','⚪ Λευκό')}${chip('color:rose','🌸 Ροζέ')}${chip('color:sparkling','🥂 Αφρώδες')}</div>
