@@ -2617,6 +2617,18 @@ class Dash{
     else{this.allerg.add(l);el.classList.add('somm-on');}
     this.allergRun();
   }
+  allergCourseToggle(c,el){
+    if(!this.allergCourse) this.allergCourse=new Set();
+    if(this.allergCourse.has(c)){this.allergCourse.delete(c);el.classList.remove('somm-on');}
+    else{this.allergCourse.add(c);el.classList.add('somm-on');}
+    this.allergRun();
+  }
+  _courseOf(name){
+    const n=(name||'').toLowerCase();
+    if(/dessert|dolci|postres|γλυκ/.test(n))return'dessert';
+    if(/principali|grill|glaze|curry|\bmain\b|pasta|risotto|pizza|paella|carne|\bmeat\b|pescado|\bfish\b|terre|\bmer\b|seafood|dishes for two/.test(n))return'main';
+    return'starter';
+  }
   allergRun(){
     const out=document.getElementById('allerg-results'); if(!out) return;
     const sel=this.allerg||new Set();
@@ -2625,10 +2637,12 @@ class Dash{
     const scopeAll=document.getElementById('allerg-scope')?document.getElementById('allerg-scope').checked:false;
     const outlet=(document.getElementById('pairing-outlet')||{value:'PROVENCE'}).value||'PROVENCE';
     const restaurants=scopeAll?Object.keys(PAIRING_DATA.restaurants):[outlet];
+    const courses=this.allergCourse||new Set();
     let total=0,excluded=0,body='';
     restaurants.forEach(rk=>{
       const rd=PAIRING_DATA.restaurants[rk]; if(!rd)return; let block='';
       rd.sections.forEach(sec=>{
+        if(courses.size && !courses.has(this._courseOf(sec.name))) return;
         const ok=sec.dishes.filter(d=>{ const has=(d.allergen_labels||[]).some(l=>sel.has(l)); if(has)excluded++; return !has; });
         if(!ok.length)return;
         block+=`<div style="font-size:10px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.6px;margin:12px 0 6px;">${sec.name}</div>`;
@@ -2881,6 +2895,11 @@ class Dash{
       <div style="font-size:15px;font-weight:800;color:#991b1b;margin-bottom:4px;">🚫 Allergie Bot</div>
       <div style="font-size:12px;color:#b45309;margin-bottom:12px;">Διάλεξε τις αλλεργίες του πελάτη — βγάζει τα πιάτα που είναι ασφαλή.</div>
       <div class="somm-row" style="gap:6px;margin-bottom:10px;">${ALLERGENS.map(([l,e])=>achip(l,e)).join('')}</div>
+      <div class="somm-row" style="margin-bottom:10px;">
+        <span class="somm-lbl" style="color:#b45309;">Πού</span>
+        ${[['starter','🥗 Ορεκτικά'],['main','🍽️ Κυρίως'],['dessert','🍰 Γλυκά']].map(([c,lbl])=>`<span class="somm-chip${(this.allergCourse&&this.allergCourse.has(c))?' somm-on':''}" onclick="D.allergCourseToggle('${c}',this)">${lbl}</span>`).join('')}
+        <span style="font-size:10px;color:var(--muted);align-self:center;">(κενό = όλα)</span>
+      </div>
       <div class="somm-row" style="margin-bottom:4px;">
         <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="allerg-scope" onchange="D.allergRun()" style="cursor:pointer;"> Ψάξε σε όλα τα εστιατόρια</label>
         <button onclick="D.allergRun()" style="margin-left:auto;padding:8px 16px;background:#dc2626;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;">Βρες πιάτα</button>
