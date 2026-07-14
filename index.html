@@ -2670,9 +2670,12 @@ class Dash{
     const hasInput = text.trim() || chips.size;
     if(!hasInput){ out.innerHTML=`<div style="padding:14px;color:var(--muted);font-size:13px;">Γράψε τι αρέσει στον πελάτη ή διάλεξε ιδιότητες παραπάνω και πάτα <b>Πρότεινε</b>. Π.χ. «του αρέσει το cabernet, θα φάει μοσχάρι, κάτι δυνατό».</div>`; return; }
 
-    // Candidate pool: MASTER + SPECIAL, in stock, deduped
-    const seen={},pool=[];
-    [...MASTER,...SPECIAL].forEach(w=>{ if(!w.code||seen[w.code])return; seen[w.code]=1; if((w.stock||0)>0)pool.push(w); });
+    // Candidate pool: ENTIRE warehouse (STOCK_DATA), in stock. Enrich style/tags from MASTER/SPECIAL when available.
+    const meta={}; [...MASTER,...SPECIAL].forEach(w=>{ if(w.code&&!meta[w.code])meta[w.code]=w; });
+    const pool=STOCK_DATA.filter(r=>(r.qty||0)>0).map(r=>{ const m=meta[r.code]||{};
+      return {code:r.code,name:r.description||r.fullName||m.name||r.code,grape:r.grape||m.grape||'',
+        category:r.category||m.category||'',country:r.country||m.country||'',price:r.price||0,
+        stock:r.qty,style:m.style||'',priceTier:priceTierOf(r.price||0)}; });
     const TIER=['Economy (<€3)','Standard (€3-5)','Premium (€5-10)','Luxury (€10-20)','Ultra-Premium (>€20)'];
 
     const scored=pool.map(w=>{
