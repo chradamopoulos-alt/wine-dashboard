@@ -820,6 +820,9 @@ tr:last-child td{border-bottom:none;}
   <div class="tab" id="tab-beverages" onclick="D.switchTab('beverages')" style="border-top:2px solid #0891b2;">
     🥤 Ποτά <span class="tbadge" style="background:#0891b2">418</span>
   </div>
+  <div class="tab" id="tab-alerts" onclick="D.switchTab('alerts')" style="border-top:2px solid #dc2626;">
+    ⚠️ Alerts <span class="tbadge" style="background:#dc2626" id="badge-alerts">—</span>
+  </div>
 </div>
 
 <!-- KPIs -->
@@ -2235,6 +2238,8 @@ class Dash{
     while(sel.options.length>1)sel.remove(1);
     allCountries.forEach(c=>{const o=document.createElement('option');o.value=o.textContent=c;sel.appendChild(o);});
     document.getElementById('badge-stock').textContent=STOCK_DATA.length;
+    const ac=this.alertData(1.0,6,6); const badge=document.getElementById('badge-alerts');
+    if(badge)badge.textContent=ac.wineUrgent.length+ac.wineLow.length+ac.bev.length;
     this.apply();
     this.buildOutletChart();
   }
@@ -2248,6 +2253,7 @@ class Dash{
     const dop=document.getElementById('dine-out-panel');if(dop)dop.style.display='none';
     const cp2=document.getElementById('consumption-panel');if(cp2)cp2.style.display='none';
     const bvp=document.getElementById('beverages-panel');if(bvp)bvp.style.display='none';
+    const alp=document.getElementById('alerts-panel');if(alp)alp.style.display='none';
     const kpiRow2=document.querySelector('.kpi-row');if(kpiRow2)kpiRow2.style.display='';
     const tblCard2=document.getElementById('tbl');
     if(tblCard2&&tblCard2.closest('.card'))tblCard2.closest('.card').style.display='';
@@ -2343,6 +2349,21 @@ class Dash{
       this.renderBeverages();
       return;
     }
+    if(tab==='alerts'){
+      const hideIds=['charts-section','special-note','stock-note'];
+      hideIds.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+      const tblCard=document.getElementById('tbl');if(tblCard&&tblCard.closest('.card'))tblCard.closest('.card').style.display='none';
+      const srchRow=document.querySelector('.search-row');if(srchRow)srchRow.closest('.card').style.display='none';
+      const kpiRow=document.querySelector('.kpi-row');if(kpiRow)kpiRow.style.display='none';
+      outletFg.style.opacity='0.4';document.getElementById('f-outlet').disabled=true;
+      pcFg.style.opacity='0.4';document.getElementById('f-pc').disabled=true;
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.getElementById('tab-alerts').classList.add('active');
+      document.getElementById('alerts-panel').style.display='block';
+      this.mode='alerts';
+      this.renderAlerts();
+      return;
+    }
     if(tab==='special'){
       document.getElementById('kpi6-lbl').textContent='Countries';
       document.getElementById('kpi6-sub').textContent='Represented';
@@ -2426,6 +2447,64 @@ class Dash{
     h+='</tbody></table>';
     if(rows.length>400)h+=`<div style="font-size:11px;color:var(--muted);margin-top:8px">Εμφανίζονται τα πρώτα 400. Ψάξε για να περιορίσεις.</div>`;
     tbl.innerHTML=h;
+  }
+  alertData(coverMonths,bevQty,wineFloor){
+    const nM=CONS_MONTHS.length;
+    const wineUrgent=[],wineLow=[];
+    STOCK_DATA.forEach(s=>{ if((s.qty||0)<=0)return;
+      const d=CONSUMPTION_2026[s.code];
+      if(d&&d.q>0){ const cover=s.qty/(d.q/nM); if(cover<coverMonths)wineUrgent.push({code:s.code,name:s.description,qty:s.qty,price:s.price,cover:cover,avg:d.q/nM}); }
+      else if(s.qty<=wineFloor){ wineLow.push({code:s.code,name:s.description,qty:s.qty,price:s.price}); }
+    });
+    wineUrgent.sort((a,b)=>a.cover-b.cover);
+    wineLow.sort((a,b)=>a.qty-b.qty);
+    const bev=BEVERAGES.filter(b=>b.qty<=bevQty).sort((a,b)=>a.qty-b.qty);
+    return {wineUrgent,wineLow,bev};
+  }
+  renderAlerts(){
+    const out=document.getElementById('alerts-content'); if(!out) return;
+    const cm=parseFloat((document.getElementById('al-cover')||{}).value)||1.0;
+    const bq=parseInt((document.getElementById('al-bev')||{}).value)||6;
+    const wf=parseInt((document.getElementById('al-wf')||{}).value)||6;
+    const A=this.alertData(cm,bq,wf);
+    const total=A.wineUrgent.length+A.wineLow.length+A.bev.length;
+    const badge=document.getElementById('badge-alerts'); if(badge)badge.textContent=total;
+    const eur=n=>'€'+(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+    let h=`<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#991b1b;">
+      ⚠️ <b>Ειδοποιήσεις Αποθέματος</b> — τι κοντεύει να τελειώσει. Ρύθμισε τα όρια παρακάτω.</div>`;
+    h+=`<div class="card" style="padding:14px;margin-bottom:14px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;">
+      <label style="font-size:12px;">🍷 Κρασί: κάλυψη < <input id="al-cover" type="number" step="0.5" min="0.5" value="${cm}" onchange="D.renderAlerts()" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;"> μήνες</label>
+      <label style="font-size:12px;">🍷 χωρίς ανάλωση: ποσ. ≤ <input id="al-wf" type="number" min="1" value="${wf}" onchange="D.renderAlerts()" style="width:56px;padding:6px;border:1px solid var(--border);border-radius:6px;"></label>
+      <label style="font-size:12px;">🥤 Ποτά: ποσ. ≤ <input id="al-bev" type="number" min="1" value="${bq}" onchange="D.renderAlerts()" style="width:56px;padding:6px;border:1px solid var(--border);border-radius:6px;"></label>
+    </div>`;
+
+    // Wine urgent (cover-based)
+    h+=`<div class="card" style="padding:16px;margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#b91c1c;margin-bottom:8px">🍷 ΚΡΑΣΙΑ ΠΟΥ ΤΕΛΕΙΩΝΟΥΝ — κάλυψη < ${cm} μήνες <span style="color:var(--muted);font-weight:400">(${A.wineUrgent.length})</span></div>`;
+    if(A.wineUrgent.length){
+      h+=`<div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Κωδικός</th><th>Κρασί</th><th style="text-align:right">Απόθεμα</th><th style="text-align:right">Μ.Ο./μήνα</th><th style="text-align:right">Μήνες</th></tr></thead><tbody>`;
+      A.wineUrgent.slice(0,60).forEach(x=>{h+=`<tr><td><span class="cpill" style="font-size:10px">${x.code}</span></td><td>${x.name}</td><td style="text-align:right;font-weight:700">${x.qty}</td><td style="text-align:right">${x.avg.toFixed(0)}</td><td style="text-align:right;font-weight:700;color:#b91c1c">${x.cover.toFixed(1)}</td></tr>`;});
+      h+=`</tbody></table></div>`;
+    } else h+=`<div style="font-size:13px;color:#16a34a">✅ Κανένα κρασί κάτω από το όριο.</div>`;
+    h+=`</div>`;
+
+    // Wine low (no consumption)
+    if(A.wineLow.length){
+      h+=`<div class="card" style="padding:16px;margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#a16207;margin-bottom:8px">🍷 ΧΑΜΗΛΟ ΑΠΟΘΕΜΑ (χωρίς δεδομένα ανάλωσης) — ποσ. ≤ ${wf} <span style="color:var(--muted);font-weight:400">(${A.wineLow.length})</span></div>
+        <div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Κωδικός</th><th>Κρασί</th><th style="text-align:right">Απόθεμα</th></tr></thead><tbody>`;
+      A.wineLow.slice(0,40).forEach(x=>{h+=`<tr><td><span class="cpill" style="font-size:10px">${x.code}</span></td><td>${x.name}</td><td style="text-align:right;font-weight:700">${x.qty}</td></tr>`;});
+      h+=`</tbody></table></div></div>`;
+    }
+
+    // Beverages low
+    h+=`<div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;color:#0e7490;margin-bottom:8px">🥤 ΠΟΤΑ ΠΟΥ ΤΕΛΕΙΩΝΟΥΝ — ποσ. ≤ ${bq} <span style="color:var(--muted);font-weight:400">(${A.bev.length})</span></div>`;
+    if(A.bev.length){
+      h+=`<div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Κωδικός</th><th>Περιγραφή</th><th>Κατηγορία</th><th style="text-align:right">Απόθεμα</th></tr></thead><tbody>`;
+      A.bev.slice(0,80).forEach(b=>{h+=`<tr><td><span class="cpill" style="font-size:10px">${b.code}</span></td><td>${b.description}</td><td style="color:var(--muted);white-space:nowrap">${b.category}</td><td style="text-align:right;font-weight:700;color:#b91c1c">${b.qty}</td></tr>`;});
+      h+=`</tbody></table></div>`;
+    } else h+=`<div style="font-size:13px;color:#16a34a">✅ Κανένα ποτό κάτω από το όριο.</div>`;
+    h+=`</div>`;
+    out.innerHTML=h;
   }
   wineLookup(){
     const out=document.getElementById('wl-results'); if(!out) return;
@@ -3527,6 +3606,10 @@ window.addEventListener('message', function(e) {
 
 <div id="beverages-panel" style="display:none;padding:8px 0;">
   <div id="beverages-content"></div>
+</div>
+
+<div id="alerts-panel" style="display:none;padding:8px 0;">
+  <div id="alerts-content"></div>
 </div>
 
 </body>
