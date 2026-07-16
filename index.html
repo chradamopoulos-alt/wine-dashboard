@@ -2726,16 +2726,27 @@ class Dash{
     const txt=list.map(x=>`${x.code}\t${x.name}\t${x.order} btl`).join('\n');
     if(navigator.clipboard)navigator.clipboard.writeText(txt);
   }
+  _winePriority(s){
+    const d=(s.description||s.name||'').toUpperCase();
+    if(d.includes('IKOS PRIVATE CELLAR'))return 0;      // 1η προτεραιότητα
+    if(s.visibility==='Visible')return 1;               // Master list (visible)
+    if(s.visibility==='SPECIAL')return 2;               // Special requests
+    return 3;                                           // Not Visible / λοιπά
+  }
+  _prioTag(prio){
+    return [['IKOS Private Cellar','#b45309','#fef3c7'],['Visible','#166534','#dcfce7'],['Special','#9a3412','#ffedd5'],['Not Visible','#475569','#f1f5f9']][prio];
+  }
   alertData(coverMonths,bevQty,wineFloor){
     const nM=CONS_MONTHS.length;
     const wineUrgent=[],wineLow=[];
     STOCK_DATA.forEach(s=>{ if((s.qty||0)<=0)return;
+      const prio=this._winePriority(s);
       const d=CONSUMPTION_2026[s.code];
-      if(d&&d.q>0){ const cover=s.qty/(d.q/nM); if(cover<coverMonths)wineUrgent.push({code:s.code,name:s.description,qty:s.qty,price:s.price,cover:cover,avg:d.q/nM}); }
-      else if(s.qty<=wineFloor){ wineLow.push({code:s.code,name:s.description,qty:s.qty,price:s.price}); }
+      if(d&&d.q>0){ const cover=s.qty/(d.q/nM); if(cover<coverMonths)wineUrgent.push({code:s.code,name:s.description,qty:s.qty,price:s.price,cover:cover,avg:d.q/nM,prio}); }
+      else if(s.qty<=wineFloor){ wineLow.push({code:s.code,name:s.description,qty:s.qty,price:s.price,prio}); }
     });
-    wineUrgent.sort((a,b)=>a.cover-b.cover);
-    wineLow.sort((a,b)=>a.qty-b.qty);
+    wineUrgent.sort((a,b)=>a.prio-b.prio || a.cover-b.cover);
+    wineLow.sort((a,b)=>a.prio-b.prio || a.qty-b.qty);
     const bev=BEVERAGES.filter(b=>b.qty<=bevQty).sort((a,b)=>a.qty-b.qty);
     return {wineUrgent,wineLow,bev};
   }
@@ -2757,11 +2768,14 @@ class Dash{
       <label style="font-size:12px;">🥤 Ποτά: ποσ. ≤ <input id="al-bev" type="number" min="1" value="${bq}" onchange="D.renderAlerts()" style="width:56px;padding:6px;border:1px solid var(--border);border-radius:6px;"></label>
     </div>`;
 
-    // Wine urgent (cover-based)
-    h+=`<div class="card" style="padding:16px;margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#b91c1c;margin-bottom:8px">🍷 ΚΡΑΣΙΑ ΠΟΥ ΤΕΛΕΙΩΝΟΥΝ — κάλυψη < ${cm} μήνες <span style="color:var(--muted);font-weight:400">(${A.wineUrgent.length})</span></div>`;
+    const tag=p=>{const t=this._prioTag(p);return `<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:${t[2]};color:${t[1]};white-space:nowrap">${t[0]}</span>`;};
+
+    // Wine urgent (cover-based) — sorted by priority: IKOS Private Cellar → Visible → Special → Not Visible
+    h+=`<div class="card" style="padding:16px;margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#b91c1c;margin-bottom:4px">🍷 ΚΡΑΣΙΑ ΠΟΥ ΤΕΛΕΙΩΝΟΥΝ — κάλυψη < ${cm} μήνες <span style="color:var(--muted);font-weight:400">(${A.wineUrgent.length})</span></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Προτεραιότητα: 🟡 IKOS Private Cellar → 🟢 Visible → 🟠 Special → ⚪ Not Visible</div>`;
     if(A.wineUrgent.length){
-      h+=`<div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Κωδικός</th><th>Κρασί</th><th style="text-align:right">Απόθεμα</th><th style="text-align:right">Μ.Ο./μήνα</th><th style="text-align:right">Μήνες</th></tr></thead><tbody>`;
-      A.wineUrgent.slice(0,60).forEach(x=>{h+=`<tr><td><span class="cpill" style="font-size:10px">${x.code}</span></td><td>${x.name}</td><td style="text-align:right;font-weight:700">${x.qty}</td><td style="text-align:right">${x.avg.toFixed(0)}</td><td style="text-align:right;font-weight:700;color:#b91c1c">${x.cover.toFixed(1)}</td></tr>`;});
+      h+=`<div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Κωδικός</th><th>Προτ.</th><th>Κρασί</th><th style="text-align:right">Απόθεμα</th><th style="text-align:right">Μ.Ο./μήνα</th><th style="text-align:right">Μήνες</th></tr></thead><tbody>`;
+      A.wineUrgent.slice(0,80).forEach(x=>{h+=`<tr><td><span class="cpill" style="font-size:10px">${x.code}</span></td><td>${tag(x.prio)}</td><td>${x.name}</td><td style="text-align:right;font-weight:700">${x.qty}</td><td style="text-align:right">${x.avg.toFixed(0)}</td><td style="text-align:right;font-weight:700;color:#b91c1c">${x.cover.toFixed(1)}</td></tr>`;});
       h+=`</tbody></table></div>`;
     } else h+=`<div style="font-size:13px;color:#16a34a">✅ Κανένα κρασί κάτω από το όριο.</div>`;
     h+=`</div>`;
@@ -2769,8 +2783,8 @@ class Dash{
     // Wine low (no consumption)
     if(A.wineLow.length){
       h+=`<div class="card" style="padding:16px;margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#a16207;margin-bottom:8px">🍷 ΧΑΜΗΛΟ ΑΠΟΘΕΜΑ (χωρίς δεδομένα ανάλωσης) — ποσ. ≤ ${wf} <span style="color:var(--muted);font-weight:400">(${A.wineLow.length})</span></div>
-        <div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Κωδικός</th><th>Κρασί</th><th style="text-align:right">Απόθεμα</th></tr></thead><tbody>`;
-      A.wineLow.slice(0,40).forEach(x=>{h+=`<tr><td><span class="cpill" style="font-size:10px">${x.code}</span></td><td>${x.name}</td><td style="text-align:right;font-weight:700">${x.qty}</td></tr>`;});
+        <div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Κωδικός</th><th>Προτ.</th><th>Κρασί</th><th style="text-align:right">Απόθεμα</th></tr></thead><tbody>`;
+      A.wineLow.slice(0,40).forEach(x=>{h+=`<tr><td><span class="cpill" style="font-size:10px">${x.code}</span></td><td>${tag(x.prio)}</td><td>${x.name}</td><td style="text-align:right;font-weight:700">${x.qty}</td></tr>`;});
       h+=`</tbody></table></div></div>`;
     }
 
