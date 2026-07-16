@@ -2427,6 +2427,48 @@ class Dash{
     if(rows.length>400)h+=`<div style="font-size:11px;color:var(--muted);margin-top:8px">Εμφανίζονται τα πρώτα 400. Ψάξε για να περιορίσεις.</div>`;
     tbl.innerHTML=h;
   }
+  wineLookup(){
+    const out=document.getElementById('wl-results'); if(!out) return;
+    const q=(document.getElementById('wl-input')?document.getElementById('wl-input').value:'').trim().toLowerCase();
+    if(!q){ out.innerHTML=`<div style="padding:12px;color:var(--muted);font-size:13px;">Πληκτρολόγησε κωδικό (π.χ. F24102393) ή μέρος του ονόματος.</div>`; return; }
+    let w=STOCK_DATA.find(r=>r.code.toLowerCase()===q);
+    if(!w) w=STOCK_DATA.find(r=>r.code.toLowerCase().includes(q)||(r.description||'').toLowerCase().includes(q));
+    if(!w){ out.innerHTML=`<div style="padding:12px;color:#b91c1c;font-size:13px;">Δεν βρέθηκε κρασί με «${q}». Δοκίμασε κωδικό ή άλλη λέξη.</div>`; return; }
+    const meta=[...MASTER,...SPECIAL].find(m=>m.code===w.code)||{};
+    const wine={code:w.code,name:w.description||w.fullName||w.code,grape:w.grape||meta.grape||'',category:w.category||meta.category||'',country:w.country||meta.country||'',price:w.price||0,stock:w.qty||0,style:meta.style||''};
+    const prof=this._wineProfile(wine);
+    const colEmoji={red:'🔴',white:'⚪',rose:'🌸',sparkling:'🥂'}[prof.color]||'🍷';
+    const eur=n=>'€'+(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    const RN={PROVENCE:'🇫🇷 Provence',ANAYA:'🌏 Anaya',FRESCO:'🇮🇹 Fresco',KOS:'🏛️ Kos',OLIVA:'🇪🇸 Oliva',SEASONS:'🌟 Seasons',OUZO:'🏺 Ouzo'};
+    // dishes across all restaurants
+    const found=[];
+    for(const rk in PAIRING_DATA.restaurants){ PAIRING_DATA.restaurants[rk].sections.forEach(sec=>sec.dishes.forEach(d=>{ const pr=d.pairings.find(p=>p.code===w.code); if(pr)found.push({r:rk,dish:d.dish,reason:pr.reason,style:pr.style}); })); }
+    // alternatives
+    const want={color:prof.color,sweet:(prof.sweet==='dry'?null:prof.sweet),body:prof.body,char:new Set([...prof.char].slice(0,2)),grapes:[],country:null,price:null};
+    const alts=this._sommScore(want).filter(x=>x.w.code!==w.code).slice(0,3);
+
+    let h=`<div style="border:1px solid #ddd6fe;border-radius:12px;padding:14px 16px;background:#faf5ff;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:16px;">${colEmoji}</span>
+        <span style="font-weight:800;font-size:15px;">${wine.name.replace(/\s*\(750ML\)/i,'')}</span>
+        <span class="cpill" style="font-size:10px;">${wine.code}</span>
+        ${wine.stock>0?`<span style="font-size:11px;font-weight:700;color:#166534;">${wine.stock} btl σε στοκ</span>`:`<span style="font-size:11px;font-weight:700;background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:20px;">εκτός στοκ</span>`}
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">${wine.grape||''}${wine.country?' · '+wine.country:''} · ${wine.category||''} · ${eur(wine.price)}</div>
+    </div>`;
+
+    h+=`<div style="font-size:11px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px;">🍽 Ταιριάζει με ${found.length} πιάτα</div>`;
+    if(found.length){
+      const byR={}; found.forEach(f=>{(byR[f.r]=byR[f.r]||[]).push(f);});
+      Object.keys(byR).forEach(rk=>{
+        h+=`<div style="font-size:12px;font-weight:700;margin:8px 0 4px;">${RN[rk]||rk}</div>`;
+        byR[rk].forEach(f=>{ h+=`<div style="border:1px solid var(--border);border-radius:9px;padding:9px 12px;margin-bottom:6px;background:var(--card);"><div style="font-weight:700;font-size:13px;">${f.dish}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${f.reason}</div></div>`; });
+      });
+    } else { h+=`<div style="font-size:13px;color:var(--muted);margin-bottom:6px;">Δεν υπάρχει καταχωρημένο ταίριασμα στα μενού. Δες τις εναλλακτικές παρακάτω για το στυλ του.</div>`; }
+
+    if(alts.length){ h+=`<div style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px;">🔄 Παρόμοια κρασιά σε στοκ</div>`+this._sommCards(alts,true); }
+    out.innerHTML=h;
+  }
   renderConsumption(){
     const nM=CONS_MONTHS.length;
     const codes=Object.keys(CONSUMPTION_2026);
@@ -3026,6 +3068,19 @@ class Dash{
         <button onclick="D.allergRun()" style="margin-left:auto;padding:8px 16px;background:#dc2626;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;">Βρες πιάτα</button>
       </div>
       <div id="allerg-results" style="margin-top:12px;"></div>
+    </div>`;
+
+    // ── "Τι να κάνω με αυτό;" wine lookup box ──
+    h += `<div style="border:1px solid #ddd6fe;background:linear-gradient(135deg,#f5f3ff,#faf5ff);border-radius:14px;padding:16px 18px;margin-bottom:26px;">
+      <div style="font-size:15px;font-weight:800;color:#5b21b6;margin-bottom:4px;">🍷 Τι να κάνω με αυτό;</div>
+      <div style="font-size:12px;color:#6d28d9;margin-bottom:12px;">Δώσε κωδικό ή όνομα κρασιού — δείχνει σε ποια πιάτα ταιριάζει, το απόθεμα και εναλλακτικές.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input id="wl-input" list="wl-list" type="text" placeholder="π.χ. F24102393 ή Assyrtiko…" onkeydown="if(event.key==='Enter')D.wineLookup()"
+          style="flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--border);border-radius:9px;font-size:13px;">
+        <datalist id="wl-list">${STOCK_DATA.filter(r=>(r.qty||0)>0).map(r=>`<option value="${r.code}">${(r.description||'').replace(/"/g,'')}</option>`).join('')}</datalist>
+        <button onclick="D.wineLookup()" style="padding:11px 20px;background:#7c3aed;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;">Δείξε</button>
+      </div>
+      <div id="wl-results" style="margin-top:14px;"></div>
     </div>`;
 
     data.sections.forEach(section => {
