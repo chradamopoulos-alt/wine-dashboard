@@ -1486,7 +1486,22 @@ const SOMM_GRAPES={
   'zinfandel':{c:'red',b:3,ch:['bold','fruity']},'tempranillo':{c:'red',b:2,ch:['savory','fruity']},
   'nebbiolo':{c:'red',b:3,ch:['tannic','savory']},'negroamaro':{c:'red',b:3,ch:['bold']},'negromaro':{c:'red',b:3,ch:['bold']},
   'mavrotragano':{c:'red',b:3,ch:['bold','tannic']},'μαυροτραγανο':{c:'red',b:3,ch:['bold','tannic']},
-  'limnio':{c:'red',b:2,ch:['savory']},'λημνιο':{c:'red',b:2,ch:['savory']},'primitivo':{c:'red',b:3,ch:['bold','fruity']}
+  'limnio':{c:'red',b:2,ch:['savory']},'λημνιο':{c:'red',b:2,ch:['savory']},'primitivo':{c:'red',b:3,ch:['bold','fruity']},
+  'pinot gris':{c:'white',b:2,ch:['fruity','round']},'pinot grigio':{c:'white',b:2,ch:['crisp','fruity']},'chenin':{c:'white',b:2,ch:['crisp','fruity']},
+  'torrontes':{c:'white',b:1,ch:['aromatic','floral']},'albarino':{c:'white',b:2,ch:['crisp','mineral']},'αλβαρινιο':{c:'white',b:2,ch:['crisp','mineral']},
+  'verdejo':{c:'white',b:2,ch:['crisp','aromatic']},'cortese':{c:'white',b:2,ch:['crisp']},'gavi':{c:'white',b:2,ch:['crisp']},
+  'garganega':{c:'white',b:2,ch:['crisp']},'soave':{c:'white',b:2,ch:['crisp']},'macabeo':{c:'white',b:2,ch:['crisp']},
+  'robola':{c:'white',b:2,ch:['crisp','mineral']},'ρομπολα':{c:'white',b:2,ch:['crisp','mineral']},'athiri':{c:'white',b:1,ch:['crisp']},'αθηρι':{c:'white',b:1,ch:['crisp']},
+  'savatiano':{c:'white',b:1,ch:['crisp']},'σαββατιαν':{c:'white',b:1,ch:['crisp']},'debina':{c:'white',b:1,ch:['crisp']},'ντεμπινα':{c:'white',b:1,ch:['crisp']},
+  'vidiano':{c:'white',b:2,ch:['aromatic','round']},'βιδιανο':{c:'white',b:2,ch:['aromatic','round']},'thrapsathiri':{c:'white',b:2,ch:['crisp']},'θραψαθηρι':{c:'white',b:2,ch:['crisp']},
+  'malvasia':{c:'white',b:2,ch:['aromatic','floral']},'μαλβαζια':{c:'white',b:2,ch:['aromatic','floral']},'lagorthi':{c:'white',b:2,ch:['crisp']},
+  'cabernet franc':{c:'red',b:2,ch:['savory','fruity']},'petit verdot':{c:'red',b:3,ch:['bold','tannic']},'mourvedre':{c:'red',b:3,ch:['bold','spicy']},
+  'cinsault':{c:'rose',b:1,ch:['fruity','crisp']},'σανσω':{c:'rose',b:1,ch:['fruity','crisp']},'gamay':{c:'red',b:1,ch:['fruity','elegant']},
+  'montepulciano':{c:'red',b:2,ch:['fruity','soft']},'kotsifali':{c:'red',b:2,ch:['fruity','soft']},'κοτσιφαλι':{c:'red',b:2,ch:['fruity','soft']},
+  'mandilaria':{c:'red',b:3,ch:['tannic','savory']},'μανδηλαρια':{c:'red',b:3,ch:['tannic','savory']},'liatiko':{c:'red',b:2,ch:['soft','fruity']},'λιατικο':{c:'red',b:2,ch:['soft','fruity']},
+  'aglianico':{c:'red',b:3,ch:['tannic','savory']},'tannat':{c:'red',b:3,ch:['tannic','bold']},'carmenere':{c:'red',b:2,ch:['savory','fruity']},
+  'mavrodaphne':{c:'red',b:2,ch:['sweet'],sw:'sweet'},'μαυροδαφν':{c:'red',b:2,ch:['sweet'],sw:'sweet'},'νημεα':{c:'red',b:2,ch:['fruity','soft']},
+  'nero d':{c:'red',b:2,ch:['fruity']},'barbera':{c:'red',b:2,ch:['fruity','savory']},'dolcetto':{c:'red',b:2,ch:['fruity']}
 };
 const SOMM_FOOD=[
   {k:['fish','ψαρι','θαλασσ','seafood','oyster','στριδ','sushi','γαριδ','prawn','shrimp','μυδι','καλαμαρ','octopus','χταποδ'],w:{c:'white',ch:['crisp','mineral']}},
@@ -1495,12 +1510,34 @@ const SOMM_FOOD=[
   {k:['chicken','κοτοπουλ','poultry','γαλοπουλ','turkey'],w:{c:'white',b:2}},
   {k:['pork','χοιριν','γουρουν'],w:{c:'red',b:2}},
   {k:['pasta','ζυμαρικ','tomato','ντοματ','pizza','πιτσα','risotto'],w:{c:'red',b:2,ch:['fruity']}},
-  {k:['cheese','τυρι','γραβιερ','feta','φετα'],w:{c:'red',b:2}},
+  {k:['γραβιερ','κασερι','κεφαλοτυρ','parmesan','παρμεζ','cheddar','gouda','manchego','pecorino','aged cheese','κιτρινο τυρι'],w:{c:'red',b:2,ch:['savory']}},
   {k:['spicy','πικαντ','καυτερ','curry','καρι','τσιλι','chili'],w:{ch:['aromatic'],sw:'offdry'}},
   {k:['dessert','γλυκο','επιδορπ','chocolate','σοκολατ','cake','τουρτα','κεικ','παγωτ','icecream'],w:{sw:'sweet'}},
   {k:['salad','σαλατα','vegetable','λαχανικ','veggie','χορτ'],w:{c:'white',ch:['crisp']}},
   {k:['foie','παχυ','rich','κρεμωδ','creamy','butter','βουτυρ'],w:{ch:['oaky','round']}},
-  {k:['aperitif','απεριτιφ','ορεκτικ','welcome','καλωσορ','celebrat','γιορτ','τοστ','toast'],w:{c:'sparkling',ch:['bubbly']}}
+  {k:['aperitif','απεριτιφ','ορεκτικ','welcome','καλωσορ','celebrat','γιορτ','τοστ','toast'],w:{c:'sparkling',ch:['bubbly']}},
+  {k:['duck','παπι','πάπια'],w:{c:'red',b:2,ch:['fruity','savory']}},
+  {k:['game','κυνηγι','venison','ελαφι','αγριογουρουν','wild boar','λαγος'],w:{c:'red',b:3,ch:['bold','tannic']}},
+  {k:['mushroom','μανιταρ','truffle','τρουφα','earthy'],w:{c:'red',b:2,ch:['savory','elegant']}},
+  {k:['burger','μπεργκερ','ριμπς','ribs'],w:{c:'red',b:3,ch:['bold','fruity']}},
+  {k:['cured','αλλαντικ','προσουτο','prosciutto','jamon','χαμον','charcuterie','σαλαμι','παστουρμα'],w:{c:'red',b:2,ch:['savory','fruity']}},
+  {k:['fried','τηγαν','κροκετ','tempura','crispy','τραγαν'],w:{c:'sparkling',ch:['crisp','bubbly']}},
+  {k:['blue cheese','μπλε τυρι','ροκφορ','roquefort','gorgonzola'],w:{c:'white',sw:'sweet'}},
+  {k:['goat cheese','κατσικισ','χαλουμ','halloumi'],w:{c:'white',ch:['crisp','aromatic']}},
+  {k:['feta','φετα','soft cheese','μαλακο τυρι'],w:{c:'white',ch:['crisp']}},
+  {k:['cheese','τυρι','τυρια','cheeseboard','πιατελα τυριων'],w:{c:'white',b:2}},
+  {k:['smoked','καπνιστ'],w:{c:'white',ch:['aromatic','oaky']}},
+  {k:['sweet and sour','γλυκοξιν','teriyaki','τεριγιακι','honey','μελι','sweet chili'],w:{sw:'offdry',ch:['aromatic']}},
+  {k:['risotto','κρεμωδη ζυμαρικα','carbonara','καρμποναρα','alfredo'],w:{c:'white',ch:['oaky','round']}},
+  {k:['mediterranean','μεσογειακ','olive','ελι','μεζε','mezze','tapas'],w:{c:'rose',ch:['crisp','fruity']}},
+  {k:['summer','καλοκαιρ','pool','beach','παραλια','πισινα','poolside'],w:{c:'rose',ch:['crisp','fruity']}},
+  {k:['winter','χειμων','warm','ζεστο','stew','κοκκινιστ','ραγου','braised','γιαχνι'],w:{c:'red',b:3,ch:['bold']}},
+  {k:['romantic','ρομαντικ','anniversary','επετει','proposal','προταση','wedding','γαμο','honeymoon','μηνας του μελιτος'],w:{c:'sparkling',ch:['bubbly','elegant']}},
+  {k:['birthday','γενεθλι','party','παρτι','festive'],w:{c:'sparkling',ch:['bubbly','fruity']}},
+  {k:['gift','δωρο','impress','εντυπωσ','vip','special occasion','ειδικη περισταση'],w:{price:'high'}},
+  {k:['vegetarian','χορτοφαγ','vegan','βιγκαν'],w:{c:'white',ch:['crisp','aromatic']}},
+  {k:['sea urchin','αχινο','caviar','χαβιαρ','lobster','αστακ','scallop','χτενι'],w:{c:'sparkling',ch:['crisp','mineral']}},
+  {k:['tuna','τονο','salmon','σολομ','tartare','ταρταρ','ceviche','σεβιτσε','carpaccio','καρπατσιο'],w:{c:'white',ch:['crisp','mineral']}}
 ];
 const SOMM_COUNTRIES={'greece':'GREECE','ελλα':'GREECE','ελλην':'GREECE','france':'FRANCE','γαλλ':'FRANCE','italy':'ITALY','ιταλ':'ITALY','spain':'SPAIN','ισπαν':'SPAIN','argentin':'ARGENTINA','αργεντ':'ARGENTINA'};
 
@@ -2808,7 +2845,7 @@ class Dash{
     for(const k in SOMM_COUNTRIES){ if(text.includes(k))want.country=SOMM_COUNTRIES[k]; }
     if(/ακριβ|premium|expensive|luxury|πολυτελ|special|σπεσιαλ/.test(text))want.price='high';
     if(/φθην|cheap|οικονομ|budget/.test(text))want.price='low';
-    SOMM_FOOD.forEach(f=>{ if(f.k.some(k=>text.includes(k))){const wv=f.w;if(wv.c&&!want.color)want.color=wv.c;if(wv.b&&!want.body)want.body=wv.b;if(wv.sw&&!want.sweet)want.sweet=wv.sw;(wv.ch||[]).forEach(c=>want.char.add(c));} });
+    SOMM_FOOD.forEach(f=>{ if(f.k.some(k=>text.includes(k))){const wv=f.w;if(wv.c&&!want.color)want.color=wv.c;if(wv.b&&!want.body)want.body=wv.b;if(wv.sw&&!want.sweet)want.sweet=wv.sw;if(wv.price&&!want.price)want.price=wv.price;(wv.ch||[]).forEach(c=>want.char.add(c));} });
     return want;
   }
   _sommPool(){
