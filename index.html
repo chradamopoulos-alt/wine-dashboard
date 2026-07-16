@@ -823,6 +823,9 @@ tr:last-child td{border-bottom:none;}
   <div class="tab" id="tab-alerts" onclick="D.switchTab('alerts')" style="border-top:2px solid #dc2626;">
     ⚠️ Alerts <span class="tbadge" style="background:#dc2626" id="badge-alerts">—</span>
   </div>
+  <div class="tab" id="tab-order" onclick="D.switchTab('order')" style="border-top:2px solid #16a34a;">
+    🛒 Παραγγελία
+  </div>
 </div>
 
 <!-- KPIs -->
@@ -2254,6 +2257,7 @@ class Dash{
     const cp2=document.getElementById('consumption-panel');if(cp2)cp2.style.display='none';
     const bvp=document.getElementById('beverages-panel');if(bvp)bvp.style.display='none';
     const alp=document.getElementById('alerts-panel');if(alp)alp.style.display='none';
+    const orp=document.getElementById('order-panel');if(orp)orp.style.display='none';
     const kpiRow2=document.querySelector('.kpi-row');if(kpiRow2)kpiRow2.style.display='';
     const tblCard2=document.getElementById('tbl');
     if(tblCard2&&tblCard2.closest('.card'))tblCard2.closest('.card').style.display='';
@@ -2364,6 +2368,21 @@ class Dash{
       this.renderAlerts();
       return;
     }
+    if(tab==='order'){
+      const hideIds=['charts-section','special-note','stock-note'];
+      hideIds.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+      const tblCard=document.getElementById('tbl');if(tblCard&&tblCard.closest('.card'))tblCard.closest('.card').style.display='none';
+      const srchRow=document.querySelector('.search-row');if(srchRow)srchRow.closest('.card').style.display='none';
+      const kpiRow=document.querySelector('.kpi-row');if(kpiRow)kpiRow.style.display='none';
+      outletFg.style.opacity='0.4';document.getElementById('f-outlet').disabled=true;
+      pcFg.style.opacity='0.4';document.getElementById('f-pc').disabled=true;
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.getElementById('tab-order').classList.add('active');
+      document.getElementById('order-panel').style.display='block';
+      this.mode='order';
+      this.renderOrder();
+      return;
+    }
     if(tab==='special'){
       document.getElementById('kpi6-lbl').textContent='Countries';
       document.getElementById('kpi6-sub').textContent='Represented';
@@ -2447,6 +2466,55 @@ class Dash{
     h+='</tbody></table>';
     if(rows.length>400)h+=`<div style="font-size:11px;color:var(--muted);margin-top:8px">Εμφανίζονται τα πρώτα 400. Ψάξε για να περιορίσεις.</div>`;
     tbl.innerHTML=h;
+  }
+  orderData(targetMonths,pack){
+    const nM=CONS_MONTHS.length; const list=[];
+    STOCK_DATA.forEach(s=>{ const d=CONSUMPTION_2026[s.code]; if(!d||d.q<=0)return;
+      const avg=d.q/nM; const stock=s.qty||0; const target=Math.ceil(avg*targetMonths);
+      let need=target-stock; if(need<=0)return;
+      if(pack>1)need=Math.ceil(need/pack)*pack;
+      list.push({code:s.code,name:s.description,stock:stock,avg:avg,cover:avg>0?stock/avg:0,order:need,price:s.price||0,cost:need*(s.price||0)});
+    });
+    list.sort((a,b)=>a.cover-b.cover);
+    return list;
+  }
+  renderOrder(){
+    const out=document.getElementById('order-content'); if(!out) return;
+    const tm=parseFloat((document.getElementById('ord-months')||{}).value)||2;
+    const pk=parseInt((document.getElementById('ord-pack')||{}).value)||1;
+    const list=this.orderData(tm,pk); this._lastOrder=list;
+    const eur=n=>'€'+(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    const totBtl=list.reduce((s,x)=>s+x.order,0), totCost=list.reduce((s,x)=>s+x.cost,0);
+
+    let h=`<div style="background:#f0fdf4;border:1px solid #a7f3d0;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#065f46;">
+      🛒 <b>Προτεινόμενη Παραγγελία</b> — με βάση τον ρυθμό ανάλωσης 2026 (${CONS_MONTHS.join('·')}). Στόχος: κάλυψη <b>${tm}</b> μήνες. Μόνο κρασιά κάτω από τον στόχο.</div>`;
+    h+=`<div class="card" style="padding:14px;margin-bottom:14px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;">
+      <label style="font-size:12px;">🎯 Στόχος κάλυψης <input id="ord-months" type="number" step="0.5" min="0.5" value="${tm}" onchange="D.renderOrder()" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;"> μήνες</label>
+      <label style="font-size:12px;">📦 Στρογγυλοποίηση σε <input id="ord-pack" type="number" min="1" value="${pk}" onchange="D.renderOrder()" style="width:56px;padding:6px;border:1px solid var(--border);border-radius:6px;"> (π.χ. 6=κιβώτιο)</label>
+      <button onclick="D.orderCSV()" style="margin-left:auto;padding:9px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">⬇️ Εξαγωγή CSV</button>
+      <button onclick="D.orderCopy()" style="padding:9px 16px;background:#0891b2;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">📋 Αντιγραφή</button>
+    </div>`;
+    h+=`<div class="card" style="padding:16px;">
+      <div style="font-size:13px;margin-bottom:10px;"><b>${list.length}</b> κρασιά για παραγγελία · <b>${totBtl.toLocaleString()}</b> μπουκάλια · εκτ. κόστος <b>${eur(totCost)}</b></div>`;
+    if(list.length){
+      h+=`<div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Κωδικός</th><th>Κρασί</th><th style="text-align:right">Απόθεμα</th><th style="text-align:right">Μ.Ο./μήνα</th><th style="text-align:right">Μήνες</th><th style="text-align:right">➡️ Παραγγελία</th><th style="text-align:right">Εκτ. κόστος</th></tr></thead><tbody>`;
+      list.forEach(x=>{h+=`<tr><td><span class="cpill" style="font-size:10px">${x.code}</span></td><td>${x.name}</td><td style="text-align:right">${x.stock}</td><td style="text-align:right">${x.avg.toFixed(0)}</td><td style="text-align:right;color:${x.cover<1?'#b91c1c':'var(--muted)'}">${x.cover.toFixed(1)}</td><td style="text-align:right;font-weight:800;color:#16a34a">${x.order}</td><td style="text-align:right">${eur(x.cost)}</td></tr>`;});
+      h+=`</tbody></table></div>`;
+    } else h+=`<div style="font-size:13px;color:#16a34a">✅ Όλα τα κρασιά καλύπτουν τον στόχο — δεν χρειάζεται παραγγελία.</div>`;
+    h+=`</div>`;
+    out.innerHTML=h;
+  }
+  orderCSV(){
+    const list=this._lastOrder||[]; if(!list.length)return;
+    let csv='Code,Wine,Stock,AvgPerMonth,MonthsCover,OrderQty,UnitPrice,EstCost\n';
+    list.forEach(x=>{ const nm='"'+(x.name||'').replace(/"/g,'""')+'"'; csv+=`${x.code},${nm},${x.stock},${x.avg.toFixed(1)},${x.cover.toFixed(1)},${x.order},${x.price.toFixed(2)},${x.cost.toFixed(2)}\n`; });
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='order-list.csv'; a.click();
+  }
+  orderCopy(){
+    const list=this._lastOrder||[]; if(!list.length)return;
+    const txt=list.map(x=>`${x.code}\t${x.name}\t${x.order} btl`).join('\n');
+    if(navigator.clipboard)navigator.clipboard.writeText(txt);
   }
   alertData(coverMonths,bevQty,wineFloor){
     const nM=CONS_MONTHS.length;
@@ -3610,6 +3678,10 @@ window.addEventListener('message', function(e) {
 
 <div id="alerts-panel" style="display:none;padding:8px 0;">
   <div id="alerts-content"></div>
+</div>
+
+<div id="order-panel" style="display:none;padding:8px 0;">
+  <div id="order-content"></div>
 </div>
 
 </body>
