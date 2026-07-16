@@ -303,12 +303,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-reset{padding:8px 14px;border:1px solid rgba(255,255,255,.3);border-radius:6px;background:rgba(255,255,255,.12);color:#fff;font-size:13px;cursor:pointer;white-space:nowrap;}
 
 /* ── TABS ── */
-.tabs{display:flex;gap:3px;margin-bottom:var(--gap);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:var(--gap);}
 .tabs::-webkit-scrollbar{display:none;}
-.tab{flex-shrink:0;padding:10px 16px;border-radius:var(--r) var(--r) 0 0;background:var(--card);border:1px solid var(--border);border-bottom:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);}
-.tab.active{color:var(--acc);border-bottom:2px solid var(--acc);}
-.tab.special-tab.active{color:var(--amber);}
-.tab.special-tab.active .tbadge{background:var(--amber);}
+.tab{padding:8px 12px;border-radius:var(--r);background:var(--card);border:1px solid var(--border);cursor:pointer;font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap;transition:background .12s,color .12s;line-height:1.1;}
+.tab:hover{background:#f8fafc;color:var(--text);}
+.tab.active{color:#fff;background:var(--acc);border-color:var(--acc);}
+.tab.active .tbadge{background:rgba(255,255,255,.3)!important;color:#fff;}
+.tab.special-tab.active{color:#fff;background:var(--amber);border-color:var(--amber);}
 .tbadge{background:var(--acc);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;margin-left:4px;}
 
 /* ── KPIs ── */
