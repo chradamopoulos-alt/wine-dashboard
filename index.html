@@ -590,38 +590,65 @@ tr:last-child td{border-bottom:none;}
   }
 
   // ── GUEST / QR WINE LIST (public, no login) ──
-  function isGuestMode(){ return /^#(menu|winelist|guest)/i.test(location.hash||''); }
+  function isGuestMode(){ return /^#(menu|winelist|guest|food)/i.test(location.hash||''); }
   function renderGuestMenu(){
+    const isFood=/^#food/i.test(location.hash||'');
     const parts=(location.hash||'').replace(/^#/,'').split('/');
     let outlet=(parts[1]||'').toUpperCase();
-    const OUTS=['PROVENCE','ANAYA','FRESCO','KOS','OLIVA','SEASONS','OUZO','FLAVORS'];
     const RN={PROVENCE:'Provence',ANAYA:'Anaya',FRESCO:'Fresco',KOS:'Kos',OLIVA:'Oliva',SEASONS:'Seasons',OUZO:'Ouzo',FLAVORS:'Flavors'};
+    const WINE_OUTS=['PROVENCE','ANAYA','FRESCO','KOS','OLIVA','SEASONS','OUZO','FLAVORS'];
+    const PD=(typeof PAIRING_DATA!=='undefined')?PAIRING_DATA.restaurants:{};
+    const FOOD_OUTS=Object.keys(PD);
+    const OUTS=isFood?FOOD_OUTS:WINE_OUTS;
     if(!OUTS.includes(outlet))outlet='';
+    const hb=isFood?'#food':'#menu';
     const clean=n=>{ let s=(n||'').replace(/\((?:\d+\*?\s*)?\d*(?:[.,]\d+)?\s*(?:ML|L|CL)\)/ig,'').replace(/IKOS PRIVATE CELLAR/ig,'').replace(/\b(GREECE|FRANCE|ITALY|SPAIN|ARGENTINA|AUSTRIA|AUSTRALIA|CHILE|USA|SOUTH AFRICA|GERMANY|NEW ZEALAND|HUNGARY|AFRICA)\b/ig,'').replace(/ΕΛΛΑΔΑ|ΓΑΛΛΙΑ|ΙΤΑΛΙΑ/ig,'').replace(/\s+/g,' ').trim();
       return s.replace(/\w\S*/g,t=>t.length>2?t.charAt(0).toUpperCase()+t.slice(1).toLowerCase():t); };
-    const GROUPS=[['Champagne & Sparkling',['CHAMPAGNE','SPARKLING'],'🥂'],['White Wines',['WHITE'],'⚪'],['Rosé Wines',['ROSE'],'🌸'],['Red Wines',['RED'],'🔴'],['Sweet & Fortified',['SWEET','FORTIFIED'],'🍯']];
-    const pool=(typeof MASTER!=='undefined'?MASTER:[]).filter(w=>w.stock>0 && (!outlet || (w.outlets||[]).includes(outlet)));
-    const notes=(typeof STATIC_NOTES!=='undefined')?STATIC_NOTES:{};
 
     let body=`<div class="gm-wrap"><div class="gm-head">
-      <div class="gm-logo">🍷</div>
+      <div class="gm-logo">${isFood?'🍽️':'🍷'}</div>
       <div class="gm-title">IKOS Aria</div>
-      <div class="gm-sub">Wine List${outlet?' · '+RN[outlet]:''}</div>
+      <div class="gm-sub">${isFood?'Menu':'Wine List'}${outlet?' · '+RN[outlet]:''}</div>
     </div>`;
-    body+=`<div class="gm-tabs">${OUTS.map(o=>`<a href="#menu/${o}" class="gm-tab ${o===outlet?'on':''}">${RN[o]}</a>`).join('')}<a href="#menu" class="gm-tab ${!outlet?'on':''}">All</a></div>`;
-    let any=false;
-    GROUPS.forEach(([label,cats,emo])=>{
-      const list=pool.filter(w=>cats.includes(w.category)).sort((a,b)=>(a.grape||'').localeCompare(b.grape||''));
-      if(!list.length)return; any=true;
-      body+=`<div class="gm-section"><div class="gm-sec-title">${emo} ${label}</div>`;
-      list.forEach(w=>{ const nt=notes[w.code]; const meta=[w.grape,w.region||w.country].filter(Boolean).join(' · ');
-        body+=`<div class="gm-wine"><div class="gm-wine-name">${clean(w.name)}</div>${meta?`<div class="gm-wine-meta">${meta.replace(/\w\S*/g,t=>t.length>2?t.charAt(0).toUpperCase()+t.slice(1).toLowerCase():t)}</div>`:''}${nt&&nt.t?`<div class="gm-wine-note">${nt.t}</div>`:''}</div>`; });
-      body+=`</div>`;
-    });
-    if(!any)body+=`<div style="text-align:center;color:#9a8a78;padding:40px;">Δεν υπάρχουν διαθέσιμα κρασιά.</div>`;
-    body+=`<div class="gm-foot">IKOS Aria · Kos · Τιμές στον κατάλογο του εστιατορίου</div></div>`;
+    // mode toggle (wine list / food menu)
+    body+=`<div class="gm-mode"><a href="#menu${outlet&&WINE_OUTS.includes(outlet)?'/'+outlet:''}" class="gm-modebtn ${!isFood?'on':''}">🍷 Wine List</a><a href="#food${outlet&&FOOD_OUTS.includes(outlet)?'/'+outlet:''}" class="gm-modebtn ${isFood?'on':''}">🍽️ Food Menu</a></div>`;
+    // restaurant tabs
+    body+=`<div class="gm-tabs">${OUTS.map(o=>`<a href="${hb}/${o}" class="gm-tab ${o===outlet?'on':''}">${RN[o]}</a>`).join('')}${isFood?'':`<a href="#menu" class="gm-tab ${!outlet?'on':''}">All</a>`}</div>`;
+
+    if(isFood){
+      if(!outlet){ body+=`<div style="text-align:center;color:#c9a86a;padding:36px 20px;">Διάλεξε εστιατόριο για να δεις το μενού.</div>`; }
+      else {
+        const rd=PD[outlet]; let any=false;
+        (rd?rd.sections:[]).forEach(sec=>{ any=true;
+          body+=`<div class="gm-section"><div class="gm-sec-title">${sec.name}</div>`;
+          sec.dishes.forEach(d=>{ const wine=(d.pairings&&d.pairings[0])?d.pairings[0].name:'';
+            body+=`<div class="gm-wine"><div class="gm-wine-name">${d.dish}</div>${d.desc?`<div class="gm-wine-note">${d.desc}</div>`:''}${(d.allergen_labels&&d.allergen_labels.length)?`<div class="gm-wine-meta">Allergens: ${d.allergen_labels.join(', ')}</div>`:''}${wine?`<div class="gm-wine-pair">🍷 ${wine}</div>`:''}</div>`; });
+          body+=`</div>`;
+        });
+        if(!any)body+=`<div style="text-align:center;color:#9a8a78;padding:40px;">Δεν υπάρχει μενού.</div>`;
+      }
+    } else {
+      const GROUPS=[['Champagne & Sparkling',['CHAMPAGNE','SPARKLING'],'🥂'],['White Wines',['WHITE'],'⚪'],['Rosé Wines',['ROSE'],'🌸'],['Red Wines',['RED'],'🔴'],['Sweet & Fortified',['SWEET','FORTIFIED'],'🍯']];
+      const pool=(typeof MASTER!=='undefined'?MASTER:[]).filter(w=>w.stock>0 && (!outlet || (w.outlets||[]).includes(outlet)));
+      const notes=(typeof STATIC_NOTES!=='undefined')?STATIC_NOTES:{};
+      let any=false;
+      GROUPS.forEach(([label,cats,emo])=>{
+        const list=pool.filter(w=>cats.includes(w.category)).sort((a,b)=>(a.grape||'').localeCompare(b.grape||''));
+        if(!list.length)return; any=true;
+        body+=`<div class="gm-section"><div class="gm-sec-title">${emo} ${label}</div>`;
+        list.forEach(w=>{ const nt=notes[w.code]; const meta=[w.grape,w.region||w.country].filter(Boolean).join(' · ');
+          body+=`<div class="gm-wine"><div class="gm-wine-name">${clean(w.name)}</div>${meta?`<div class="gm-wine-meta">${meta.replace(/\w\S*/g,t=>t.length>2?t.charAt(0).toUpperCase()+t.slice(1).toLowerCase():t)}</div>`:''}${nt&&nt.t?`<div class="gm-wine-note">${nt.t}</div>`:''}</div>`; });
+        body+=`</div>`;
+      });
+      if(!any)body+=`<div style="text-align:center;color:#9a8a78;padding:40px;">Δεν υπάρχουν διαθέσιμα κρασιά.</div>`;
+    }
+    body+=`<div class="gm-foot">IKOS Aria · Kos${isFood?'':' · Τιμές στον κατάλογο του εστιατορίου'}</div></div>`;
 
     document.body.innerHTML=`<style>
+      .gm-mode{display:flex;gap:8px;justify-content:center;padding:14px 12px 4px;}
+      .gm-modebtn{font-size:13px;color:#c9a86a;text-decoration:none;padding:8px 18px;border:1px solid #c9a86a;border-radius:24px;font-family:Arial,sans-serif;font-weight:700;}
+      .gm-modebtn.on{background:#c9a86a;color:#1a1410;}
+      .gm-wine-pair{font-size:12px;color:#c9a86a;margin-top:4px;font-family:Arial,sans-serif;}
       body{margin:0;background:#1a1410;color:#f5ece0;font-family:Georgia,'Times New Roman',serif;}
       .gm-wrap{max-width:680px;margin:0 auto;padding:0 0 40px;}
       .gm-head{text-align:center;padding:34px 20px 18px;background:linear-gradient(180deg,#2a1f16,#1a1410);}
@@ -639,7 +666,7 @@ tr:last-child td{border-bottom:none;}
       .gm-wine-note{font-size:12.5px;color:#bfae9a;margin-top:4px;line-height:1.5;}
       .gm-foot{text-align:center;color:#7a6a58;font-size:11px;margin-top:30px;font-family:Arial,sans-serif;letter-spacing:.5px;}
     </style>`+body;
-    document.title='IKOS Aria · Wine List';
+    document.title='IKOS Aria · '+(isFood?'Menu':'Wine List');
   }
   if(isGuestMode()){
     document.addEventListener('DOMContentLoaded', renderGuestMenu);
@@ -2616,21 +2643,29 @@ class Dash{
   renderQR(){
     const out=document.getElementById('qr-content'); if(!out) return;
     const base=location.origin+location.pathname;
-    const OUTS=[['PROVENCE','🇫🇷 Provence'],['ANAYA','🌏 Anaya'],['FRESCO','🇮🇹 Fresco'],['KOS','🏛️ Kos'],['OLIVA','🇪🇸 Oliva'],['SEASONS','🌟 Seasons'],['OUZO','🏺 Ouzo'],['FLAVORS','🍽️ Flavors'],['','📋 Όλα τα κρασιά']];
-    let h=`<div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#115e59;">
-      📱 <b>Guest QR — Λίστα Κρασιών</b> — τύπωσε το QR για κάθε εστιατόριο και βάλ' το στο τραπέζι. Ο πελάτης το σκανάρει και βλέπει τη λίστα κρασιών (χωρίς τιμές/στοκ) στο κινητό του.</div>`;
-    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">`;
-    OUTS.forEach(([o,lbl])=>{
-      const url=base+'#menu'+(o?'/'+o:'');
-      const qr='https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data='+encodeURIComponent(url);
-      h+=`<div class="card" style="padding:14px;text-align:center;">
+    const RN={PROVENCE:'🇫🇷 Provence',ANAYA:'🌏 Anaya',FRESCO:'🇮🇹 Fresco',KOS:'🏛️ Kos',OLIVA:'🇪🇸 Oliva',SEASONS:'🌟 Seasons',OUZO:'🏺 Ouzo',FLAVORS:'🍽️ Flavors'};
+    const WINE_OUTS=['PROVENCE','ANAYA','FRESCO','KOS','OLIVA','SEASONS','OUZO','FLAVORS'];
+    const FOOD_OUTS=Object.keys(PAIRING_DATA.restaurants);
+    const qrCard=(url,lbl,accent)=>`<div class="card" style="padding:14px;text-align:center;">
         <div style="font-weight:700;font-size:14px;margin-bottom:8px;">${lbl}</div>
-        <img src="${qr}" alt="QR ${lbl}" style="width:180px;height:180px;background:#fff;border-radius:8px;" loading="lazy">
-        <div style="margin-top:8px;"><a href="${url}" target="_blank" style="font-size:11px;color:#0d9488;word-break:break-all;">${url}</a></div>
-        <button onclick="navigator.clipboard&&navigator.clipboard.writeText('${url}')" style="margin-top:8px;padding:6px 12px;background:#0d9488;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;">📋 Αντιγραφή link</button>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(url)}" alt="QR ${lbl}" style="width:170px;height:170px;background:#fff;border-radius:8px;" loading="lazy">
+        <div style="margin-top:8px;"><a href="${url}" target="_blank" style="font-size:11px;color:${accent};word-break:break-all;">${url}</a></div>
+        <button onclick="navigator.clipboard&&navigator.clipboard.writeText('${url}')" style="margin-top:8px;padding:6px 12px;background:${accent};color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;">📋 Αντιγραφή link</button>
       </div>`;
-    });
+
+    let h=`<div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#115e59;">
+      📱 <b>Guest QR</b> — τύπωσε τα QR και βάλ' τα στο τραπέζι. Ο πελάτης σκανάρει και βλέπει <b>λίστα κρασιών</b> ή <b>μενού φαγητού</b> (χωρίς τιμές/στοκ) στο κινητό του.</div>`;
+
+    h+=`<div style="font-size:15px;font-weight:800;color:#7c3aed;margin:6px 0 10px;">🍷 Λίστα Κρασιών</div>`;
+    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;">`;
+    [...WINE_OUTS,''].forEach(o=>{ h+=qrCard(base+'#menu'+(o?'/'+o:''), o?RN[o]:'📋 Όλα τα κρασιά', '#7c3aed'); });
     h+=`</div>`;
+
+    h+=`<div style="font-size:15px;font-weight:800;color:#0d9488;margin:22px 0 10px;">🍽️ Μενού Φαγητού</div>`;
+    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;">`;
+    FOOD_OUTS.forEach(o=>{ h+=qrCard(base+'#food/'+o, RN[o]||o, '#0d9488'); });
+    h+=`</div>`;
+
     h+=`<div style="margin-top:16px;text-align:center;"><button onclick="window.print()" style="padding:10px 20px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;">🖨️ Εκτύπωση όλων</button></div>`;
     out.innerHTML=h;
   }
