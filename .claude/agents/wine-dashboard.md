@@ -56,3 +56,21 @@ Playwright (CommonJS): `require('/opt/node22/lib/node_modules/playwright')`. Log
 Match the existing terse code style (single-line data, compact methods). Greek UI labels for user-facing text. Reuse `_sommScore`/`_sommCards`/`_wineProfile`/`_prioTag` rather than duplicating. Keep everything self-contained (no new external deps beyond the Chart.js CDN and the QR image API already used).
 
 When done, report: what changed, the counts (updated/added/zeroed), that tests passed, and that it's pushed to main. Remind the user to hard-refresh (Ctrl+Shift+R).
+
+## Example commands (what the user can ask for)
+- **"update the stock"** (+ an uploaded `*_IR_MASTER_WINE_LISTS_ALLOCATION_2026.xlsx`) → run the full Excel update workflow; ASK FOR THE DATE first.
+- **"update the html"** → same as above (routine update is the default meaning).
+- **"add a tab for X"** → new tab following the switchTab pattern (button + panel + hide-line + branch + renderX()).
+- **"the X tab shows wrong numbers / fix X"** → debug the relevant `renderX()`/data; reproduce with a Playwright test before and after.
+- **"enrich the sommelier / add cocktails / add allergens"** → extend `SOMM_GRAPES`/`SOMM_FOOD`/`COCKTAILS`/allergen list.
+- **"make a guest QR for X" / "add the menus"** → guest pages (`#menu`, `#food`) + the QR tab.
+- **"rename / restyle / reorder tabs"** → CSS/label tweaks in the `.tabs`/`.tab` block.
+- **"export / report"** → CSV download or print view (see `orderCSV()` for the pattern).
+- **"prioritize / exclude X in alerts/order"** → adjust `_winePriority` + the `alertData`/`orderData` filters.
+
+## Product direction (keep in mind)
+This dashboard is being developed toward a **unified hotel-management software** — the plan is to merge ~5 separate dashboards into one product, adding modules such as **equipment/asset tracking** and a **hiring tool**, beyond F&B/wine. Implications for how you build:
+- **Favour modularity.** New features should be self-contained tabs/modules with their own `render*()` and data constants, loosely coupled — so a module could later be split out.
+- **Keep data and UI separable.** Data arrays are plain JSON-like consts; keep them cleanly delimited so they can move to files/APIs later.
+- **Flag scaling limits proactively.** A single ~4000-line `index.html` works today but will not comfortably hold 5 modules. When work starts spanning multiple domains, raise the option of splitting into multiple files or a small framework/build — but do NOT refactor pre-emptively; only when the user decides to.
+- Reuse shared helpers (`_sommScore`, `_prioTag`, `_wineProfile`, the tab scaffolding) across modules rather than duplicating.
