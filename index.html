@@ -1717,6 +1717,60 @@ function syncFromStock(){
 }
 syncFromStock();
 
+/* ════════════════════════════════════════════════════════════════════════
+   DATA-ACCESS LAYER — integration seam for external systems (Protel / Opera / ERP)
+   ────────────────────────────────────────────────────────────────────────
+   The whole app reads plain arrays (STOCK_DATA, CONSUMPTION_2026, BEVERAGES, …).
+   To plug into a hotel PMS/ERP you do NOT touch the UI: you point DATA_CONFIG at
+   a backend endpoint and provide a mapper. HotelData.load() fetches, normalises,
+   and REPLACES the array contents in place (so the existing `const` refs stay
+   valid), then re-syncs and re-renders. Default mode is 'embedded' → no-op.
+
+   ⚠️ A browser page cannot talk to Protel/Opera/ERP directly (auth/keys/CORS).
+   You need a thin backend/middleware that exposes read-only JSON; this layer
+   consumes that. Keep credentials on the server, never in this file.
+   ════════════════════════════════════════════════════════════════════════ */
+const DATA_CONFIG = {
+  source: 'embedded',      // 'embedded' (default) | 'api'
+  apiBase: null,           // e.g. 'https://your-middleware.example.com/api'
+  // Which upstream system feeds each dataset (documentation / future routing):
+  systems: { stock:'ERP', consumption:'ERP', beverages:'ERP', occupancy:'Opera|Protel' }
+};
+// Normalisers: map an upstream record → the internal shape. Adjust field names
+// to whatever the middleware returns from ERP/PMS. These are the ONLY places
+// that need editing when the source schema differs.
+const DATA_MAP = {
+  stock: r => ({ code:r.code, description:r.description||r.name||r.code, qty:+r.qty||0,
+    price:+r.price||0, visibility:r.visibility||'Visible', category:r.category||'',
+    country:r.country||'', grape:r.grape||'', region:r.region||'', supplier:r.supplier||'',
+    fullName:r.fullName||r.description||'', wineDesc:r.wineDesc||'' }),
+  beverage: r => ({ code:r.code, description:r.description||r.name||r.code, qty:+r.qty||0,
+    price:+r.price||0, category:r.category||'Λοιπά' })
+};
+function _replaceArray(arr, next){ arr.length=0; next.forEach(x=>arr.push(x)); }
+const HotelData = {
+  mode(){ return DATA_CONFIG.source; },
+  // Called at startup and by a future "refresh" button. Embedded → resolves instantly.
+  async load(){
+    if(DATA_CONFIG.source!=='api' || !DATA_CONFIG.apiBase) return false; // embedded: data already in file
+    const base=DATA_CONFIG.apiBase;
+    const j=async p=>{ const r=await fetch(base+p); if(!r.ok) throw new Error(p+' '+r.status); return r.json(); };
+    const [stock,cons,bev] = await Promise.all([
+      j('/stock').catch(()=>null), j('/consumption').catch(()=>null), j('/beverages').catch(()=>null)
+    ]);
+    if(stock) _replaceArray(STOCK_DATA, stock.map(DATA_MAP.stock));
+    if(bev)   _replaceArray(BEVERAGES, bev.map(DATA_MAP.beverage));
+    if(cons && cons.months && cons.rows){ CONS_MONTHS.length=0; cons.months.forEach(m=>CONS_MONTHS.push(m));
+      Object.keys(CONSUMPTION_2026).forEach(k=>delete CONSUMPTION_2026[k]);
+      cons.rows.forEach(r=>{ CONSUMPTION_2026[r.code]={q:+r.qty||0,v:+r.value||0,m:r.months||[]}; }); }
+    syncFromStock();
+    if(window.D && window.D.switchTab) window.D.switchTab(window.D.mode||'master');
+    return true;
+  }
+};
+// Startup hook (no-op in embedded mode). Safe to await; failures don't break the app.
+HotelData.load().catch(e=>console.warn('HotelData.load skipped:',e.message));
+
 const COLORS=['#7b3f9e','#c8952a','#2563eb','#16a34a','#dc2626','#0891b2','#d97706','#7c3aed','#0f766e','#b45309'];
 const CAT_C={WHITE:'#2563eb',RED:'#dc2626',ROSE:'#ec4899',SPARKLING:'#16a34a',CHAMPAGNE:'#d97706',SWEET:'#7c3aed',FORTIFIED:'#9a3412'};
 
