@@ -2224,7 +2224,15 @@ function renderTip(wrap, code) {
   } else {
     tip.classList.remove('tip-up');
   }
+  // Pin it open (stays after the mouse leaves); close any other open tip.
+  document.querySelectorAll('.briefing-wrap.tip-open').forEach(w=>{ if(w!==wrap) w.classList.remove('tip-open'); });
+  wrap.classList.add('tip-open');
 }
+// Click anywhere closes a pinned tasting-note tip (unless you click inside it).
+document.addEventListener('click', function(e){
+  if(e.target.closest && e.target.closest('.briefing-tip')) return; // keep open when interacting with the tip itself
+  document.querySelectorAll('.briefing-wrap.tip-open').forEach(w=>w.classList.remove('tip-open'));
+});
 
 // ── Mobile tap handler for tooltip ──
 function handleTipTouch(e, wrap, code) {
