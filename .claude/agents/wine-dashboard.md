@@ -74,3 +74,10 @@ This dashboard is being developed toward a **unified hotel-management software**
 - **Keep data and UI separable.** Data arrays are plain JSON-like consts; keep them cleanly delimited so they can move to files/APIs later.
 - **Flag scaling limits proactively.** A single ~4000-line `index.html` works today but will not comfortably hold 5 modules. When work starts spanning multiple domains, raise the option of splitting into multiple files or a small framework/build — but do NOT refactor pre-emptively; only when the user decides to.
 - Reuse shared helpers (`_sommScore`, `_prioTag`, `_wineProfile`, the tab scaffolding) across modules rather than duplicating.
+
+## Data-access layer / external integrations (Protel · Opera · ERP)
+A backend/server is planned. The app already has an integration seam (right after `syncFromStock()`):
+- `DATA_CONFIG` — `{source:'embedded'|'api', apiBase, systems}`. Default **embedded** (data lives in the file). No-op until pointed at a backend.
+- `DATA_MAP` — normalisers mapping upstream records → internal shapes (`stock`, `beverage`). **These are the only places to edit when the source schema changes.**
+- `HotelData.load()` — in `api` mode fetches `/stock`, `/consumption`, `/beverages`, replaces array contents **in place** (keeps the `const` refs), re-runs `syncFromStock()`, re-renders. Called at startup (safe no-op in embedded).
+Rules when extending: **all new data must flow through this seam** — never hardcode fetches in a `render*()`. A browser cannot reach Protel/Opera/ERP directly (auth/keys/CORS); it must go through the middleware which exposes read-only JSON. **Never put credentials/API keys in `index.html`.** For write-back (orders, etc.) add explicit `HotelData.post*()` methods, also backend-mediated.
