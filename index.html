@@ -350,6 +350,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card h3{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.5px;}
 .card canvas{max-height:220px;width:100%!important;display:block;}
 .crow{min-width:0;}
+.chtab{padding:6px 14px;border:1px solid var(--border);border-radius:18px;background:var(--card);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;}
+.chtab:hover{border-color:var(--acc);color:var(--acc);}
+.chtab.active{background:var(--acc);color:#fff;border-color:var(--acc);}
 
 /* ── SEARCH ROW ── */
 .search-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
@@ -991,17 +994,22 @@ tr:last-child td{border-bottom:none;}
 
 <!-- CHARTS -->
 <div id="charts-section">
-  <div class="crow">
-    <div class="card"><h3>By Category</h3><canvas id="ch-cat"></canvas></div>
-    <div class="card"><h3>By Country</h3><canvas id="ch-cty"></canvas></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;" id="chart-tabs">
+    <button class="chtab active" onclick="D.chartTab(0)">📊 Category & Country</button>
+    <button class="chtab" onclick="D.chartTab(1)">📈 Stock & Outlets</button>
+    <button class="chtab" onclick="D.chartTab(2)">🏆 Top 10 & Prices</button>
   </div>
-  <div class="crow">
-    <div class="card"><h3>Stock vs Consumption</h3><canvas id="ch-sc"></canvas></div>
-    <div class="card"><h3>SKUs per Outlet</h3><canvas id="ch-out"></canvas></div>
+  <div class="crow chart-page" id="chp-0">
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">By Category</h3><canvas id="ch-cat" style="max-height:220px;"></canvas></div>
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">By Country</h3><canvas id="ch-cty" style="max-height:220px;"></canvas></div>
   </div>
-  <div class="crow">
-    <div class="card"><h3>Top 10 by Consumption</h3><canvas id="ch-top"></canvas></div>
-    <div class="card"><h3>Price Tiers</h3><canvas id="ch-tier"></canvas></div>
+  <div class="crow chart-page" id="chp-1" style="display:none;">
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Stock vs Consumption</h3><canvas id="ch-sc" style="max-height:220px;"></canvas></div>
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">SKUs per Outlet</h3><canvas id="ch-out" style="max-height:220px;"></canvas></div>
+  </div>
+  <div class="crow chart-page" id="chp-2" style="display:none;">
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Top 10 by Consumption</h3><canvas id="ch-top" style="max-height:220px;"></canvas></div>
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Price Tiers</h3><canvas id="ch-tier" style="max-height:220px;"></canvas></div>
   </div>
 </div>
 
@@ -3320,7 +3328,7 @@ class Dash{
   }
   render(){
     this.kpis();
-    if(this.mode==='master'){this.catChart();this.ctyChart();this.scChart();this.topChart();this.tierChart();}
+    if(this.mode==='master'){const ci=document.querySelector('.chtab.active');const idx=ci?[...ci.parentElement.children].indexOf(ci):0;this.chartTab(idx);}
     this.table();
     document.getElementById('tab-master-badge').textContent=MASTER.length;
     document.getElementById('tab-special-badge').textContent=SPECIAL.length;
@@ -3342,6 +3350,13 @@ class Dash{
     if(this.charts[id]){this.charts[id].destroy();delete this.charts[id];}
     const ctx=document.getElementById(id).getContext('2d');
     this.charts[id]=new Chart(ctx,{type,data,options:opts});
+  }
+  chartTab(idx){
+    document.querySelectorAll('.chart-page').forEach((el,i)=>el.style.display=i===idx?'':'none');
+    document.querySelectorAll('.chtab').forEach((b,i)=>b.classList.toggle('active',i===idx));
+    if(idx===0){this.catChart();this.ctyChart();}
+    if(idx===1){this.scChart();this.buildOutletChart();}
+    if(idx===2){this.topChart();this.tierChart();}
   }
   catChart(){
     const cats=['WHITE','RED','ROSE','SPARKLING','CHAMPAGNE','SWEET','FORTIFIED'];
