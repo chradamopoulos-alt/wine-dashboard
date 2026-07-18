@@ -284,7 +284,7 @@ const Chart = (function(){
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{font-size:15px;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.4;overflow-x:hidden;}
-.wrap{max-width:none;margin-left:var(--sb-w);padding:var(--gap) 20px;overflow-x:hidden;min-width:0;width:calc(100% - var(--sb-w));}
+.wrap{max-width:none;margin-left:var(--sb-w);padding:var(--gap) 20px;overflow:hidden;min-width:0;box-sizing:border-box;}
 
 /* ── SIDEBAR ── */
 .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sb-w);background:var(--sidebar-bg);color:#fff;overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
@@ -1041,6 +1041,28 @@ tr:last-child td{border-bottom:none;}
   </div>
 </div>
 
+<!-- Content panels (inside .wrap so they respect sidebar offset) -->
+<div id="pairing-panel" style="display:none;padding:8px 0;">
+  <div id="pairing-content"></div>
+</div>
+<div id="consumption-panel" style="display:none;padding:8px 0;">
+  <div id="consumption-content"></div>
+</div>
+<div id="beverages-panel" style="display:none;padding:8px 0;">
+  <div id="beverages-content"></div>
+</div>
+<div id="alerts-panel" style="display:none;padding:8px 0;">
+  <div id="alerts-content"></div>
+</div>
+<div id="order-panel" style="display:none;padding:8px 0;">
+  <div id="order-content"></div>
+</div>
+<div id="cocktails-panel" style="display:none;padding:8px 0;">
+  <div id="cocktails-content"></div>
+</div>
+<div id="qr-panel" style="display:none;padding:8px 0;">
+  <div id="qr-content"></div>
+</div>
 
 </div>
 
@@ -4041,35 +4063,6 @@ window.addEventListener('message', function(e) {
   }
 });
 </script>
-
-<!-- PAIRING PANEL (hidden by default) -->
-<div id="pairing-panel" style="display:none;padding:8px 0;">
-  <div id="pairing-content"></div>
-</div>
-
-<div id="consumption-panel" style="display:none;padding:8px 0;">
-  <div id="consumption-content"></div>
-</div>
-
-<div id="beverages-panel" style="display:none;padding:8px 0;">
-  <div id="beverages-content"></div>
-</div>
-
-<div id="alerts-panel" style="display:none;padding:8px 0;">
-  <div id="alerts-content"></div>
-</div>
-
-<div id="order-panel" style="display:none;padding:8px 0;">
-  <div id="order-content"></div>
-</div>
-
-<div id="cocktails-panel" style="display:none;padding:8px 0;">
-  <div id="cocktails-content"></div>
-</div>
-
-<div id="qr-panel" style="display:none;padding:8px 0;">
-  <div id="qr-content"></div>
-</div>
 
 </body>
 </html>
