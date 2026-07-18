@@ -441,7 +441,6 @@ tr:last-child td{border-bottom:none;}
 .briefing-tip .tip-copy-hint{
   margin-top:8px;color:#64748b;font-size:10px;text-align:center;
 }
-.briefing-wrap:hover .briefing-tip,
 .briefing-wrap.tip-open .briefing-tip{display:block;}
 .briefing-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:1000;align-items:center;justify-content:center;padding:20px;}
 .briefing-overlay.active{display:flex;}
@@ -2286,11 +2285,14 @@ function getTipData(code) {
   };
 }
 
-function renderTip(wrap, code) {
+function renderTip(wrap, code, e) {
+  if(e)e.stopPropagation();
+  if(wrap.classList.contains('tip-open')){wrap.classList.remove('tip-open');return;}
+  document.querySelectorAll('.briefing-wrap.tip-open').forEach(w=>w.classList.remove('tip-open'));
   const tip = wrap.querySelector('.briefing-tip');
   if (!tip) return;
   const d = getTipData(code);
-  if (!d) { tip.innerHTML = '<div style="color:#94a3b8">No data found</div>'; return; }
+  if (!d) { tip.innerHTML = '<div style="color:#94a3b8">No data found</div>'; wrap.classList.add('tip-open'); return; }
 
   let html2 = `<div class="tip-header">🍷 ${d.label.length>50?d.label.slice(0,50)+'…':d.label}</div>`;
   if(d.producer) html2 += `<div class="tip-row">Producer: <span>${d.producer}</span></div>`;
@@ -2299,7 +2301,6 @@ function renderTip(wrap, code) {
   if(d.year && d.year!=='NV') html2 += `<div class="tip-row">Vintage: <span>${d.year}</span></div>`;
 
   if (d.tasting) {
-    // Split into nose/palate
     const parts = d.tasting.split('. ');
     const nose = parts.slice(0,2).join('. ') + '.';
     const palate = parts.slice(2).join('. ') || '';
@@ -2315,15 +2316,12 @@ function renderTip(wrap, code) {
   }
   tip.innerHTML = html2;
 
-  // Flip if near bottom of viewport
   const rect = wrap.getBoundingClientRect();
   if (rect.bottom + 260 > window.innerHeight) {
     tip.classList.add('tip-up');
   } else {
     tip.classList.remove('tip-up');
   }
-  // Pin it open (stays after the mouse leaves); close any other open tip.
-  document.querySelectorAll('.briefing-wrap.tip-open').forEach(w=>{ if(w!==wrap) w.classList.remove('tip-open'); });
   wrap.classList.add('tip-open');
 }
 // Click anywhere closes a pinned tasting-note tip (unless you click inside it).
@@ -3485,7 +3483,7 @@ class Dash{
       const tagBadges=(r.tags||[]).map(t=>`<span class="wine-tag wine-tag-${t}">${t}</span>`).join('');
       const ops=r.outlets&&r.outlets.length?r.outlets.map(o=>`<span class="op">${o}</span>`).join(' '):'—';
       const desc=r.description||'';
-      const descHtml=`<div class="wine-desc">${desc.length>100?desc.slice(0,100)+'\u2026':desc}</div><div style="margin-top:3px" class="briefing-wrap" onmouseenter="renderTip(this,'${r.code}')" ontouchstart="handleTipTouch(event,this,'${r.code}')"><div class="briefing-wrap" style="display:inline-block" onmouseenter="renderTip(this,'${r.code}')" ontouchstart="handleTipTouch(event,this,'${r.code}')"><button class="cbtn" style="font-size:10px;padding:3px 8px" onclick="copyDesc(this,'${r.code}')">📋 Copy Desc</button><div class="briefing-tip"></div></div><div class="briefing-tip"></div></div>`;
+      const descHtml=`<div class="wine-desc">${desc.length>100?desc.slice(0,100)+'\u2026':desc}</div><div style="margin-top:3px" class="briefing-wrap" onclick="renderTip(this,'${r.code}',event)" ontouchstart="handleTipTouch(event,this,'${r.code}')"><div class="briefing-wrap" style="display:inline-block" onclick="renderTip(this,'${r.code}',event)" ontouchstart="handleTipTouch(event,this,'${r.code}')"><button class="cbtn" style="font-size:10px;padding:3px 8px" onclick="copyDesc(this,'${r.code}')">📋 Copy Desc</button><div class="briefing-tip"></div></div><div class="briefing-tip"></div></div>`;
       const codeId='c_'+r.code.replace(/\W/g,'');
       h+=`<tr>
         <td><div class="code-cell">
@@ -3989,7 +3987,7 @@ class Dash{
           ${_wineDesc?`<div style="font-size:10px;color:var(--muted);margin-top:3px;font-style:italic;line-height:1.35">${_wineDesc}</div>`:''}
           <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
             <span style="font-size:10px;background:#f1f5f9;border-radius:3px;padding:2px 6px;color:var(--muted)">${r.country||''}</span>
-            <div class="briefing-wrap" style="display:inline-block" onmouseenter="renderTip(this,'${r.code}')" ontouchstart="handleTipTouch(event,this,'${r.code}')"><button class="cbtn" style="font-size:10px;padding:3px 8px" onclick="copyDesc(this,'${r.code}')">📋 Copy Desc</button><div class="briefing-tip"></div></div>
+            <div class="briefing-wrap" style="display:inline-block" onclick="renderTip(this,'${r.code}',event)" ontouchstart="handleTipTouch(event,this,'${r.code}')"><button class="cbtn" style="font-size:10px;padding:3px 8px" onclick="copyDesc(this,'${r.code}')">📋 Copy Desc</button><div class="briefing-tip"></div></div>
           </div>
         </td>
         <td>${visBadge(r.visibility)}</td>
