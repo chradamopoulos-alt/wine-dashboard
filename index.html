@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Wine Stock — IKOS 2026</title>
+<title>F&B Management System</title>
 <!-- XLSX loaded on demand for import button --><script>
 // ── Embedded Chart Engine v2 — proper canvas rendering ──
 const Chart = (function(){
@@ -575,8 +575,8 @@ tr:last-child td{border-bottom:none;}
       <div class="login-card">
         <div class="login-logo">
           <div class="icon">🍷</div>
-          <div class="title">Wine Dashboard</div>
-          <div class="sub">IKOS Aria · F&B Operations 2026</div>
+          <div class="title">F&B Management System</div>
+          <div class="sub">F&B Operations 2026</div>
         </div>
         <div class="form-group">
           <label>Username</label>
@@ -869,8 +869,8 @@ tr:last-child td{border-bottom:none;}
 <div class="sidebar" id="sidebar">
   <div class="sb-brand">
     <div class="sb-logo">&#127863;</div>
-    <div class="sb-title">Wine Stock &amp; Allocation</div>
-    <div class="sb-sub">IKOS Aria &nbsp;|&nbsp; Imported: 27/3/2026 &nbsp;|&nbsp; <span style="color:#4ade80;">Last Updated: 17/7/2026</span></div>
+    <div class="sb-title">F&B Management System</div>
+    <div class="sb-sub">Imported: 27/3/2026 &nbsp;|&nbsp; <span style="color:#4ade80;">Last Updated: 17/7/2026</span></div>
   </div>
   <div class="sb-nav">
     <div class="sb-section-label">Wine Lists</div>
@@ -898,7 +898,7 @@ tr:last-child td{border-bottom:none;}
       🥤 Beverage Inventory <span class="tbadge" style="background:#0891b2">430</span>
     </div>
 
-    <div class="sb-section-label">Beverage Management</div>
+    <div class="sb-section-label">Bar Management</div>
     <div class="tab" id="tab-bar" onclick="D.switchTab('bar')" style="border-left-color:#9333ea;">
       🍸 Bar <span class="tbadge" style="background:#9333ea">210</span>
     </div>
@@ -4153,7 +4153,7 @@ async function _handleFileImportAsync(input){
       // Update header date
       const sbSub=document.querySelector('.sb-brand .sb-sub');
       if(sbSub)sbSub.textContent=
-        'IKOS Aria \u00a0|\u00a0 Imported: '+new Date().toLocaleDateString('el-GR');
+        'Imported: '+new Date().toLocaleDateString('el-GR');
 
       // Reinitialise dashboard
       D.init();
