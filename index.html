@@ -278,13 +278,13 @@ const Chart = (function(){
   --bg:#f3f4f6;--card:#fff;--hdr:#1c2340;--acc:#7b3f9e;--gold:#c8952a;
   --text:#1e293b;--muted:#64748b;--border:#e2e8f0;
   --green:#16a34a;--red:#dc2626;--amber:#b45309;
-  --gap:12px;--r:10px;--sb-w:220px;--sidebar-bg:#1c2340;
+  --gap:12px;--r:10px;--sb-w:200px;--sidebar-bg:#1c2340;
 }
 @media(prefers-color-scheme:dark){:root{--sidebar-bg:#111422;}}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{font-size:15px;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.4;}
-.wrap{max-width:none;margin-left:var(--sb-w);padding:var(--gap) 18px;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.4;overflow-x:hidden;}
+.wrap{max-width:none;margin-left:var(--sb-w);padding:var(--gap) 20px;overflow-x:hidden;min-width:0;width:calc(100% - var(--sb-w));}
 
 /* ── SIDEBAR ── */
 .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sb-w);background:var(--sidebar-bg);color:#fff;overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
