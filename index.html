@@ -648,7 +648,7 @@ tr:last-child td{border-bottom:none;}
     body+=`<div class="gm-tabs">${OUTS.map(o=>`<a href="${hb}/${o}" class="gm-tab ${o===outlet?'on':''}">${RN[o]}</a>`).join('')}${isFood?'':`<a href="#menu" class="gm-tab ${!outlet?'on':''}">All</a>`}</div>`;
 
     if(isFood){
-      if(!outlet){ body+=`<div style="text-align:center;color:#c9a86a;padding:36px 20px;">Διάλεξε εστιατόριο για να δεις το μενού.</div>`; }
+      if(!outlet){ body+=`<div style="text-align:center;color:#c9a86a;padding:36px 20px;">Select a restaurant to view the menu.</div>`; }
       else {
         const rd=PD[outlet]; let any=false;
         (rd?rd.sections:[]).forEach(sec=>{ any=true;
@@ -657,7 +657,7 @@ tr:last-child td{border-bottom:none;}
             body+=`<div class="gm-wine"><div class="gm-wine-name">${d.dish}</div>${d.desc?`<div class="gm-wine-note">${d.desc}</div>`:''}${(d.allergen_labels&&d.allergen_labels.length)?`<div class="gm-wine-meta">Allergens: ${d.allergen_labels.join(', ')}</div>`:''}${wine?`<div class="gm-wine-pair">🍷 ${wine}</div>`:''}</div>`; });
           body+=`</div>`;
         });
-        if(!any)body+=`<div style="text-align:center;color:#9a8a78;padding:40px;">Δεν υπάρχει μενού.</div>`;
+        if(!any)body+=`<div style="text-align:center;color:#9a8a78;padding:40px;">No menu available.</div>`;
       }
     } else {
       const GROUPS=[['Champagne & Sparkling',['CHAMPAGNE','SPARKLING'],'🥂'],['White Wines',['WHITE'],'⚪'],['Rosé Wines',['ROSE'],'🌸'],['Red Wines',['RED'],'🔴'],['Sweet & Fortified',['SWEET','FORTIFIED'],'🍯']];
@@ -672,9 +672,9 @@ tr:last-child td{border-bottom:none;}
           body+=`<div class="gm-wine"><div class="gm-wine-name">${clean(w.name)}</div>${meta?`<div class="gm-wine-meta">${meta.replace(/\w\S*/g,t=>t.length>2?t.charAt(0).toUpperCase()+t.slice(1).toLowerCase():t)}</div>`:''}${nt&&nt.t?`<div class="gm-wine-note">${nt.t}</div>`:''}</div>`; });
         body+=`</div>`;
       });
-      if(!any)body+=`<div style="text-align:center;color:#9a8a78;padding:40px;">Δεν υπάρχουν διαθέσιμα κρασιά.</div>`;
+      if(!any)body+=`<div style="text-align:center;color:#9a8a78;padding:40px;">No wines available.</div>`;
     }
-    body+=`<div class="gm-foot">IKOS Aria · Kos${isFood?'':' · Τιμές στον κατάλογο του εστιατορίου'}</div></div>`;
+    body+=`<div class="gm-foot">IKOS Aria · Kos${isFood?'':' · Prices on the restaurant menu'}</div></div>`;
 
     document.body.innerHTML=`<style>
       .gm-mode{display:flex;gap:8px;justify-content:center;padding:14px 12px 4px;}
@@ -836,26 +836,26 @@ tr:last-child td{border-bottom:none;}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
           <div>
             <div style="font-size:16px;font-weight:800;color:#1c2340;">📊 Login Statistics</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Σύνολο logins: ${log.length}</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Total logins: ${log.length}</div>
           </div>
-          <button onclick="this.closest('[style*=fixed]').remove()" style="background:#f1f5f9;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px;">✕ Κλείσιμο</button>
+          <button onclick="this.closest('[style*=fixed]').remove()" style="background:#f1f5f9;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px;">✕ Close</button>
         </div>
         <table style="width:100%;border-collapse:collapse;font-size:13px;">
           <thead>
             <tr style="background:#f8fafc;">
-              <th style="padding:8px 10px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;">Χρήστης</th>
-              <th style="padding:8px 10px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;">Ρόλος</th>
+              <th style="padding:8px 10px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;">User</th>
+              <th style="padding:8px 10px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;">Role</th>
               <th style="padding:8px 10px;text-align:center;font-size:10px;color:#64748b;text-transform:uppercase;">Logins</th>
-              <th style="padding:8px 10px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;">Τελευταία Επίσκεψη</th>
+              <th style="padding:8px 10px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;">Last Visit</th>
             </tr>
           </thead>
-          <tbody>${rows || '<tr><td colspan="4" style="padding:20px;text-align:center;color:#94a3b8;">Δεν υπάρχουν δεδομένα ακόμα</td></tr>'}</tbody>
+          <tbody>${rows || '<tr><td colspan="4" style="padding:20px;text-align:center;color:#94a3b8;">No data yet</td></tr>'}</tbody>
         </table>
       `;
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
     } catch(e) {
-      alert('Σφάλμα φόρτωσης στατιστικών');
+      alert('Error loading statistics');
     }
   }
 })();
