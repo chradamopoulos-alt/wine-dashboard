@@ -8,6 +8,7 @@ Single self-contained file **`index.html`** (HTML+CSS+JS+data, ~3900 lines) serv
 3. **Test before every commit**: extract the main `<script>`, run `node --check`, then a Playwright smoke test (login `#lg-user`=`adam` / `#lg-pin`=`9001`, click the affected `#tab-*`, assert 0 JS errors — ignore `TUNNEL`/`qrserver`/`net::`/`Failed to load`).
 4. **Commit to `main` and `git push -u origin main`** (Pages serves from main). One clean commit per change; batch related edits.
 5. Edit the big single-line data arrays by parsing → mutating → re-serializing (compact JSON), never fragile regex. Validate parse + count after.
+6. **All UI text must be in English.** Labels, buttons, tabs, headings, notes, placeholders, messages, modals — everything the user sees in the interface must be English. The hotel's official language is English and staff are multinational. **Exception:** ERP product data (wine names, descriptions, codes) stays as imported — do not translate data that came from the ERP system, to avoid confusion.
 
 ## For non-trivial work, use the specialist agent
 For stock updates, new tabs/features, bots, guest/QR menus, or bug fixes, use the **`wine-dashboard`** subagent (`.claude/agents/wine-dashboard.md`) — it has the full data-model, the Excel→HTML update workflow, and the test/commit procedure.
