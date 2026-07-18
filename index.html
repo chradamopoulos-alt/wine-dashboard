@@ -278,33 +278,57 @@ const Chart = (function(){
   --bg:#f3f4f6;--card:#fff;--hdr:#1c2340;--acc:#7b3f9e;--gold:#c8952a;
   --text:#1e293b;--muted:#64748b;--border:#e2e8f0;
   --green:#16a34a;--red:#dc2626;--amber:#b45309;
-  --gap:12px;--r:10px;
+  --gap:12px;--r:10px;--sb-w:220px;--sidebar-bg:#1c2340;
 }
+@media(prefers-color-scheme:dark){:root{--sidebar-bg:#111422;}}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{font-size:15px;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.4;}
-.wrap{max-width:1440px;margin:0 auto;padding:var(--gap);}
+.wrap{max-width:none;margin-left:var(--sb-w);padding:var(--gap) 18px;}
 
-/* ── HEADER ── */
-.hdr{background:var(--hdr);color:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:var(--gap);}
-.hdr-top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
-.hdr h1{font-size:16px;font-weight:700;line-height:1.2;}
-.hdr .sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;}
-.filter-toggle{display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;color:#fff;padding:8px 14px;font-size:13px;cursor:pointer;white-space:nowrap;}
-.filter-toggle:active{background:rgba(255,255,255,.25);}
-.filter-badge-count{background:var(--gold);border-radius:10px;font-size:10px;padding:1px 5px;margin-left:4px;}
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sb-w);background:var(--sidebar-bg);color:#fff;overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.sb-brand{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.12);}
+.sb-brand .sb-logo{font-size:26px;line-height:1;}
+.sb-brand .sb-title{font-size:15px;font-weight:800;margin-top:8px;line-height:1.25;}
+.sb-brand .sb-sub{font-size:10px;color:rgba(255,255,255,.5);margin-top:6px;line-height:1.5;}
+.sb-nav{flex:1;padding:12px 10px;}
+.sb-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.4);margin:16px 10px 6px;}
+.sb-section-label:first-child{margin-top:2px;}
+.sidebar .tab{display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:8px;background:transparent;border:none;border-left:4px solid transparent;color:rgba(255,255,255,.78);font-size:12.5px;font-weight:600;white-space:normal;line-height:1.25;margin-bottom:2px;transition:background .12s,color .12s;}
+.sidebar .tab:hover{background:rgba(255,255,255,.08);color:#fff;}
+.sidebar .tab.active{color:#fff;background:var(--acc);}
+.sidebar .tab.active .tbadge{background:rgba(255,255,255,.3)!important;color:#fff;}
+.sidebar .tab.special-tab.active{background:var(--amber);}
+.sidebar .tab .tbadge{margin-left:auto;flex-shrink:0;}
+.sb-user{padding:14px 16px;border-top:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:10px;}
+.sb-avatar{width:32px;height:32px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;}
+.sb-user-info{flex:1;min-width:0;}
+.sb-user-name{font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-user-role{font-size:10px;color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-signout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;color:#fff;padding:5px 8px;font-size:11px;cursor:pointer;flex-shrink:0;}
+.sb-stats-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;color:#fff;padding:5px 7px;font-size:12px;cursor:pointer;flex-shrink:0;}
+.hamburger{display:none;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:16px;cursor:pointer;color:var(--text);}
 
-/* Filter panel */
-.filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:flex-end;}
-.fg{display:flex;flex-direction:column;gap:3px;flex:1;min-width:130px;}
-.fg label{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.5px;}
-.fg select{padding:8px 10px;border:1px solid rgba(255,255,255,.2);border-radius:6px;background:rgba(255,255,255,.1);color:#fff;font-size:13px;cursor:pointer;width:100%;appearance:auto;}
-.fg select option{background:#1c2340;}
-.btn-reset{padding:8px 14px;border:1px solid rgba(255,255,255,.3);border-radius:6px;background:rgba(255,255,255,.12);color:#fff;font-size:13px;cursor:pointer;white-space:nowrap;}
+/* ── TOP BAR ── */
+.topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:var(--gap);}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar-title{font-size:20px;font-weight:800;color:var(--text);}
+.topbar-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.topbar-btn{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 14px;font-size:13px;cursor:pointer;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.filter-toggle{display:none;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 14px;font-size:13px;cursor:pointer;white-space:nowrap;}
+.filter-toggle:active{background:#f1f5f9;}
+.filter-badge-count{background:var(--gold);border-radius:10px;font-size:10px;padding:1px 5px;margin-left:4px;color:#fff;}
 
-/* ── TABS ── */
-.tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:var(--gap);}
-.tabs::-webkit-scrollbar{display:none;}
+/* Filter chips */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:var(--gap);align-items:flex-end;}
+.fg{display:flex;flex-direction:column;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:999px;padding:6px 16px;min-width:130px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+.fg label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.fg select{border:none;background:transparent;color:var(--text);font-size:13px;cursor:pointer;width:100%;appearance:auto;padding:1px 0;}
+.fg select option{background:#fff;color:#1e293b;}
+.btn-reset{padding:8px 16px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--text);font-size:13px;cursor:pointer;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+
+/* legacy tab look (kept for non-sidebar contexts) */
 .tab{padding:8px 12px;border-radius:var(--r);background:var(--card);border:1px solid var(--border);cursor:pointer;font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap;transition:background .12s,color .12s;line-height:1.1;}
 .tab:hover{background:#f8fafc;color:var(--text);}
 .tab.active{color:#fff;background:var(--acc);border-color:var(--acc);}
@@ -457,15 +481,20 @@ tr:last-child td{border-bottom:none;}
 .pager button:disabled{opacity:.35;cursor:default;}
 
 /* ═══════════════ MOBILE ═══════════════ */
+@media(max-width:768px){
+  .hamburger{display:inline-flex;align-items:center;justify-content:center;}
+  .sidebar{left:calc(-1*var(--sb-w) - 40px);transition:left .2s;box-shadow:2px 0 20px rgba(0,0,0,.3);}
+  .sidebar.open{left:0;}
+  .wrap{margin-left:0;}
+  .topbar-title{font-size:17px;}
+}
 @media(max-width:700px){
   html{font-size:14px;}
   .wrap{padding:10px 10px;}
-  .hdr{border-radius:8px;padding:12px 14px;}
-  .hdr h1{font-size:15px;}
   .filter-toggle{display:block;}
   .filters{display:none;flex-direction:column;}
   .filters.open{display:flex;}
-  .fg{min-width:0;}
+  .fg{min-width:0;border-radius:12px;}
   .fg select{font-size:14px;padding:10px;}
 
   .kpi-row{grid-template-columns:repeat(2,1fr);}
@@ -489,7 +518,8 @@ tr:last-child td{border-bottom:none;}
   .kpi .val{font-size:16px;}
 }
 @media print{
-  .filter-toggle,.filters,.pager,.cbtn{display:none!important;}
+  .filter-toggle,.filters,.pager,.cbtn,.sidebar,.hamburger,.topbar-right{display:none!important;}
+  .wrap{margin-left:0!important;}
   .wine-desc{display:block!important;}
 }
 </style>
@@ -700,21 +730,21 @@ tr:last-child td{border-bottom:none;}
       })();
     }
 
-    // Add user badge to header after DOM loads
+    // Add user badge to sidebar after DOM loads
     document.addEventListener('DOMContentLoaded', function() {
       const info = JSON.parse(auth);
-      const hdrTop = document.querySelector('.hdr-top');
+      const hdrTop = document.getElementById('sb-user-slot');
       if (hdrTop) {
+        const initials = info.name.split(' ').filter(Boolean).map(s=>s[0]).slice(0,2).join('').toUpperCase();
         const badge = document.createElement('div');
-        badge.style.cssText = 'display:flex;align-items:center;gap:8px;';
+        badge.style.cssText = 'display:flex;align-items:center;gap:9px;width:100%;';
         badge.innerHTML = `
-          <div style="text-align:right;">
-            <div style="font-size:12px;font-weight:700;color:#fff;">${info.name.split(' ').pop()}</div>
-            <div style="font-size:10px;color:rgba(255,255,255,.5);">${info.role}</div>
+          <div class="sb-avatar">${initials}</div>
+          <div class="sb-user-info">
+            <div class="sb-user-name">${info.name.split(' ').pop()}</div>
+            <div class="sb-user-role">${info.role}</div>
           </div>
-          <button onclick="sessionStorage.removeItem('ikos_auth');location.reload();" 
-            style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;
-            color:#fff;padding:6px 10px;font-size:11px;cursor:pointer;" title="Sign out">✕</button>
+          <button class="sb-signout" onclick="sessionStorage.removeItem('ikos_auth');location.reload();" title="Sign out">✕</button>
         `;
         hdrTop.appendChild(badge);
       }
@@ -750,9 +780,10 @@ tr:last-child td{border-bottom:none;}
         const statsBtn = document.createElement('button');
         statsBtn.textContent = '📊';
         statsBtn.title = 'Login Statistics';
-        statsBtn.style.cssText = 'background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;color:#fff;padding:6px 10px;font-size:14px;cursor:pointer;margin-left:4px;';
+        statsBtn.className = 'topbar-btn';
         statsBtn.onclick = () => showStats();
-        hdrTop.appendChild(statsBtn);
+        const topbarRight = document.querySelector('.topbar-right');
+        if (topbarRight) topbarRight.appendChild(statsBtn);
       }
     });
   }
@@ -830,103 +861,117 @@ tr:last-child td{border-bottom:none;}
 
 </head>
 <body>
-<div class="wrap">
 
-<!-- HEADER -->
-<div class="hdr">
-  <div class="hdr-top">
-    <div>
-      <h1>&#127863; Wine Stock &amp; Allocation</h1>
-      <div class="sub">IKOS Aria &nbsp;|&nbsp; Imported: 27/3/2026 &nbsp;|&nbsp; <span style="color:#4ade80;">Last Updated: 17/7/2026</span></div>
+<!-- HAMBURGER (mobile) -->
+<button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle navigation">&#9776;</button>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">&#127863;</div>
+    <div class="sb-title">Wine Stock &amp; Allocation</div>
+    <div class="sb-sub">IKOS Aria &nbsp;|&nbsp; Imported: 27/3/2026 &nbsp;|&nbsp; <span style="color:#4ade80;">Last Updated: 17/7/2026</span></div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section-label">Wine Lists</div>
+    <div class="tab active" id="tab-master" onclick="D.switchTab('master')" style="border-left-color:#7b3f9e;">
+      Master List <span class="tbadge" id="tab-master-badge">145</span>
     </div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <button class="filter-toggle" id="filter-toggle-btn" onclick="toggleFilters()">&#8801; Filters</button>
-      <label id="import-btn" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;color:#fff;padding:8px 14px;font-size:13px;cursor:pointer;white-space:nowrap;">
-        &#128196; Load Excel/CSV
-        <input type="file" id="file-input" aria-label="Import Excel or CSV file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileImport(this)">
-      </label>
-      <button onclick="showOneDriveInstructions()" title="OneDrive / SharePoint sync info" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:6px;color:#ffffffcc;padding:8px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">🔗 OneDrive</button>
-      <span id="import-status" style="font-size:11px;color:rgba(255,255,255,.6);display:none;"></span>
+    <div class="tab" id="tab-stock" onclick="D.switchTab('stock')" style="border-left-color:#0891b2;">
+      📦 Stock <span class="tbadge" style="background:#0891b2" id="badge-stock">—</span>
+    </div>
+    <div class="tab special-tab" id="tab-special" onclick="D.switchTab('special')" style="border-left-color:#b45309;">
+      &#11088; Special Request <span class="tbadge" id="tab-special-badge">105</span>
+    </div>
+
+    <div class="sb-section-label">Operations</div>
+    <div class="tab" id="tab-pairing" onclick="D.switchTab('pairing')" style="border-left-color:#c8952a;">
+      &#127860; Food Pairing
+    </div>
+    <div class="tab" id="tab-dineout" onclick="D.switchTab('dineout')" style="border-left-color:#8c6d4f;">
+      🍽️ Dine Out Order
+    </div>
+    <div class="tab" id="tab-consumption" onclick="D.switchTab('consumption')" style="border-left-color:#16a34a;">
+      📉 Ανάλωση 2026
+    </div>
+    <div class="tab" id="tab-beverages" onclick="D.switchTab('beverages')" style="border-left-color:#0891b2;">
+      🥤 Beverage Inventory <span class="tbadge" style="background:#0891b2">430</span>
+    </div>
+
+    <div class="sb-section-label">Tools</div>
+    <div class="tab" id="tab-alerts" onclick="D.switchTab('alerts')" style="border-left-color:#dc2626;">
+      ⚠️ Alerts <span class="tbadge" style="background:#dc2626" id="badge-alerts">—</span>
+    </div>
+    <div class="tab" id="tab-order" onclick="D.switchTab('order')" style="border-left-color:#16a34a;">
+      🛒 Παραγγελία
+    </div>
+    <div class="tab" id="tab-cocktails" onclick="D.switchTab('cocktails')" style="border-left-color:#db2777;">
+      🍸 Cocktails
+    </div>
+    <div class="tab" id="tab-qr" onclick="D.switchTab('qr')" style="border-left-color:#0d9488;">
+      📱 Guest QR
     </div>
   </div>
-  <div class="filters" id="filter-panel">
-    <div class="fg"><label>Category</label>
-      <select id="f-cat" onchange="D.apply()" aria-label="Category filter">
-        <option value="">All Categories</option>
-        <option>WHITE</option><option>RED</option><option>ROSE</option>
-        <option>SPARKLING</option><option>CHAMPAGNE</option><option>SWEET</option><option>FORTIFIED</option>
-      </select></div>
-    <div class="fg"><label>Country</label>
-      <select id="f-country" onchange="D.apply()" aria-label="Country filter"><option value="">All Countries</option></select></div>
-    <div class="fg"><label>Restaurant</label>
-      <select id="f-outlet" onchange="D.apply()" aria-label="Outlet filter">
-        <option value="">All Outlets</option>
-        <option>OUZO</option><option>FRESCO</option><option>ANAYA</option><option>PROVENCE</option>
-        <option>FLAVORS</option><option>OUZO</option><option>OLIVA</option><option>KOS</option><option>SEASONS</option>
-        <option>BARS</option><option>DINE OUT</option>
-      </select></div>
-    <div class="fg"><label>Price Tier</label>
-      <select id="f-tier" onchange="D.apply()" aria-label="Price tier filter">
-        <option value="">All Tiers</option>
-        <option>Economy (&lt;&#8364;3)</option><option>Standard (&#8364;3-5)</option>
-        <option>Premium (&#8364;5-10)</option><option>Luxury (&#8364;10-20)</option>
-        <option>Ultra-Premium (&gt;&#8364;20)</option>
-      </select></div>
-    <div class="fg"><label>Private Cellar</label>
-      <select id="f-pc" onchange="D.apply()" aria-label="Private cellar filter">
-        <option value="">All</option><option value="1">PC Only</option><option value="0">Standard</option>
-      </select></div>
-    <div class="fg"><label>Tag</label>
-      <select id="f-tag" onchange="D.mode==='stock'?D.stockTable():D.apply()" aria-label="Tag filter">
-        <option value="">All Tags</option>
-        <option value="Vegan">🌱 Vegan</option>
-        <option value="Bio">🌿 Bio</option>
-        <option value="Organic">🌿 Organic</option>
-        <option value="Kosher">✡️ Kosher</option>
-        <option value="Sweet">🍯 Sweet</option>
-        <option value="Demi-Sweet">🍬 Demi-Sweet</option>
-        <option value="Semi-Dry">💧 Semi-Dry</option>
-      </select></div>
-    <button class="btn-reset" onclick="D.reset()">&#10005; Reset</button>
+  <div class="sb-user" id="sb-user-slot"></div>
+</div>
+
+<div class="wrap">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-title" id="topbar-title">Master List</div>
+  </div>
+  <div class="topbar-right">
+    <button class="filter-toggle" id="filter-toggle-btn" onclick="toggleFilters()">&#8801; Filters</button>
+    <label id="import-btn" class="topbar-btn">
+      &#128196; Load Excel/CSV
+      <input type="file" id="file-input" aria-label="Import Excel or CSV file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileImport(this)">
+    </label>
+    <button class="topbar-btn" onclick="showOneDriveInstructions()" title="OneDrive / SharePoint sync info">🔗 OneDrive</button>
+    <span id="import-status" style="font-size:11px;color:var(--muted);display:none;"></span>
   </div>
 </div>
 
-<!-- TABS -->
-<div class="tabs">
-  <div class="tab active" id="tab-master" onclick="D.switchTab('master')">
-    Master List <span class="tbadge" id="tab-master-badge">145</span>
-  </div>
-  
-  <div class="tab" id="tab-stock" onclick="D.switchTab('stock')" style="border-top:2px solid #0891b2;">
-    📦 Stock <span class="tbadge" style="background:#0891b2" id="badge-stock">—</span>
-  </div>
-  <div class="tab" id="tab-pairing" onclick="D.switchTab('pairing')" style="border-top:2px solid #c8952a;">
-    &#127860; Food Pairing
-  </div>
-  <div class="tab special-tab" id="tab-special" onclick="D.switchTab('special')">
-    &#11088; Special Request <span class="tbadge" id="tab-special-badge">105</span>
-  </div>
-  <div class="tab" id="tab-dineout" onclick="D.switchTab('dineout')" style="border-top:2px solid #8c6d4f;">
-    🍽️ Dine Out Order
-  </div>
-  <div class="tab" id="tab-consumption" onclick="D.switchTab('consumption')" style="border-top:2px solid #16a34a;">
-    📉 Ανάλωση 2026
-  </div>
-  <div class="tab" id="tab-beverages" onclick="D.switchTab('beverages')" style="border-top:2px solid #0891b2;">
-    🥤 Beverage Inventory <span class="tbadge" style="background:#0891b2">430</span>
-  </div>
-  <div class="tab" id="tab-alerts" onclick="D.switchTab('alerts')" style="border-top:2px solid #dc2626;">
-    ⚠️ Alerts <span class="tbadge" style="background:#dc2626" id="badge-alerts">—</span>
-  </div>
-  <div class="tab" id="tab-order" onclick="D.switchTab('order')" style="border-top:2px solid #16a34a;">
-    🛒 Παραγγελία
-  </div>
-  <div class="tab" id="tab-cocktails" onclick="D.switchTab('cocktails')" style="border-top:2px solid #db2777;">
-    🍸 Cocktails
-  </div>
-  <div class="tab" id="tab-qr" onclick="D.switchTab('qr')" style="border-top:2px solid #0d9488;">
-    📱 Guest QR
-  </div>
+<div class="filters" id="filter-panel">
+  <div class="fg"><label>Category</label>
+    <select id="f-cat" onchange="D.apply()" aria-label="Category filter">
+      <option value="">All Categories</option>
+      <option>WHITE</option><option>RED</option><option>ROSE</option>
+      <option>SPARKLING</option><option>CHAMPAGNE</option><option>SWEET</option><option>FORTIFIED</option>
+    </select></div>
+  <div class="fg"><label>Country</label>
+    <select id="f-country" onchange="D.apply()" aria-label="Country filter"><option value="">All Countries</option></select></div>
+  <div class="fg"><label>Restaurant</label>
+    <select id="f-outlet" onchange="D.apply()" aria-label="Outlet filter">
+      <option value="">All Outlets</option>
+      <option>OUZO</option><option>FRESCO</option><option>ANAYA</option><option>PROVENCE</option>
+      <option>FLAVORS</option><option>OUZO</option><option>OLIVA</option><option>KOS</option><option>SEASONS</option>
+      <option>BARS</option><option>DINE OUT</option>
+    </select></div>
+  <div class="fg"><label>Price Tier</label>
+    <select id="f-tier" onchange="D.apply()" aria-label="Price tier filter">
+      <option value="">All Tiers</option>
+      <option>Economy (&lt;&#8364;3)</option><option>Standard (&#8364;3-5)</option>
+      <option>Premium (&#8364;5-10)</option><option>Luxury (&#8364;10-20)</option>
+      <option>Ultra-Premium (&gt;&#8364;20)</option>
+    </select></div>
+  <div class="fg"><label>Private Cellar</label>
+    <select id="f-pc" onchange="D.apply()" aria-label="Private cellar filter">
+      <option value="">All</option><option value="1">PC Only</option><option value="0">Standard</option>
+    </select></div>
+  <div class="fg"><label>Tag</label>
+    <select id="f-tag" onchange="D.mode==='stock'?D.stockTable():D.apply()" aria-label="Tag filter">
+      <option value="">All Tags</option>
+      <option value="Vegan">🌱 Vegan</option>
+      <option value="Bio">🌿 Bio</option>
+      <option value="Organic">🌿 Organic</option>
+      <option value="Kosher">✡️ Kosher</option>
+      <option value="Sweet">🍯 Sweet</option>
+      <option value="Demi-Sweet">🍬 Demi-Sweet</option>
+      <option value="Semi-Dry">💧 Semi-Dry</option>
+    </select></div>
+  <button class="btn-reset" onclick="D.reset()">&#10005; Reset</button>
 </div>
 
 <!-- KPIs -->
@@ -1791,6 +1836,12 @@ function grpCount(arr,key){
   return Object.entries(m).map(([label,count])=>({label,count}));
 }
 
+// Toggle mobile sidebar navigation
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  if(sb)sb.classList.toggle('open');
+}
+
 // Toggle mobile filter panel
 function toggleFilters(){
   const panel=document.querySelector('.filters');
@@ -2451,6 +2502,10 @@ class Dash{
   }
   switchTab(tab){
     this.mode=tab;this.page=0;
+    const TAB_TITLES={master:'Master List',stock:'📦 Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request',dineout:'🍽️ Dine Out Order',consumption:'📉 Ανάλωση 2026',beverages:'🥤 Beverage Inventory',alerts:'⚠️ Alerts',order:'🛒 Παραγγελία',cocktails:'🍸 Cocktails',qr:'📱 Guest QR'};
+    const ttEl=document.getElementById('topbar-title');if(ttEl)ttEl.textContent=TAB_TITLES[tab]||'Master List';
+    const sbEl=document.getElementById('sidebar');if(sbEl)sbEl.classList.remove('open');
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.getElementById('tab-master').classList.toggle('active',tab==='master');
     document.getElementById('tab-special').classList.toggle('active',tab==='special');
     document.getElementById('tab-stock').classList.toggle('active',tab==='stock');
@@ -3913,7 +3968,8 @@ async function _handleFileImportAsync(input){
       Object.entries(outletMap).sort((a,b)=>b[1]-a[1]).forEach(([outlet,count])=>OUTLET_DATA.push({outlet,count}));
 
       // Update header date
-      document.querySelector('.hdr .sub').textContent=
+      const sbSub=document.querySelector('.sb-brand .sb-sub');
+      if(sbSub)sbSub.textContent=
         'IKOS Aria \u00a0|\u00a0 Imported: '+new Date().toLocaleDateString('el-GR');
 
       // Reinitialise dashboard
