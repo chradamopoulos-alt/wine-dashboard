@@ -347,8 +347,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* ── CHARTS ── */
 .crow{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);margin-bottom:var(--gap);min-width:0;}
 .card{background:var(--card);border-radius:var(--r);padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.07);overflow:hidden;min-width:0;}
-.card h3{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.5px;}
-.card canvas{max-height:220px;width:100%!important;display:block;}
+.card h3{font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.5px;}
+.card canvas{max-height:320px;width:100%!important;display:block;}
 .crow{min-width:0;}
 .chtab{padding:6px 14px;border:1px solid var(--border);border-radius:18px;background:var(--card);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;}
 .chtab:hover{border-color:var(--acc);color:var(--acc);}
@@ -1000,16 +1000,16 @@ tr:last-child td{border-bottom:none;}
     <button class="chtab" onclick="D.chartTab(2)">🏆 Top 10 & Prices</button>
   </div>
   <div class="crow chart-page" id="chp-0">
-    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">By Category</h3><canvas id="ch-cat" style="max-height:220px;"></canvas></div>
-    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">By Country</h3><canvas id="ch-cty" style="max-height:220px;"></canvas></div>
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">By Category</h3><canvas id="ch-cat" style="max-height:320px;"></canvas></div>
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">By Country</h3><canvas id="ch-cty" style="max-height:320px;"></canvas></div>
   </div>
   <div class="crow chart-page" id="chp-1" style="display:none;">
-    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Stock vs Consumption</h3><canvas id="ch-sc" style="max-height:220px;"></canvas></div>
-    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">SKUs per Outlet</h3><canvas id="ch-out" style="max-height:220px;"></canvas></div>
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Stock vs Consumption</h3><canvas id="ch-sc" style="max-height:320px;"></canvas></div>
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">SKUs per Outlet</h3><canvas id="ch-out" style="max-height:320px;"></canvas></div>
   </div>
   <div class="crow chart-page" id="chp-2" style="display:none;">
-    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Top 10 by Consumption</h3><canvas id="ch-top" style="max-height:220px;"></canvas></div>
-    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Price Tiers</h3><canvas id="ch-tier" style="max-height:220px;"></canvas></div>
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Top 10 by Consumption</h3><canvas id="ch-top" style="max-height:320px;"></canvas></div>
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Price Tiers</h3><canvas id="ch-tier" style="max-height:320px;"></canvas></div>
   </div>
 </div>
 
@@ -3358,24 +3358,42 @@ class Dash{
     if(idx===1){this.scChart();this.buildOutletChart();}
     if(idx===2){this.topChart();this.tierChart();}
   }
+  _centerPlugin(id,text,sub){
+    return {id:id+'_ctr',afterDraw(chart){
+      const {ctx,chartArea:{left,right,top,bottom}}=chart;
+      const cx=(left+right)/2, cy=(top+bottom)/2;
+      ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font='bold 26px system-ui';ctx.fillStyle='#1e293b';ctx.fillText(text,cx,cy-8);
+      ctx.font='11px system-ui';ctx.fillStyle='#64748b';ctx.fillText(sub,cx,cy+14);
+      ctx.restore();
+    }};
+  }
+  _chartWithPlugins(id,type,data,opts,plugins){
+    if(this.charts[id]){this.charts[id].destroy();delete this.charts[id];}
+    const ctx=document.getElementById(id).getContext('2d');
+    this.charts[id]=new Chart(ctx,{type,data,options:opts,plugins});
+  }
   catChart(){
     const cats=['WHITE','RED','ROSE','SPARKLING','CHAMPAGNE','SWEET','FORTIFIED'];
     const labels=[],vals=[],bgs=[];
     cats.forEach(c=>{const v=this.filtered.filter(r=>r.category===c).length;if(v>0){labels.push(c);vals.push(v);bgs.push(CAT_C[c]+'CC');}});
-    this._chart('ch-cat','doughnut',
+    const total=vals.reduce((a,b)=>a+b,0);
+    this._chartWithPlugins('ch-cat','doughnut',
       {labels,datasets:[{data:vals,backgroundColor:bgs,borderColor:'#fff',borderWidth:2}]},
-      {responsive:true,maintainAspectRatio:false,cutout:'55%',
-       plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:8,font:{size:10}}},
-         tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} SKUs`}}}}
-    );
+      {responsive:true,maintainAspectRatio:false,cutout:'58%',
+       plugins:{legend:{position:'right',labels:{usePointStyle:true,padding:12,font:{size:12},generateLabels:chart=>{
+         const ds=chart.data.datasets[0];return chart.data.labels.map((l,i)=>({text:`${l}  ${ds.data[i]} (${Math.round(ds.data[i]/total*100)}%)`,fillStyle:ds.backgroundColor[i],strokeStyle:'#fff',lineWidth:2,pointStyle:'circle',index:i,hidden:!chart.getDataVisibility(i)}));
+       }}},
+         tooltip:{bodyFont:{size:13},callbacks:{label:ctx=>{const pct=Math.round(ctx.parsed/total*100);return ` ${ctx.label}: ${ctx.parsed} SKUs (${pct}%)`;}}}}}
+      ,[this._centerPlugin('ch-cat',String(total),'SKUs')]);
   }
   ctyChart(){
     const rows=grpCount(this.filtered,'country').sort((a,b)=>b.count-a.count);
     this._chart('ch-cty','bar',
-      {labels:rows.map(r=>r.label),datasets:[{label:'SKUs',data:rows.map(r=>r.count),backgroundColor:COLORS.map(c=>c+'CC'),borderRadius:4,borderWidth:0}]},
+      {labels:rows.map(r=>r.label),datasets:[{label:'SKUs',data:rows.map(r=>r.count),backgroundColor:COLORS.map(c=>c+'CC'),borderRadius:5,borderWidth:0}]},
       {indexAxis:'y',responsive:true,maintainAspectRatio:false,
-       plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.x} SKUs`}}},
-       scales:{x:{beginAtZero:true,grid:{display:false},ticks:{font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}
+       plugins:{legend:{display:false},tooltip:{bodyFont:{size:13},callbacks:{label:ctx=>`${ctx.parsed.x} SKUs`}}},
+       scales:{x:{beginAtZero:true,grid:{display:false},ticks:{font:{size:12}}},y:{grid:{display:false},ticks:{font:{size:12,color:'#334155'}}}}}
     );
   }
   scChart(){
@@ -3384,12 +3402,12 @@ class Dash{
     const con=cats.map(c=>this.filtered.filter(r=>r.category===c).reduce((s,r)=>s+r.consumption,0));
     this._chart('ch-sc','bar',
       {labels:cats,datasets:[
-        {label:'Stock',data:stk,backgroundColor:'#7b3f9eCC',borderRadius:4,borderWidth:0},
-        {label:'2025 Consumed',data:con,backgroundColor:'#c8952aCC',borderRadius:4,borderWidth:0}
+        {label:'Stock',data:stk,backgroundColor:'#7b3f9eCC',borderRadius:5,borderWidth:0},
+        {label:'2025 Consumed',data:con,backgroundColor:'#c8952aCC',borderRadius:5,borderWidth:0}
       ]},
       {responsive:true,maintainAspectRatio:false,
-       plugins:{legend:{position:'top',labels:{usePointStyle:true,font:{size:10}}},tooltip:{mode:'index',intersect:false}},
-       scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}}}}
+       plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:14,font:{size:12}}},tooltip:{mode:'index',intersect:false,bodyFont:{size:13}}},
+       scales:{x:{grid:{display:false},ticks:{font:{size:12}}},y:{beginAtZero:true,ticks:{callback:v=>fmt(v),font:{size:11}}}}}
     );
   }
   buildOutletChart(){
@@ -3397,20 +3415,20 @@ class Dash{
     const ctx=document.getElementById('ch-out').getContext('2d');
     this.charts['ch-out']=new Chart(ctx,{
       type:'bar',
-      data:{labels:OUTLET_DATA.map(r=>r.outlet),datasets:[{label:'Wine SKUs',data:OUTLET_DATA.map(r=>r.count),backgroundColor:COLORS.map(c=>c+'CC'),borderRadius:4,borderWidth:0}]},
+      data:{labels:OUTLET_DATA.map(r=>r.outlet),datasets:[{label:'Wine SKUs',data:OUTLET_DATA.map(r=>r.count),backgroundColor:COLORS.map(c=>c+'CC'),borderRadius:5,borderWidth:0}]},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} wines`}}},
-        scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:35}},y:{beginAtZero:true,ticks:{font:{size:10}}}}}
+        plugins:{legend:{display:false},tooltip:{bodyFont:{size:13},callbacks:{label:ctx=>`${ctx.parsed.y} wines`}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:11},maxRotation:40}},y:{beginAtZero:true,ticks:{font:{size:11}}}}}
     });
   }
   topChart(){
     const top=[...this.filtered].filter(r=>r.consumption>0).sort((a,b)=>b.consumption-a.consumption).slice(0,10);
-    const labels=top.map(r=>r.name.split(' ').slice(0,5).join(' '));
+    const labels=top.map(r=>r.name.split(' ').slice(0,4).join(' '));
     this._chart('ch-top','bar',
-      {labels,datasets:[{label:'Bottles',data:top.map(r=>r.consumption),backgroundColor:top.map(r=>(CAT_C[r.category]||'#7b3f9e')+'CC'),borderRadius:3,borderWidth:0}]},
+      {labels,datasets:[{label:'Bottles',data:top.map(r=>r.consumption),backgroundColor:top.map(r=>(CAT_C[r.category]||'#7b3f9e')+'CC'),borderRadius:5,borderWidth:0}]},
       {indexAxis:'y',responsive:true,maintainAspectRatio:false,
-       plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.x.toLocaleString()} bottles`}}},
-       scales:{x:{beginAtZero:true,grid:{display:false},ticks:{callback:v=>fmt(v),font:{size:9}}},y:{grid:{display:false},ticks:{font:{size:9}}}}}
+       plugins:{legend:{display:false},tooltip:{bodyFont:{size:13},callbacks:{label:ctx=>`${ctx.parsed.x.toLocaleString()} bottles`}}},
+       scales:{x:{beginAtZero:true,grid:{display:false},ticks:{callback:v=>fmt(v),font:{size:11}}},y:{grid:{display:false},ticks:{font:{size:11,color:'#334155'}}}}}
     );
   }
   tierChart(){
@@ -3418,12 +3436,15 @@ class Dash{
     const counts=tiers.map(t=>this.filtered.filter(r=>r.priceTier===t).length);
     const labels=tiers.filter((_,i)=>counts[i]>0);
     const vals=counts.filter(v=>v>0);
-    this._chart('ch-tier','doughnut',
+    const total=vals.reduce((a,b)=>a+b,0);
+    this._chartWithPlugins('ch-tier','doughnut',
       {labels,datasets:[{data:vals,backgroundColor:['#16a34aCC','#2563ebCC','#c8952aCC','#7b3f9eCC','#dc2626CC'],borderColor:'#fff',borderWidth:2}]},
-      {responsive:true,maintainAspectRatio:false,cutout:'55%',
-       plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:8,font:{size:10}}},
-         tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}`}}}}
-    );
+      {responsive:true,maintainAspectRatio:false,cutout:'58%',
+       plugins:{legend:{position:'right',labels:{usePointStyle:true,padding:12,font:{size:12},generateLabels:chart=>{
+         const ds=chart.data.datasets[0];return chart.data.labels.map((l,i)=>({text:`${l}  ${ds.data[i]} (${Math.round(ds.data[i]/total*100)}%)`,fillStyle:ds.backgroundColor[i],strokeStyle:'#fff',lineWidth:2,pointStyle:'circle',index:i,hidden:!chart.getDataVisibility(i)}));
+       }}},
+         tooltip:{bodyFont:{size:13},callbacks:{label:ctx=>{const pct=Math.round(ctx.parsed/total*100);return ` ${ctx.label}: ${ctx.parsed} SKUs (${pct}%)`;}}}}}
+      ,[this._centerPlugin('ch-tier',String(total),'SKUs')]);
   }
   table(){
     const isSpecial=this.mode==='special';
