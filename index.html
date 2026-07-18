@@ -894,7 +894,7 @@ tr:last-child td{border-bottom:none;}
       🍽️ Dine Out Order
     </div>
     <div class="tab" id="tab-consumption" onclick="D.switchTab('consumption')" style="border-left-color:#16a34a;">
-      📉 Ανάλωση 2026
+      📉 Consumption 2026
     </div>
     <div class="tab" id="tab-beverages" onclick="D.switchTab('beverages')" style="border-left-color:#0891b2;">
       🥤 Beverage Inventory <span class="tbadge" style="background:#0891b2">430</span>
@@ -910,7 +910,7 @@ tr:last-child td{border-bottom:none;}
       ⚠️ Alerts <span class="tbadge" style="background:#dc2626" id="badge-alerts">—</span>
     </div>
     <div class="tab" id="tab-order" onclick="D.switchTab('order')" style="border-left-color:#16a34a;">
-      🛒 Παραγγελία
+      🛒 Order
     </div>
     <div class="tab" id="tab-cocktails" onclick="D.switchTab('cocktails')" style="border-left-color:#db2777;">
       🍸 Cocktails
@@ -1014,16 +1014,16 @@ tr:last-child td{border-bottom:none;}
 
 <!-- SPECIAL NOTE -->
 <div class="special-note" id="special-note" style="display:none">
-  <b>&#11088; Special Request Wines</b> — Διατίθενται αποκλειστικά κατόπιν αιτήματος πελάτη.
-  Δεν εμφανίζονται στις κανονικές λίστες των εστιατορίων.
-  Χρησιμοποιήστε τον ERP κωδικό για παραγγελία.
+  <b>&#11088; Special Request Wines</b> — Available exclusively upon guest request.
+  Not shown in regular restaurant lists.
+  Use the ERP code to order.
 </div>
 
 
 <!-- STOCK NOTE -->
 <div class="special-note" id="stock-note" style="display:none;background:#e0f2fe;border-color:#7dd3fc;color:#0369a1;">
-  <b>📦 Full Warehouse Stock</b> — 327 SKUs από το σύστημα ERP.
-  Περιλαμβάνει <b>Visible</b> (εμφανίζονται στις λίστες), <b>Not Visible</b> (στην αποθήκη αλλά εκτός λίστας) και <b>SPECIAL</b> κρασιά.
+  <b>📦 Full Warehouse Stock</b> — 327 SKUs from the ERP system.
+  Includes <b>Visible</b> (shown in lists), <b>Not Visible</b> (in warehouse but not listed) and <b>SPECIAL</b> wines.
 </div>
 <!-- TABLE -->
 <div class="card" style="margin-bottom:var(--gap)">
@@ -1095,19 +1095,19 @@ tr:last-child td{border-bottom:none;}
 <div class="modal-overlay" id="modalOverlay" style="display:none!important;">
   <div class="modal">
     <div class="modal-eyebrow">Dine Out · Wine Order</div>
-    <h3>Αποστολή Παραγγελίας</h3>
+    <h3>Send Order</h3>
 
     <textarea class="msg-textarea" id="msgTextarea" readonly></textarea>
 
     <div class="copy-instruction">
-      <strong>Βήμα 1:</strong> Πάτα "Αντιγραφή" &nbsp;·&nbsp;
-      <strong>Βήμα 2:</strong> Επέλεξε παραλήπτη &nbsp;·&nbsp;
-      <strong>Βήμα 3:</strong> Viber → <strong>Ctrl+V</strong> → Send
+      <strong>Step 1:</strong> Press "Copy" &nbsp;·&nbsp;
+      <strong>Step 2:</strong> Select recipient &nbsp;·&nbsp;
+      <strong>Step 3:</strong> Viber → <strong>Ctrl+V</strong> → Send
     </div>
 
-    <div class="copy-success" id="copySuccess">✓ &nbsp;Αντιγράφηκε στο clipboard!</div>
+    <div class="copy-success" id="copySuccess">✓ &nbsp;Copied to clipboard!</div>
 
-    <button class="btn-copy-big" id="copyBtn" onclick="copyMsg()">📋 &nbsp;Αντιγραφή Μηνύματος</button>
+    <button class="btn-copy-big" id="copyBtn" onclick="copyMsg()">📋 &nbsp;Copy Message</button>
 
     <div class="modal-recipients">
       <button class="btn-viber btn-viber-adam" onclick="openViber('306945796762')">
@@ -1120,7 +1120,7 @@ tr:last-child td{border-bottom:none;}
       </button>
     </div>
 
-    <button class="btn-modal-close" onclick="closeModal()">Κλείσιμο</button>
+    <button class="btn-modal-close" onclick="closeModal()">Close</button>
   </div>
 </div>
 
@@ -1130,8 +1130,8 @@ tr:last-child td{border-bottom:none;}
     <h4 id="briefingTitle"></h4>
     <textarea class="briefing-textarea" id="briefingTextarea" readonly></textarea>
     <div class="briefing-actions">
-      <button class="btn-brief-copy" id="briefCopyBtn" onclick="copyBriefing()">📋 &nbsp;Αντιγραφή</button>
-      <button class="btn-brief-close" onclick="closeBriefing()">Κλείσιμο</button>
+      <button class="btn-brief-copy" id="briefCopyBtn" onclick="copyBriefing()">📋 &nbsp;Copy</button>
+      <button class="btn-brief-close" onclick="closeBriefing()">Close</button>
     </div>
   </div>
 </div>
@@ -1536,7 +1536,7 @@ function openBriefing(code, name) {
   document.getElementById('briefingTitle').textContent = name;
   document.getElementById('briefingTextarea').value = currentBriefing;
   document.getElementById('briefCopyBtn').classList.remove('done');
-  document.getElementById('briefCopyBtn').textContent = '📋  Αντιγραφή';
+  document.getElementById('briefCopyBtn').textContent = '📋  Copy';
   document.getElementById('briefingOverlay').classList.add('active');
 }
 function closeBriefing() { document.getElementById('briefingOverlay').classList.remove('active'); }
@@ -1552,7 +1552,7 @@ function fbBrief(ta) {
 }
 function showBriefCopied() {
   const b = document.getElementById('briefCopyBtn');
-  b.classList.add('done'); b.textContent = '✓  Αντιγράφηκε!';
+  b.classList.add('done'); b.textContent = '✓  Copied!';
 }
 document.getElementById('briefingOverlay').addEventListener('click', function(e){ if(e.target===this) closeBriefing(); });
 
@@ -1582,7 +1582,7 @@ function clearAll(){wines.forEach(w=>{const i=document.getElementById(`qty-${w.c
 
 function buildMsg(){
   const dt=fmtDate(document.getElementById('orderDate').value);
-  let m=`Αγαπητέ Κύριε Χατζόπουλε,\n\nΠαρακάτω η Παραγγελία κρασιών για ${dt}:\n`;
+  let m=`Dear Mr. Chatzopoulos,\n\nPlease find the wine order for ${dt}:\n`;
   categories.forEach(cat=>{
     const lines=[];
     wines.filter(w=>w.category===cat.key).forEach(w=>{const q=parseInt(document.getElementById(`qty-${w.code}`)?.value)||0;if(q>0)lines.push(`  • [${w.code}] ${w.name} (${w.year})\n    ${w.grape} | ${w.region} — ${q} btl`);});
@@ -1591,8 +1591,8 @@ function buildMsg(){
   });
   const t=wines.reduce((s,w)=>s+(parseInt(document.getElementById(`qty-${w.code}`)?.value)||0),0);
   const notes = document.getElementById('additionalNotes').value.trim();
-  m+=`\nΣύνολο: ${t} φιάλες`;
-  if (notes) m+=`\n\n📝 Επιπλέον / Παρατηρήσεις:\n${notes}`;
+  m+=`\nTotal: ${t} bottles`;
+  if (notes) m+=`\n\n📝 Additional / Notes:\n${notes}`;
   m+=`\n\nDine Out F&B — Ikos Aria`;
   return m;
 }
@@ -1605,7 +1605,7 @@ function openModal(){
   document.getElementById('copySuccess').classList.remove('visible');
   const btn=document.getElementById('copyBtn');
   btn.classList.remove('done');
-  btn.textContent='📋  Αντιγραφή Μηνύματος';
+  btn.textContent='📋  Copy Message';
   document.getElementById('modalOverlay').classList.add('active');
 }
 function closeModal(){document.getElementById('modalOverlay').classList.remove('active');}
@@ -1623,7 +1623,7 @@ function fbCopy(ta){
 }
 function showCopied(){
   document.getElementById('copySuccess').classList.add('visible');
-  const b=document.getElementById('copyBtn'); b.classList.add('done'); b.textContent='✓  Αντιγράφηκε!';
+  const b=document.getElementById('copyBtn'); b.classList.add('done'); b.textContent='✓  Copied!';
 }
 function openViber(num){ window.location.href=`viber://chat?number=%2B${num}`; }
 
@@ -1652,7 +1652,7 @@ const STOCK_DATA = [{"code":"F2400517","description":"ALPHA ESTATE SYRAH-XINOMAV
 // in sync. Seasonal fields (consumption, stockCoverMonths, outlets, tags)
 // are left untouched. Codes absent from STOCK_DATA (e.g. special-order
 // wines) keep their existing values.
-const CONS_MONTHS=['Απρ','Μάι','Ιούν'];
+const CONS_MONTHS=['Apr','May','Jun'];
 const CONSUMPTION_2026={"F24101380":{"q":23,"v":63.02,"m":[0,14,9]},"F2410263":{"q":2,"v":5.47,"m":[2,0,0]},"F2400517":{"q":1,"v":16.87,"m":[1,0,0]},"F24001780":{"q":6,"v":134.58,"m":[0,0,6]},"F24002434":{"q":116,"v":969.76,"m":[9,62,45]},"F24001480":{"q":144,"v":500.88,"m":[2,36,106]},"F2410933":{"q":4,"v":37.35,"m":[0,3,1]},"F2400189":{"q":159,"v":823.62,"m":[26,88,45]},"F24101501":{"q":37,"v":88.14,"m":[14,8,15]},"F24001838":{"q":1,"v":2.03,"m":[0,1,0]},"F24200540":{"q":4,"v":0.0,"m":[0,0,4]},"F24001566":{"q":141,"v":658.84,"m":[8,70,63]},"F24200373":{"q":155,"v":717.47,"m":[16,57,82]},"F24101453":{"q":1,"v":0.0,"m":[0,0,1]},"F24001477":{"q":32,"v":101.76,"m":[2,28,2]},"F24101789":{"q":96,"v":355.2,"m":[33,17,46]},"F24001842":{"q":2,"v":7.4,"m":[0,0,2]},"F2410513":{"q":1,"v":12.02,"m":[1,0,0]},"F2400316":{"q":6,"v":100.03,"m":[0,6,0]},"F2410446":{"q":2,"v":8.17,"m":[0,0,2]},"F2410061":{"q":15,"v":69.0,"m":[0,13,2]},"F2410220":{"q":97,"v":365.28,"m":[13,38,46]},"F24101285":{"q":65,"v":279.43,"m":[23,19,23]},"F2420061":{"q":60,"v":127.26,"m":[14,9,37]},"F2410287":{"q":8,"v":16.09,"m":[2,0,6]},"F24001420":{"q":52,"v":81.56,"m":[17,20,15]},"F24200374":{"q":1,"v":0.0,"m":[1,0,0]},"F24101374":{"q":39,"v":59.91,"m":[11,15,13]},"F24101249":{"q":57,"v":202.77,"m":[7,22,28]},"F2410242":{"q":114,"v":402.87,"m":[20,43,51]},"F2400203":{"q":94,"v":355.32,"m":[39,26,29]},"F2430061":{"q":665,"v":18650.87,"m":[57,288,320]},"F2430060":{"q":1797,"v":41764.02,"m":[113,700,984]},"F24101424":{"q":1,"v":0.0,"m":[1,0,0]},"F24001475":{"q":4,"v":12.2,"m":[2,2,0]},"F24002385":{"q":167,"v":609.14,"m":[32,45,90]},"F24102459":{"q":121,"v":437.81,"m":[27,39,55]},"F24101488":{"q":2,"v":0.0,"m":[0,0,2]},"F24101778":{"q":259,"v":789.95,"m":[1,252,6]},"F24002111":{"q":1,"v":0.0,"m":[0,0,1]},"F2410583":{"q":1,"v":22.78,"m":[0,0,1]},"F24200529":{"q":120,"v":576.0,"m":[0,18,102]},"F2430075":{"q":1,"v":35.68,"m":[0,0,1]},"F24200735":{"q":136,"v":761.6,"m":[9,55,72]},"F24102504":{"q":56,"v":232.4,"m":[9,15,32]},"F24002112":{"q":59,"v":306.8,"m":[17,20,22]},"F24001314":{"q":122,"v":414.8,"m":[26,48,48]},"F2430019":{"q":34,"v":159.1,"m":[5,17,12]},"F2400384":{"q":7,"v":247.82,"m":[1,2,4]},"F2430005":{"q":5,"v":145.5,"m":[0,0,5]},"F24200402":{"q":1,"v":5.52,"m":[0,0,1]},"F2410115":{"q":2,"v":44.72,"m":[2,0,0]},"F24102122":{"q":42,"v":218.4,"m":[16,17,9]},"F2420210":{"q":1,"v":23.09,"m":[0,0,1]},"F2420122":{"q":95,"v":1526.67,"m":[10,28,57]},"F24101441":{"q":5,"v":144.7,"m":[0,0,5]},"F24102505":{"q":43,"v":227.9,"m":[9,19,15]},"F24002435":{"q":59,"v":312.7,"m":[9,31,19]},"F24102506":{"q":69,"v":676.2,"m":[9,25,35]},"F2400153":{"q":2,"v":0.0,"m":[0,0,2]},"F2420046":{"q":315,"v":1455.54,"m":[20,173,122]},"F24002224":{"q":3,"v":50.94,"m":[0,3,0]},"F24002147":{"q":452,"v":1808.0,"m":[58,212,182]},"F24002150":{"q":408,"v":1196.94,"m":[50,167,191]},"F24002148":{"q":671,"v":1174.25,"m":[78,337,256]},"F24102166":{"q":452,"v":1265.6,"m":[109,226,117]},"F24400014":{"q":919,"v":12038.9,"m":[86,385,448]},"F24400015":{"q":498,"v":7071.6,"m":[41,227,230]},"F24102331":{"q":18,"v":309.8,"m":[0,10,8]},"F2411127":{"q":1,"v":4.2,"m":[1,0,0]},"F2430115":{"q":1,"v":39.65,"m":[0,0,1]},"F24102125":{"q":1,"v":5.92,"m":[0,0,1]},"F2420281":{"q":16,"v":127.28,"m":[2,6,8]},"F24002436":{"q":52,"v":431.6,"m":[8,27,17]},"F24200736":{"q":124,"v":992.0,"m":[8,56,60]},"F24002437":{"q":62,"v":620.0,"m":[9,25,28]},"F24002438":{"q":150,"v":1335.0,"m":[13,80,57]},"F2400251":{"q":68,"v":195.05,"m":[7,24,37]},"F2400247":{"q":117,"v":351.79,"m":[10,60,47]},"F24102180":{"q":10,"v":64.0,"m":[3,0,7]},"F24200737":{"q":352,"v":3572.8,"m":[7,128,217]},"F24101489":{"q":49,"v":246.12,"m":[6,11,32]},"F24101505":{"q":1,"v":5.04,"m":[1,0,0]},"F24002117":{"q":24,"v":119.2,"m":[0,24,0]},"F24101469":{"q":71,"v":357.92,"m":[19,26,26]},"F2400245":{"q":1,"v":0.0,"m":[0,0,1]},"F2410267":{"q":8,"v":24.0,"m":[1,0,7]},"F2400227":{"q":35,"v":99.19,"m":[2,29,4]},"F24200530":{"q":48,"v":139.95,"m":[8,12,28]},"F24101777":{"q":36,"v":104.76,"m":[1,24,11]},"F2420324":{"q":40,"v":479.79,"m":[1,15,24]},"F24102507":{"q":106,"v":954.0,"m":[0,71,35]},"F24002439":{"q":81,"v":801.9,"m":[9,22,50]},"F24102508":{"q":208,"v":1976.0,"m":[8,77,123]},"F24300534":{"q":62,"v":384.4,"m":[0,40,22]},"F2430044":{"q":268,"v":778.73,"m":[2,266,0]},"F24102127":{"q":1,"v":0.0,"m":[0,0,1]},"F2410333":{"q":71,"v":274.06,"m":[7,33,31]},"F24102480":{"q":13,"v":122.2,"m":[3,10,0]},"F24101495":{"q":461,"v":1914.7,"m":[44,213,204]},"F24200731":{"q":179,"v":1539.4,"m":[5,12,162]},"F24200379":{"q":2528,"v":9614.84,"m":[123,1405,1000]},"F24001545":{"q":231,"v":981.63,"m":[35,112,84]},"F24102179":{"q":8,"v":51.2,"m":[5,2,1]},"F24102509":{"q":203,"v":2182.25,"m":[21,74,108]},"F24001769":{"q":6,"v":24.7,"m":[0,0,6]},"F24200369":{"q":94,"v":366.81,"m":[15,43,36]},"F2401198":{"q":3,"v":12.9,"m":[3,0,0]},"F24001417":{"q":179,"v":795.86,"m":[23,68,88]},"F24101780":{"q":80,"v":326.55,"m":[9,28,43]},"F24102521":{"q":59,"v":395.3,"m":[9,22,28]},"F24102433":{"q":238,"v":880.6,"m":[11,110,117]},"F24102129":{"q":1,"v":4.9,"m":[0,0,1]},"F24300045":{"q":2,"v":52.2,"m":[0,0,2]},"F24102510":{"q":144,"v":2079.36,"m":[6,62,76]},"F24102392":{"q":23,"v":138.65,"m":[1,11,11]},"F24102393":{"q":1170,"v":4095.0,"m":[87,538,545]},"F24102511":{"q":815,"v":2852.5,"m":[23,385,407]},"F24200696":{"q":1733,"v":3812.6,"m":[91,748,894]},"F24102512":{"q":658,"v":954.1,"m":[10,102,546]},"F24102605":{"q":130,"v":442.0,"m":[0,44,86]},"F24102606":{"q":2,"v":18.02,"m":[0,2,0]},"F24200752":{"q":15,"v":149.11,"m":[3,12,0]},"F24102607":{"q":6,"v":78.3,"m":[0,0,6]},"F24102608":{"q":6,"v":81.0,"m":[0,0,6]},"F24102609":{"q":2,"v":20.48,"m":[2,0,0]},"F24102610":{"q":5,"v":62.0,"m":[1,4,0]},"F24200711":{"q":111,"v":377.4,"m":[2,102,7]},"F2420114":{"q":1,"v":0.0,"m":[0,0,1]},"F2400194":{"q":308,"v":1505.93,"m":[11,168,129]},"F24002124":{"q":76,"v":361.76,"m":[12,30,34]},"F24102513":{"q":33,"v":130.35,"m":[0,21,12]},"F24400003":{"q":40,"v":204.35,"m":[0,16,24]},"F24101512":{"q":2,"v":0.0,"m":[0,0,2]},"F24200341":{"q":3,"v":17.58,"m":[0,0,3]},"F24002133":{"q":3,"v":13.74,"m":[1,0,2]},"F24300402":{"q":143,"v":603.12,"m":[19,63,61]},"F24300403":{"q":106,"v":445.89,"m":[16,54,36]},"F2410506":{"q":4,"v":58.68,"m":[1,0,3]},"F2400622":{"q":3,"v":80.19,"m":[0,3,0]},"F24300511":{"q":780,"v":2098.2,"m":[87,355,338]},"F24200738":{"q":1396,"v":2582.6,"m":[0,120,1276]},"F24102394":{"q":840,"v":1428.0,"m":[114,552,174]},"F24102514":{"q":354,"v":849.6,"m":[32,126,196]},"F24200697":{"q":915,"v":1692.75,"m":[149,754,12]},"F2411214":{"q":3,"v":48.17,"m":[0,3,0]},"F2401217":{"q":2,"v":32.61,"m":[0,2,0]},"F2411130":{"q":46,"v":198.53,"m":[14,11,21]},"F24101579":{"q":59,"v":260.27,"m":[2,0,57]},"F2411128":{"q":40,"v":239.06,"m":[18,39,-17]},"F2400250":{"q":66,"v":318.67,"m":[14,21,31]},"F24002141":{"q":4,"v":21.52,"m":[0,1,3]},"F24002142":{"q":31,"v":179.8,"m":[2,25,4]},"F24102147":{"q":1,"v":4.83,"m":[0,0,1]},"F24002138":{"q":30,"v":161.4,"m":[2,24,4]},"F24002441":{"q":97,"v":489.85,"m":[9,32,56]},"F24300535":{"q":49,"v":208.05,"m":[0,34,15]},"F24300536":{"q":25,"v":191.5,"m":[0,20,5]},"F24002143":{"q":74,"v":348.54,"m":[13,27,34]},"F24101419":{"q":2,"v":9.71,"m":[2,0,0]},"F24001472":{"q":5,"v":18.97,"m":[0,5,0]},"F24101369":{"q":2,"v":9.01,"m":[2,0,0]},"F24200537":{"q":26,"v":126.1,"m":[2,24,0]},"F24300363":{"q":84,"v":399.0,"m":[9,22,53]},"F2400285":{"q":149,"v":492.15,"m":[10,66,73]},"F2430297":{"q":435,"v":965.7,"m":[53,304,78]},"F2430004":{"q":101,"v":222.75,"m":[18,77,6]},"F24300401":{"q":68,"v":256.62,"m":[1,21,46]},"F24300391":{"q":15,"v":57.82,"m":[15,0,0]},"F24300392":{"q":44,"v":134.64,"m":[7,12,25]},"F24102158":{"q":51,"v":216.24,"m":[2,49,0]},"F24002442":{"q":59,"v":324.5,"m":[9,34,16]},"F2420237":{"q":1,"v":0.0,"m":[1,0,0]},"F24001837":{"q":13,"v":45.5,"m":[0,11,2]},"F2400281":{"q":31,"v":83.7,"m":[8,13,10]},"F2400944":{"q":6,"v":24.59,"m":[2,0,4]},"F24200629":{"q":50,"v":214.0,"m":[7,6,37]},"F2410259":{"q":63,"v":199.41,"m":[4,34,25]},"F2430194":{"q":7,"v":53.88,"m":[0,1,6]},"F24101907":{"q":3,"v":0.0,"m":[2,0,1]},"F24102376":{"q":1,"v":20.32,"m":[1,0,0]},"F24102449":{"q":6,"v":74.28,"m":[0,3,3]},"F24102461":{"q":15,"v":219.75,"m":[2,9,4]},"F24102395":{"q":200,"v":1120.0,"m":[6,92,102]},"F24102516":{"q":173,"v":1626.2,"m":[14,62,97]},"F2410612":{"q":17,"v":181.73,"m":[1,1,15]},"F2430063":{"q":33,"v":149.51,"m":[7,9,17]},"F24001836":{"q":133,"v":542.09,"m":[17,55,61]},"F24200538":{"q":5,"v":20.0,"m":[0,2,3]},"F24101782":{"q":61,"v":249.88,"m":[16,13,32]},"F24101293":{"q":2,"v":10.09,"m":[0,0,2]},"F24200429":{"q":1,"v":0.0,"m":[0,0,1]},"F24101793":{"q":1,"v":0.0,"m":[0,0,1]},"F24102167":{"q":1752,"v":3797.37,"m":[107,770,875]},"F24002443":{"q":87,"v":835.2,"m":[10,44,33]},"F24002444":{"q":109,"v":1084.55,"m":[17,22,70]},"F24300397":{"q":59,"v":200.66,"m":[9,50,0]},"F2410604":{"q":120,"v":740.82,"m":[16,41,63]},"F2420278":{"q":143,"v":998.14,"m":[16,54,73]},"F24002445":{"q":75,"v":373.5,"m":[13,33,29]},"F24102518":{"q":161,"v":801.78,"m":[13,79,69]},"F24300470":{"q":3699,"v":9321.48,"m":[256,1541,1902]},"F24300514":{"q":2031,"v":5382.15,"m":[178,955,898]},"F24002149":{"q":1223,"v":3516.21,"m":[114,560,549]},"F24102517":{"q":95,"v":651.7,"m":[8,30,57]},"F2400486":{"q":49,"v":336.07,"m":[12,16,21]},"F2410230":{"q":1,"v":6.4,"m":[0,0,1]},"F24002523":{"q":2,"v":32.8,"m":[0,2,0]},"F24002144":{"q":5,"v":29.2,"m":[0,0,5]},"F24200712":{"q":82,"v":308.89,"m":[19,31,32]},"F24002374":{"q":54,"v":202.09,"m":[17,9,28]},"F2400062":{"q":40,"v":199.08,"m":[2,5,33]},"F2400263":{"q":35,"v":52.97,"m":[20,0,15]},"F2410006":{"q":2,"v":2.97,"m":[2,0,0]},"F24001482":{"q":2,"v":15.6,"m":[1,0,1]},"F2411131":{"q":56,"v":238.32,"m":[25,0,31]},"F2410625":{"q":8,"v":108.78,"m":[0,4,4]},"F2410056":{"q":3,"v":37.83,"m":[0,0,3]},"F2410055":{"q":2,"v":16.76,"m":[1,1,0]},"F2420073":{"q":156,"v":2001.45,"m":[16,44,96]},"F2400059":{"q":7,"v":70.63,"m":[2,-2,7]},"F2401181":{"q":4,"v":21.28,"m":[0,0,4]},"F2420243":{"q":128,"v":602.65,"m":[23,38,67]},"F2400238":{"q":2,"v":9.55,"m":[0,2,0]},"F24101276":{"q":3,"v":109.44,"m":[0,0,3]},"F2420018":{"q":2,"v":19.76,"m":[0,2,0]},"F2410105":{"q":9,"v":182.62,"m":[1,6,2]},"F2410651":{"q":1,"v":13.56,"m":[0,0,1]},"F2410656":{"q":2,"v":52.5,"m":[1,1,0]},"F24101436":{"q":2,"v":11.17,"m":[0,0,2]},"F2410659":{"q":1,"v":16.66,"m":[1,0,0]},"F2411175":{"q":3,"v":0.0,"m":[0,3,0]},"F2400035":{"q":5,"v":76.94,"m":[1,0,4]},"F2410038":{"q":5,"v":69.85,"m":[1,0,4]},"F2400545":{"q":19,"v":445.83,"m":[1,7,11]},"F2410663":{"q":9,"v":132.28,"m":[1,6,2]},"F2400045":{"q":2,"v":25.48,"m":[1,0,1]},"F2410009":{"q":162,"v":1833.36,"m":[22,74,66]},"F2420286":{"q":1,"v":11.1,"m":[1,0,0]},"F2410165":{"q":5,"v":43.4,"m":[0,2,3]},"F24200618":{"q":1,"v":3.58,"m":[1,0,0]},"F24002285":{"q":1,"v":17.63,"m":[0,1,0]},"F24102183":{"q":1,"v":0.0,"m":[0,0,1]},"F24101608":{"q":107,"v":505.04,"m":[8,35,64]},"F24002217":{"q":164,"v":493.78,"m":[164,0,0]},"F24102261":{"q":317,"v":1060.54,"m":[37,109,171]},"F24002219":{"q":213,"v":749.76,"m":[29,129,55]},"F24002218":{"q":209,"v":450.27,"m":[36,82,91]},"F24102266":{"q":532,"v":1864.18,"m":[32,210,290]},"F24300482":{"q":5,"v":15.07,"m":[1,0,4]},"F24002216":{"q":12,"v":37.41,"m":[0,3,9]},"F24002220":{"q":49,"v":83.64,"m":[0,27,22]},"F24102262":{"q":218,"v":487.34,"m":[41,115,62]},"F24102263":{"q":223,"v":777.24,"m":[36,97,90]},"F24102264":{"q":58,"v":143.19,"m":[3,41,14]},"F24102265":{"q":180,"v":604.22,"m":[32,71,77]},"F24102267":{"q":152,"v":276.54,"m":[152,0,0]},"F24200666":{"q":209,"v":700.15,"m":[33,60,116]},"F24200665":{"q":361,"v":820.56,"m":[41,164,156]},"F24002287":{"q":4,"v":66.36,"m":[0,2,2]},"F24101479":{"q":1,"v":4.54,"m":[1,0,0]},"F24102124":{"q":1,"v":0.0,"m":[0,0,1]},"F24002289":{"q":122,"v":806.27,"m":[13,71,38]},"F24102131":{"q":15,"v":29.07,"m":[9,3,3]},"F24102130":{"q":1,"v":3.95,"m":[1,0,0]},"F24002290":{"q":1,"v":11.68,"m":[1,0,0]},"F24002388":{"q":36,"v":122.4,"m":[0,36,0]},"F24102462":{"q":36,"v":122.4,"m":[36,0,0]},"F24200726":{"q":217,"v":737.8,"m":[38,179,0]},"F24102138":{"q":3,"v":14.64,"m":[0,0,3]},"F2420050":{"q":122,"v":444.08,"m":[11,58,53]},"F2410015":{"q":1,"v":0.0,"m":[1,0,0]},"F24102294":{"q":14,"v":153.06,"m":[7,0,7]},"F24200622":{"q":2,"v":8.98,"m":[0,0,2]},"F2420079":{"q":1,"v":4.15,"m":[1,0,0]},"F24002291":{"q":1,"v":0.0,"m":[1,0,0]},"F24200725":{"q":7,"v":69.86,"m":[2,0,5]},"F24002386":{"q":2,"v":19.96,"m":[1,0,1]},"F24002365":{"q":74,"v":177.6,"m":[2,60,12]},"F24102427":{"q":186,"v":418.5,"m":[2,76,108]},"F24200706":{"q":191,"v":435.48,"m":[2,117,72]},"F24102428":{"q":12,"v":37.92,"m":[2,3,7]},"F24002366":{"q":2,"v":6.32,"m":[2,0,0]},"F24200707":{"q":33,"v":98.34,"m":[3,6,24]},"F24200664":{"q":152,"v":330.67,"m":[69,42,41]},"F24002215":{"q":96,"v":207.35,"m":[37,36,23]},"F24102260":{"q":100,"v":215.63,"m":[38,89,-27]},"F24002369":{"q":32,"v":51.2,"m":[34,0,-2]},"F24102431":{"q":53,"v":84.8,"m":[32,8,13]},"F24200709":{"q":11,"v":17.6,"m":[11,0,0]},"F24102155":{"q":1,"v":4.58,"m":[0,0,1]},"F24200615":{"q":1,"v":0.0,"m":[0,0,1]},"F24102152":{"q":33,"v":188.1,"m":[0,27,6]},"F24102259":{"q":5,"v":14.65,"m":[2,0,3]},"F24200663":{"q":3,"v":9.87,"m":[3,0,0]},"F24002214":{"q":17,"v":55.26,"m":[2,9,6]},"F24102460":{"q":10,"v":98.97,"m":[3,3,4]},"F2400243":{"q":1,"v":0.0,"m":[1,0,0]},"F24002292":{"q":1,"v":11.22,"m":[0,1,0]},"F24200668":{"q":20,"v":61.13,"m":[0,8,12]},"F24102268":{"q":2,"v":5.8,"m":[2,0,0]},"F24200669":{"q":1,"v":5.0,"m":[1,0,0]},"F2410327":{"q":10,"v":44.89,"m":[2,2,6]},"F24102377":{"q":12,"v":107.4,"m":[0,12,0]},"F2410011":{"q":40,"v":56.26,"m":[20,20,0]},"F2400007":{"q":20,"v":30.4,"m":[20,0,0]},"F2400229":{"q":50,"v":160.61,"m":[13,27,10]},"F2410176":{"q":3,"v":6.58,"m":[3,0,0]},"F24101478":{"q":71,"v":242.45,"m":[16,32,23]},"F2400212":{"q":94,"v":323.66,"m":[21,36,37]},"F2401156":{"q":17,"v":32.95,"m":[0,11,6]},"F24200386":{"q":8,"v":49.53,"m":[1,2,5]},"F24101357":{"q":4,"v":0.0,"m":[0,0,4]},"F24001415":{"q":15,"v":0.0,"m":[0,15,0]},"F24101370":{"q":22,"v":69.52,"m":[2,0,20]},"F24101326":{"q":2,"v":5.96,"m":[0,2,0]},"F24200349":{"q":112,"v":356.4,"m":[17,28,67]},"F2411177":{"q":5,"v":26.14,"m":[1,0,4]},"F2401157":{"q":272,"v":1238.77,"m":[15,123,134]},"F2410984":{"q":1,"v":0.0,"m":[0,0,1]},"F2410732":{"q":5,"v":61.11,"m":[1,0,4]},"F2400014":{"q":87,"v":478.31,"m":[9,36,42]},"F2410019":{"q":1,"v":0.0,"m":[1,0,0]},"F24101547":{"q":2,"v":12.6,"m":[0,0,2]},"F24200370":{"q":1,"v":4.45,"m":[0,0,1]},"F2411143":{"q":7,"v":39.06,"m":[7,0,0]},"F2401164":{"q":6,"v":31.2,"m":[1,4,1]},"F2411142":{"q":7,"v":34.99,"m":[1,0,6]},"F2411144":{"q":9,"v":60.08,"m":[2,0,7]},"F2410803":{"q":2,"v":38.4,"m":[0,2,0]},"F2410804":{"q":4,"v":71.96,"m":[1,3,0]},"F2420280":{"q":8,"v":82.77,"m":[2,6,0]}};
 // ── SOMMELIER BOT knowledge base (rule-based, runs 100% client-side) ──────
 const SOMM_GRAPES={
@@ -2547,7 +2547,7 @@ class Dash{
   }
   switchTab(tab){
     this.mode=tab;this.page=0;
-    const TAB_TITLES={master:'Master List',stock:'📦 Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request',dineout:'🍽️ Dine Out Order',consumption:'📉 Ανάλωση 2026',beverages:'🥤 Beverage Inventory',alerts:'⚠️ Alerts',order:'🛒 Παραγγελία',cocktails:'🍸 Cocktails',qr:'📱 Guest QR',bar:'🍸 Bar'};
+    const TAB_TITLES={master:'Master List',stock:'📦 Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request',dineout:'🍽️ Dine Out Order',consumption:'📉 Consumption 2026',beverages:'🥤 Beverage Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',cocktails:'🍸 Cocktails',qr:'📱 Guest QR',bar:'🍸 Bar'};
     const ttEl=document.getElementById('topbar-title');if(ttEl)ttEl.textContent=TAB_TITLES[tab]||'Master List';
     const sbEl=document.getElementById('sidebar');if(sbEl)sbEl.classList.remove('open');
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -2767,14 +2767,14 @@ class Dash{
     const kpi=(lbl,v,sub,clr)=>`<div class="kpi" style="border-top:3px solid ${clr}"><div class="lbl">${lbl}</div><div class="val">${v}</div><div class="sub2">${sub}</div></div>`;
 
     let h=`<div style="background:#ecfeff;border:1px solid #a5f3fc;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#155e75;">
-      🥤 <b>Απόθεμα Ποτών (χωρίς κρασί)</b> — από το ERP «Master Beverage Inventory». Το κρασί εμφανίζεται στην καρτέλα Stock. Ανανεώνεται με κάθε νέο Excel.</div>`;
+      🥤 <b>Beverage Stock (excluding wine)</b> — from the ERP «Master Beverage Inventory». Wine appears in the Stock tab. Refreshed with each new Excel.</div>`;
     h+=`<div class="kpi-row" style="display:grid">
-      ${kpi('Αξία Αποθέματος',eur(totVal),'σύνολο ποτών','#0891b2')}
-      ${kpi('Είδη (SKUs)',BEVERAGES.length,'κωδικοί','#7c3aed')}
-      ${kpi('Κατηγορίες',catList.length,'ομάδες','#16a34a')}
-      ${kpi('Μεγαλύτερη ομάδα',EMO[catList[0]]+' '+catList[0],eur(cats[catList[0]].v),'#c8952a')}
+      ${kpi('Stock Value',eur(totVal),'total beverages','#0891b2')}
+      ${kpi('Items (SKUs)',BEVERAGES.length,'codes','#7c3aed')}
+      ${kpi('Categories',catList.length,'groups','#16a34a')}
+      ${kpi('Largest Group',EMO[catList[0]]+' '+catList[0],eur(cats[catList[0]].v),'#c8952a')}
     </div>`;
-    h+=`<div class="card" style="padding:16px;margin-top:14px"><div style="font-weight:700;font-size:13px;margin-bottom:10px;color:var(--muted)">ΑΞΙΑ ΑΝΑ ΚΑΤΗΓΟΡΙΑ</div>`;
+    h+=`<div class="card" style="padding:16px;margin-top:14px"><div style="font-weight:700;font-size:13px;margin-bottom:10px;color:var(--muted)">VALUE BY CATEGORY</div>`;
     catList.forEach(c=>{const w=(cats[c].v/maxV*100).toFixed(1);
       h+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;cursor:pointer" onclick="document.getElementById('bev-cat').value='${c}';D.bevApply();">
         <span style="width:130px;font-size:12px">${EMO[c]||''} ${c}</span>
@@ -2830,23 +2830,23 @@ class Dash{
         <div style="font-weight:700;font-size:14px;margin-bottom:8px;">${lbl}</div>
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(url)}" alt="QR ${lbl}" style="width:170px;height:170px;background:#fff;border-radius:8px;" loading="lazy">
         <div style="margin-top:8px;"><a href="${url}" target="_blank" style="font-size:11px;color:${accent};word-break:break-all;">${url}</a></div>
-        <button onclick="navigator.clipboard&&navigator.clipboard.writeText('${url}')" style="margin-top:8px;padding:6px 12px;background:${accent};color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;">📋 Αντιγραφή link</button>
+        <button onclick="navigator.clipboard&&navigator.clipboard.writeText('${url}')" style="margin-top:8px;padding:6px 12px;background:${accent};color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;">📋 Copy link</button>
       </div>`;
 
     let h=`<div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#115e59;">
-      📱 <b>Guest QR</b> — τύπωσε τα QR και βάλ' τα στο τραπέζι. Ο πελάτης σκανάρει και βλέπει <b>λίστα κρασιών</b> ή <b>μενού φαγητού</b> (χωρίς τιμές/στοκ) στο κινητό του.</div>`;
+      📱 <b>Guest QR</b> — print the QR codes and place them on the table. The guest scans and sees the <b>wine list</b> or <b>food menu</b> (no prices/stock) on their phone.</div>`;
 
-    h+=`<div style="font-size:15px;font-weight:800;color:#7c3aed;margin:6px 0 10px;">🍷 Λίστα Κρασιών</div>`;
+    h+=`<div style="font-size:15px;font-weight:800;color:#7c3aed;margin:6px 0 10px;">🍷 Wine List</div>`;
     h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;">`;
-    [...WINE_OUTS,''].forEach(o=>{ h+=qrCard(base+'#menu'+(o?'/'+o:''), o?RN[o]:'📋 Όλα τα κρασιά', '#7c3aed'); });
+    [...WINE_OUTS,''].forEach(o=>{ h+=qrCard(base+'#menu'+(o?'/'+o:''), o?RN[o]:'📋 All Wines', '#7c3aed'); });
     h+=`</div>`;
 
-    h+=`<div style="font-size:15px;font-weight:800;color:#0d9488;margin:22px 0 10px;">🍽️ Μενού Φαγητού</div>`;
+    h+=`<div style="font-size:15px;font-weight:800;color:#0d9488;margin:22px 0 10px;">🍽️ Food Menu</div>`;
     h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;">`;
     FOOD_OUTS.forEach(o=>{ h+=qrCard(base+'#food/'+o, RN[o]||o, '#0d9488'); });
     h+=`</div>`;
 
-    h+=`<div style="margin-top:16px;text-align:center;"><button onclick="window.print()" style="padding:10px 20px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;">🖨️ Εκτύπωση όλων</button></div>`;
+    h+=`<div style="margin-top:16px;text-align:center;"><button onclick="window.print()" style="padding:10px 20px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;">🖨️ Print All</button></div>`;
     out.innerHTML=h;
   }
   _cocktailPool(){
@@ -3042,20 +3042,20 @@ class Dash{
 
     const tag=p=>{const t=this._prioTag(p);return `<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:${t[2]};color:${t[1]};white-space:nowrap">${t[0]}</span>`;};
     let h=`<div style="background:#f0fdf4;border:1px solid #a7f3d0;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#065f46;">
-      🛒 <b>Προτεινόμενη Παραγγελία</b> — με βάση τον ρυθμό ανάλωσης 2026 (${CONS_MONTHS.join('·')}). Στόχος: κάλυψη <b>${tm}</b> μήνες. Μόνο κρασιά κάτω από τον στόχο. Προτεραιότητα: 🟡 IKOS Private Cellar → 🟢 Visible → 🟠 Special. <b>Τα Not Visible εξαιρούνται</b> (δεν τα ξαναπαραγγέλνουμε).</div>`;
+      🛒 <b>Suggested Order</b> — based on the 2026 consumption rate (${CONS_MONTHS.join('·')}). Target: <b>${tm}</b> months of cover. Only wines below target. Priority: 🟡 IKOS Private Cellar → 🟢 Visible → 🟠 Special. <b>Not Visible wines are excluded</b> (we don't reorder them).</div>`;
     h+=`<div class="card" style="padding:14px;margin-bottom:14px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;">
-      <label style="font-size:12px;">🎯 Στόχος κάλυψης <input id="ord-months" type="number" step="0.5" min="0.5" value="${tm}" onchange="D.renderOrder()" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;"> μήνες</label>
-      <label style="font-size:12px;">📦 Στρογγυλοποίηση σε <input id="ord-pack" type="number" min="1" value="${pk}" onchange="D.renderOrder()" style="width:56px;padding:6px;border:1px solid var(--border);border-radius:6px;"> (π.χ. 6=κιβώτιο)</label>
-      <button onclick="D.orderCSV()" style="margin-left:auto;padding:9px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">⬇️ Εξαγωγή CSV</button>
-      <button onclick="D.orderCopy()" style="padding:9px 16px;background:#0891b2;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">📋 Αντιγραφή</button>
+      <label style="font-size:12px;">🎯 Target cover <input id="ord-months" type="number" step="0.5" min="0.5" value="${tm}" onchange="D.renderOrder()" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;"> months</label>
+      <label style="font-size:12px;">📦 Round up to <input id="ord-pack" type="number" min="1" value="${pk}" onchange="D.renderOrder()" style="width:56px;padding:6px;border:1px solid var(--border);border-radius:6px;"> (e.g. 6=case)</label>
+      <button onclick="D.orderCSV()" style="margin-left:auto;padding:9px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">⬇️ Export CSV</button>
+      <button onclick="D.orderCopy()" style="padding:9px 16px;background:#0891b2;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">📋 Copy</button>
     </div>`;
     h+=`<div class="card" style="padding:16px;">
-      <div style="font-size:13px;margin-bottom:10px;"><b>${list.length}</b> κρασιά για παραγγελία · <b>${totBtl.toLocaleString()}</b> μπουκάλια · εκτ. κόστος <b>${eur(totCost)}</b></div>`;
+      <div style="font-size:13px;margin-bottom:10px;"><b>${list.length}</b> wines to order · <b>${totBtl.toLocaleString()}</b> bottles · est. cost <b>${eur(totCost)}</b></div>`;
     if(list.length){
-      h+=`<div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Κωδικός</th><th>Προτ.</th><th>Κρασί</th><th style="text-align:right">Απόθεμα</th><th style="text-align:right">Μ.Ο./μήνα</th><th style="text-align:right">Μήνες</th><th style="text-align:right">➡️ Παραγγελία</th><th style="text-align:right">Εκτ. κόστος</th></tr></thead><tbody>`;
+      h+=`<div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Code</th><th>Prio.</th><th>Wine</th><th style="text-align:right">Stock</th><th style="text-align:right">Avg/month</th><th style="text-align:right">Months</th><th style="text-align:right">➡️ Order</th><th style="text-align:right">Est. cost</th></tr></thead><tbody>`;
       list.forEach(x=>{h+=`<tr><td><span class="cpill" style="font-size:10px">${x.code}</span></td><td>${tag(x.prio)}</td><td>${x.name}</td><td style="text-align:right">${x.stock}</td><td style="text-align:right">${x.avg.toFixed(0)}</td><td style="text-align:right;color:${x.cover<1?'#b91c1c':'var(--muted)'}">${x.cover.toFixed(1)}</td><td style="text-align:right;font-weight:800;color:#16a34a">${x.order}</td><td style="text-align:right">${eur(x.cost)}</td></tr>`;});
       h+=`</tbody></table></div>`;
-    } else h+=`<div style="font-size:13px;color:#16a34a">✅ Όλα τα κρασιά καλύπτουν τον στόχο — δεν χρειάζεται παραγγελία.</div>`;
+    } else h+=`<div style="font-size:13px;color:#16a34a">✅ All wines meet the target — no order needed.</div>`;
     h+=`</div>`;
     out.innerHTML=h;
   }
