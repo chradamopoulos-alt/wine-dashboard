@@ -2572,6 +2572,8 @@ class Dash{
     document.getElementById('charts-section').style.display=tab==='master'?'':'none';
     document.getElementById('special-note').style.display=tab==='special'?'':'none';
     document.getElementById('stock-note').style.display=tab==='stock'?'block':'none';
+    const wineTabs=['master','stock','special'];
+    document.getElementById('filter-panel').style.display=wineTabs.includes(tab)?'':'none';
 
     // Remove stock filter row when leaving stock tab
     if(tab!=='stock'){const sfr=document.querySelector('.stock-filter-row');if(sfr)sfr.remove();}
