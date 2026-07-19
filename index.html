@@ -1767,11 +1767,11 @@ const BEVERAGES=[{"code":"F20000313","description":"ΚΑΚΑΟ ΑΠΟΒΟΥΤΥ�
 // ── COCKTAIL BOT: classic recipes matched against in-stock spirits/mixers ──
 // ing: [displayName, matchRegex|null]. null = pantry item (assumed always available: citrus, sugar, mint, ice, egg, soda water, cream).
 const COCKTAILS=[
-  {n:'Negroni',base:'Gin',note:'Stir · πορτοκάλι',ing:[['Gin','\\bGIN\\b'],['Campari','CAMPARI'],['Sweet Vermouth','ROSSO|VERMOUTH']]},
+  {n:'Negroni',base:'Gin',note:'Stir · orange',ing:[['Gin','\\bGIN\\b'],['Campari','CAMPARI'],['Sweet Vermouth','ROSSO|VERMOUTH']]},
   {n:'Americano',base:'—',note:'Build · soda',ing:[['Campari','CAMPARI'],['Sweet Vermouth','ROSSO|VERMOUTH'],['Soda',null]]},
-  {n:'Aperol Spritz',base:'—',note:'Build · φέτα πορτοκάλι',ing:[['Aperol','APEROL'],['Prosecco','PROSECCO|ΑΦΡΩΔ|SPARKLING'],['Soda',null]]},
-  {n:'Negroni Sbagliato',base:'—',note:'Prosecco αντί για gin',ing:[['Campari','CAMPARI'],['Sweet Vermouth','ROSSO|VERMOUTH'],['Prosecco','PROSECCO|ΑΦΡΩΔ|SPARKLING']]},
-  {n:'Dry Martini',base:'Gin',note:'Stir · ελιά/lemon',ing:[['Gin','\\bGIN\\b'],['Dry Vermouth','EXTRA DRY|DRY VERMOUTH']]},
+  {n:'Aperol Spritz',base:'—',note:'Build · orange slice',ing:[['Aperol','APEROL'],['Prosecco','PROSECCO|ΑΦΡΩΔ|SPARKLING'],['Soda',null]]},
+  {n:'Negroni Sbagliato',base:'—',note:'Prosecco instead of gin',ing:[['Campari','CAMPARI'],['Sweet Vermouth','ROSSO|VERMOUTH'],['Prosecco','PROSECCO|ΑΦΡΩΔ|SPARKLING']]},
+  {n:'Dry Martini',base:'Gin',note:'Stir · olive/lemon',ing:[['Gin','\\bGIN\\b'],['Dry Vermouth','EXTRA DRY|DRY VERMOUTH']]},
   {n:'Vodka Martini',base:'Vodka',note:'Shake/stir',ing:[['Vodka','VODKA|ΒΟΤΚΑ'],['Dry Vermouth','EXTRA DRY|DRY VERMOUTH']]},
   {n:'Gin & Tonic',base:'Gin',note:'Build · tonic',ing:[['Gin','\\bGIN\\b'],['Tonic','TONIC']]},
   {n:'Vodka Tonic',base:'Vodka',note:'Build · tonic',ing:[['Vodka','VODKA|ΒΟΤΚΑ'],['Tonic','TONIC']]},
@@ -1782,7 +1782,7 @@ const COCKTAILS=[
   {n:'Sea Breeze',base:'Vodka',note:'Build',ing:[['Vodka','VODKA|ΒΟΤΚΑ'],['Cranberry','CRANBER|ΚΡΑΝΜΠΕΡ'],['Grapefruit','GRAPEFRUIT|ΓΚΡΕΙΠ']]},
   {n:'Espresso Martini',base:'Vodka',note:'Shake hard',ing:[['Vodka','VODKA|ΒΟΤΚΑ'],['Coffee Liqueur','KAHLUA|ΛΙΚΕΡ ΚΑΦΕ'],['Espresso','ESPRESSO|ΚΑΦΕ']]},
   {n:'White Russian',base:'Vodka',note:'Build · cream',ing:[['Vodka','VODKA|ΒΟΤΚΑ'],['Coffee Liqueur','KAHLUA|ΛΙΚΕΡ ΚΑΦΕ'],['Cream',null]]},
-  {n:'Margarita',base:'Tequila',note:'Shake · αλάτι',ing:[['Tequila','TEQUILA|ΤΕΚΙΛΑ'],['Triple Sec','COINTREAU|TRIPLE SEC'],['Lime',null]]},
+  {n:'Margarita',base:'Tequila',note:'Shake · salt rim',ing:[['Tequila','TEQUILA|ΤΕΚΙΛΑ'],['Triple Sec','COINTREAU|TRIPLE SEC'],['Lime',null]]},
   {n:'Tommy’s Margarita',base:'Tequila',note:'Agave · lime',ing:[['Tequila','TEQUILA|ΤΕΚΙΛΑ'],['Lime',null],['Agave/Sugar',null]]},
   {n:'Paloma',base:'Tequila',note:'Grapefruit soda',ing:[['Tequila','TEQUILA|ΤΕΚΙΛΑ'],['Grapefruit','GRAPEFRUIT|ΓΚΡΕΙΠ'],['Lime',null]]},
   {n:'Tequila Sunrise',base:'Tequila',note:'Grenadine float',ing:[['Tequila','TEQUILA|ΤΕΚΙΛΑ'],['Orange Juice','ΠΟΡΤΟΚΑΛ|ORANGE'],['Grenadine','GRENADINE|ΓΚΡΕΝΑΔΙΝ']]},
@@ -1796,10 +1796,10 @@ const COCKTAILS=[
   {n:'Whisky Sour',base:'Whisky',note:'Shake · egg white',ing:[['Whisky','WHISK|BOURBON|SCOTCH'],['Lemon',null],['Sugar',null],['Egg White',null]]},
   {n:'Whisky & Cola',base:'Whisky',note:'Build',ing:[['Whisky','WHISK|BOURBON|SCOTCH'],['Cola','COLA']]},
   {n:'Amaretto Sour',base:'Liqueur',note:'Shake',ing:[['Amaretto','AMARETTO|DISARONNO'],['Lemon',null],['Sugar',null]]},
-  {n:'Baileys on the Rocks',base:'Liqueur',note:'Build · πάγος',ing:[['Baileys','BAILEYS|IRISH CREAM']]},
+  {n:'Baileys on the Rocks',base:'Liqueur',note:'Build · ice',ing:[['Baileys','BAILEYS|IRISH CREAM']]},
   {n:'Mimosa',base:'Sparkling',note:'Build',ing:[['Prosecco/Champagne','PROSECCO|CHAMPAGNE|CAVA|ΑΦΡΩΔ|SPARKLING'],['Orange Juice','ΠΟΡΤΟΚΑΛ|ORANGE']]},
   {n:'Bellini',base:'Sparkling',note:'Build',ing:[['Prosecco','PROSECCO|ΑΦΡΩΔ|SPARKLING'],['Peach','ΡΟΔΑΚΙΝ|PEACH']]},
-  {n:'Ouzo & Water',base:'Ouzo',note:'Build · πάγος',ing:[['Ouzo','ΟΥΖΟ|OUZO'],['Water',null]]},
+  {n:'Ouzo & Water',base:'Ouzo',note:'Build · ice',ing:[['Ouzo','ΟΥΖΟ|OUZO'],['Water',null]]},
   {n:'Metaxa Sour',base:'Brandy',note:'Shake',ing:[['Metaxa/Brandy','METAXA|COGNAC|BRANDY|HENNESSY'],['Lemon',null],['Sugar',null]]},
   {n:'Campari Soda',base:'—',note:'Build',ing:[['Campari','CAMPARI'],['Soda',null]]}
 ];
@@ -1869,7 +1869,7 @@ const DATA_MAP = {
     country:r.country||'', grape:r.grape||'', region:r.region||'', supplier:r.supplier||'',
     fullName:r.fullName||r.description||'', wineDesc:r.wineDesc||'' }),
   beverage: r => ({ code:r.code, description:r.description||r.name||r.code, qty:+r.qty||0,
-    price:+r.price||0, category:r.category||'Λοιπά' })
+    price:+r.price||0, category:r.category||'Other' })
 };
 function _replaceArray(arr, next){ arr.length=0; next.forEach(x=>arr.push(x)); }
 const HotelData = {
@@ -3646,24 +3646,24 @@ class Dash{
       if(k==='color')want.color=v; else if(k==='sweet')want.sweet=v;
       else if(k==='body')want.body=(v==='light'?1:v==='full'?3:2);
       else if(k==='char')want.char.add(v);});
-    if(/κοκκιν|red|ερυθ/.test(text))want.color='red';
-    if(/λευκ|white|ασπρ/.test(text))want.color='white';
-    if(/ροζε|rose|rosé/.test(text))want.color='rose';
-    if(/αφρωδ|σαμπαν|champagne|sparkl|bubbl|φυσαλ|prosecco|cava/.test(text))want.color='sparkling';
-    if(/γλυκ|sweet|doux/.test(text)&&!/ημιγλυκ/.test(text))want.sweet='sweet';
-    if(/ημιγλυκ|off.?dry|semi/.test(text))want.sweet='offdry';
-    if(/ξηρο|dry|στεγν/.test(text))want.sweet='dry';
-    if(/δυνατ|βαρ[υι]|full|bold|heavy|robust|γεματ/.test(text))want.body=3;
-    if(/ελαφρ|light|φρεσκ/.test(text))want.body=1;
-    if(/φρουτ|fruit/.test(text))want.char.add('fruity');
-    if(/δροσερ|crisp|fresh|μεταλλ|mineral|οξυ/.test(text))want.char.add('crisp');
-    if(/βαρελ|oak|oaky|βανιλ/.test(text))want.char.add('oaky');
-    if(/αρωματ|aromat|floral|ανθ/.test(text))want.char.add('aromatic');
-    if(/τανικ|tannic|στιφ|tannin/.test(text)){want.char.add('tannic');if(!want.color)want.color='red';}
+    if(/red/.test(text))want.color='red';
+    if(/white/.test(text))want.color='white';
+    if(/rose|rosé/.test(text))want.color='rose';
+    if(/champagne|sparkl|bubbl|prosecco|cava/.test(text))want.color='sparkling';
+    if(/sweet|doux/.test(text)&&!/off.?dry|semi/.test(text))want.sweet='sweet';
+    if(/off.?dry|semi/.test(text))want.sweet='offdry';
+    if(/dry/.test(text))want.sweet='dry';
+    if(/full|bold|heavy|robust/.test(text))want.body=3;
+    if(/light/.test(text))want.body=1;
+    if(/fruit/.test(text))want.char.add('fruity');
+    if(/crisp|fresh|mineral/.test(text))want.char.add('crisp');
+    if(/oak|oaky/.test(text))want.char.add('oaky');
+    if(/aromat|floral/.test(text))want.char.add('aromatic');
+    if(/tannic|tannin/.test(text)){want.char.add('tannic');if(!want.color)want.color='red';}
     for(const k in SOMM_GRAPES){ if(text.includes(k)){want.grapes.push(k);const p=SOMM_GRAPES[k];if(!want.color)want.color=p.c;} }
     for(const k in SOMM_COUNTRIES){ if(text.includes(k))want.country=SOMM_COUNTRIES[k]; }
-    if(/ακριβ|premium|expensive|luxury|πολυτελ|special|σπεσιαλ/.test(text))want.price='high';
-    if(/φθην|cheap|οικονομ|budget/.test(text))want.price='low';
+    if(/premium|expensive|luxury|special/.test(text))want.price='high';
+    if(/cheap|budget/.test(text))want.price='low';
     SOMM_FOOD.forEach(f=>{ if(f.k.some(k=>text.includes(k))){const wv=f.w;if(wv.c&&!want.color)want.color=wv.c;if(wv.b&&!want.body)want.body=wv.b;if(wv.sw&&!want.sweet)want.sweet=wv.sw;if(wv.price&&!want.price)want.price=wv.price;(wv.ch||[]).forEach(c=>want.char.add(c));} });
     return want;
   }
@@ -3828,11 +3828,11 @@ class Dash{
       <div id="somm-results" style="margin-top:14px;"></div>
     </div>`;
 
-    // ── Allergie Bot box ──
+    // ── Allergy Bot box ──
     const ALLERGENS=[['Gluten','🌾'],['Milk','🥛'],['Eggs','🥚'],['Fish','🐟'],['Crustaceans','🦐'],['Mollusks','🐚'],['Nuts','🌰'],['Peanuts','🥜'],['Sesame','◻️'],['Soya','🫘'],['Celery','🥬'],['Mustard','🟡'],['Lupin','🌱'],['SO₂','🧪']];
     const achip=(l,em)=>{const on=(this.allerg&&this.allerg.has(l))?' somm-on':'';return `<span class="somm-chip${on}" onclick="D.allergToggle('${l}',this)">${em} ${l}</span>`;};
     h += `<div style="border:1px solid #fecaca;background:linear-gradient(135deg,#fef2f2,#fff7ed);border-radius:14px;padding:16px 18px;margin-bottom:26px;">
-      <div style="font-size:15px;font-weight:800;color:#991b1b;margin-bottom:4px;">🚫 Allergie Bot</div>
+      <div style="font-size:15px;font-weight:800;color:#991b1b;margin-bottom:4px;">🚫 Allergy Bot</div>
       <div style="font-size:12px;color:#b45309;margin-bottom:12px;">Select the guest's allergies — it shows the dishes that are safe.</div>
       <div class="somm-row" style="gap:6px;margin-bottom:10px;">${ALLERGENS.map(([l,e])=>achip(l,e)).join('')}</div>
       <div class="somm-row" style="margin-bottom:10px;">
