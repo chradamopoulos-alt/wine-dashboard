@@ -104,7 +104,7 @@ const Chart = (function(){
     ctx.fillText(total, cx, cy - 7);
     ctx.font = FONT_XS;
     ctx.fillStyle = '#64748b';
-    ctx.fillText('SKUs', cx, cy + 10);
+    ctx.fillText('Labels', cx, cy + 10);
 
     // Legend on the right
     const legX = chartW + 15;
@@ -983,7 +983,7 @@ tr:last-child td{border-bottom:none;}
 
 <!-- KPIs -->
 <div class="kpi-row">
-  <div class="kpi"><div class="lbl">SKUs</div><div class="val" id="k-sku">—</div><div class="sub2">Wine codes</div></div>
+  <div class="kpi"><div class="lbl">Labels</div><div class="val" id="k-sku">—</div><div class="sub2">Wine codes</div></div>
   <div class="kpi gold"><div class="lbl">Stock Value</div><div class="val" id="k-cost">—</div><div class="sub2">Total &#8364;</div></div>
   <div class="kpi"><div class="lbl">In Stock</div><div class="val" id="k-stk">—</div><div class="sub2">Bottles</div></div>
   <div class="kpi green"><div class="lbl">Consumed</div><div class="val" id="k-con">—</div><div class="sub2">2025 bottles</div></div>
@@ -1004,7 +1004,7 @@ tr:last-child td{border-bottom:none;}
   </div>
   <div class="crow chart-page" id="chp-1" style="display:none;">
     <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Stock vs Consumption</h3><canvas id="ch-sc" style="max-height:320px;"></canvas></div>
-    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">SKUs per Outlet</h3><canvas id="ch-out" style="max-height:320px;"></canvas></div>
+    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Labels per Outlet</h3><canvas id="ch-out" style="max-height:320px;"></canvas></div>
   </div>
   <div class="crow chart-page" id="chp-2" style="display:none;">
     <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Top 10 by Consumption</h3><canvas id="ch-top" style="max-height:320px;"></canvas></div>
@@ -1022,7 +1022,7 @@ tr:last-child td{border-bottom:none;}
 
 <!-- STOCK NOTE -->
 <div class="special-note" id="stock-note" style="display:none;background:#e0f2fe;border-color:#7dd3fc;color:#0369a1;">
-  <b>📦 Full Warehouse Stock</b> — 327 SKUs from the ERP system.
+  <b>📦 Full Warehouse Stock</b> — 327 Labels from the ERP system.
   Includes <b>Visible</b> (shown in lists), <b>Not Visible</b> (in warehouse but not listed) and <b>SPECIAL</b> wines.
 </div>
 <!-- TABLE -->
@@ -2803,7 +2803,7 @@ class Dash{
       🥤 <b>Beverage Stock (excluding wine)</b> — from the ERP «Master Beverage Inventory». Wine appears in the Stock tab. Refreshed with each new Excel.</div>`;
     h+=`<div class="kpi-row" style="display:grid">
       ${kpi('Stock Value',eur(totVal),'total beverages','#0891b2')}
-      ${kpi('Items (SKUs)',BEVERAGES.length,'codes','#7c3aed')}
+      ${kpi('Items (Labels)',BEVERAGES.length,'codes','#7c3aed')}
       ${kpi('Categories',catList.length,'groups','#16a34a')}
       ${kpi('Largest Group',EMO[catList[0]]+' '+catList[0],eur(cats[catList[0]].v),'#c8952a')}
     </div>`;
@@ -3417,15 +3417,15 @@ class Dash{
        plugins:{legend:{position:'right',labels:{usePointStyle:true,padding:12,font:{size:12},generateLabels:chart=>{
          const ds=chart.data.datasets[0];return chart.data.labels.map((l,i)=>({text:`${l}  ${ds.data[i]} (${Math.round(ds.data[i]/total*100)}%)`,fillStyle:ds.backgroundColor[i],strokeStyle:'#fff',lineWidth:2,pointStyle:'circle',index:i,hidden:!chart.getDataVisibility(i)}));
        }}},
-         tooltip:{bodyFont:{size:13},callbacks:{label:ctx=>{const pct=Math.round(ctx.parsed/total*100);return ` ${ctx.label}: ${ctx.parsed} SKUs (${pct}%)`;}}}}}
-      ,[this._centerPlugin('ch-cat',String(total),'SKUs')]);
+         tooltip:{bodyFont:{size:13},callbacks:{label:ctx=>{const pct=Math.round(ctx.parsed/total*100);return ` ${ctx.label}: ${ctx.parsed} Labels (${pct}%)`;}}}}}
+      ,[this._centerPlugin('ch-cat',String(total),'Labels')]);
   }
   ctyChart(){
     const rows=grpCount(this.filtered,'country').sort((a,b)=>b.count-a.count);
     this._chart('ch-cty','bar',
-      {labels:rows.map(r=>r.label),datasets:[{label:'SKUs',data:rows.map(r=>r.count),backgroundColor:COLORS.map(c=>c+'CC'),borderRadius:5,borderWidth:0}]},
+      {labels:rows.map(r=>r.label),datasets:[{label:'Labels',data:rows.map(r=>r.count),backgroundColor:COLORS.map(c=>c+'CC'),borderRadius:5,borderWidth:0}]},
       {indexAxis:'y',responsive:true,maintainAspectRatio:false,
-       plugins:{legend:{display:false},tooltip:{bodyFont:{size:13},callbacks:{label:ctx=>`${ctx.parsed.x} SKUs`}}},
+       plugins:{legend:{display:false},tooltip:{bodyFont:{size:13},callbacks:{label:ctx=>`${ctx.parsed.x} Labels`}}},
        scales:{x:{beginAtZero:true,grid:{display:false},ticks:{font:{size:12}}},y:{grid:{display:false},ticks:{font:{size:12,color:'#334155'}}}}}
     );
   }
@@ -3448,7 +3448,7 @@ class Dash{
     const ctx=document.getElementById('ch-out').getContext('2d');
     this.charts['ch-out']=new Chart(ctx,{
       type:'bar',
-      data:{labels:OUTLET_DATA.map(r=>r.outlet),datasets:[{label:'Wine SKUs',data:OUTLET_DATA.map(r=>r.count),backgroundColor:COLORS.map(c=>c+'CC'),borderRadius:5,borderWidth:0}]},
+      data:{labels:OUTLET_DATA.map(r=>r.outlet),datasets:[{label:'Wine Labels',data:OUTLET_DATA.map(r=>r.count),backgroundColor:COLORS.map(c=>c+'CC'),borderRadius:5,borderWidth:0}]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{bodyFont:{size:13},callbacks:{label:ctx=>`${ctx.parsed.y} wines`}}},
         scales:{x:{grid:{display:false},ticks:{font:{size:11},maxRotation:40}},y:{beginAtZero:true,ticks:{font:{size:11}}}}}
@@ -3476,8 +3476,8 @@ class Dash{
        plugins:{legend:{position:'right',labels:{usePointStyle:true,padding:12,font:{size:12},generateLabels:chart=>{
          const ds=chart.data.datasets[0];return chart.data.labels.map((l,i)=>({text:`${l}  ${ds.data[i]} (${Math.round(ds.data[i]/total*100)}%)`,fillStyle:ds.backgroundColor[i],strokeStyle:'#fff',lineWidth:2,pointStyle:'circle',index:i,hidden:!chart.getDataVisibility(i)}));
        }}},
-         tooltip:{bodyFont:{size:13},callbacks:{label:ctx=>{const pct=Math.round(ctx.parsed/total*100);return ` ${ctx.label}: ${ctx.parsed} SKUs (${pct}%)`;}}}}}
-      ,[this._centerPlugin('ch-tier',String(total),'SKUs')]);
+         tooltip:{bodyFont:{size:13},callbacks:{label:ctx=>{const pct=Math.round(ctx.parsed/total*100);return ` ${ctx.label}: ${ctx.parsed} Labels (${pct}%)`;}}}}}
+      ,[this._centerPlugin('ch-tier',String(total),'Labels')]);
   }
   table(){
     const isSpecial=this.mode==='special';
@@ -3935,14 +3935,14 @@ class Dash{
     });
     rows.sort((a,b)=>b.qty-a.qty);
     // KPI cards + summary follow the ACTIVE filter. Counts are based on in-stock codes
-    // (qty>0) so sold-out/zeroed SKUs don't inflate the numbers.
+    // (qty>0) so sold-out/zeroed Labels don't inflate the numbers.
     const inStock=rows.filter(r=>r.qty>0);
     const soldOut=rows.length-inStock.length;
     const totalQty=inStock.reduce((s,r)=>s+r.qty,0);
     const totalVal=inStock.reduce((s,r)=>s+r.qty*r.price,0);
     const pricesWithVal=inStock.filter(r=>r.price>0).map(r=>r.price);
     document.getElementById('res-count').textContent=
-      `${inStock.length} in-stock SKUs · ${totalQty.toLocaleString()} bottles · €${(totalVal/1000).toFixed(1)}K value · ${soldOut} sold out`;
+      `${inStock.length} in-stock Labels · ${totalQty.toLocaleString()} bottles · €${(totalVal/1000).toFixed(1)}K value · ${soldOut} sold out`;
 
     // Update the 6 KPI cards for Stock tab (reflect the active filter)
     document.getElementById('k-sku').textContent=inStock.length;
