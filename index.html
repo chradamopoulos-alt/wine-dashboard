@@ -877,19 +877,19 @@ tr:last-child td{border-bottom:none;}
   <div class="sb-nav">
     <div class="sb-section-label">Inventory</div>
     <div class="tab active" id="tab-master" onclick="D.switchTab('master')" style="border-left-color:#7b3f9e;">
-      Master List <span class="tbadge" id="tab-master-badge">145</span>
+      Master Wine List <span class="tbadge" id="tab-master-badge">145</span>
     </div>
     <div class="tab" id="tab-stock" onclick="D.switchTab('stock')" style="border-left-color:#0891b2;">
-      📦 Stock <span class="tbadge" style="background:#0891b2" id="badge-stock">—</span>
+      📦 Wine Stock <span class="tbadge" style="background:#0891b2" id="badge-stock">—</span>
     </div>
     <div class="tab special-tab" id="tab-special" onclick="D.switchTab('special')" style="border-left-color:#b45309;">
-      &#11088; Special Request <span class="tbadge" id="tab-special-badge">105</span>
+      &#11088; Special Request Wines <span class="tbadge" id="tab-special-badge">105</span>
     </div>
     <div class="tab" id="tab-beverages" onclick="D.switchTab('beverages')" style="border-left-color:#0891b2;">
-      🥤 Beverages <span class="tbadge" style="background:#0891b2">430</span>
+      🥤 Beverages Inventory <span class="tbadge" style="background:#0891b2">430</span>
     </div>
     <div class="tab" id="tab-bar" onclick="D.switchTab('bar')" style="border-left-color:#9333ea;">
-      🍸 Bar <span class="tbadge" style="background:#9333ea">210</span>
+      🍸 Bar Stock <span class="tbadge" style="background:#9333ea">210</span>
     </div>
 
     <div class="sb-section-label">Operations</div>
@@ -2578,7 +2578,7 @@ class Dash{
   }
   switchTab(tab){
     this.mode=tab;this.page=0;
-    const TAB_TITLES={master:'Master List',stock:'📦 Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request',dineout:'🍽️ Dine Out Order',consumption:'📉 Consumption 2026',beverages:'🥤 Beverage Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',cocktails:'🍸 Cocktails',qr:'📱 Guest QR',bar:'🍸 Bar'};
+    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',consumption:'📉 Consumption 2026',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',cocktails:'🍸 Cocktails',qr:'📱 Guest QR',bar:'🍸 Bar Stock'};
     const ttEl=document.getElementById('topbar-title');if(ttEl)ttEl.textContent=TAB_TITLES[tab]||'Master List';
     const sbEl=document.getElementById('sidebar');if(sbEl)sbEl.classList.remove('open');
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
