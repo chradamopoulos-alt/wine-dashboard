@@ -562,6 +562,9 @@ tr:last-child td{border-bottom:none;}
   .stock-actions .cbtn{font-size:9px!important;padding:2px 5px!important;min-height:20px!important;min-width:auto!important;}
   .btn-request-wine{font-size:9px;padding:2px 5px;min-height:20px;}
   .stock-grape{font-size:10px!important;margin-top:1px!important;}
+  .stock-outlets-inline{display:flex!important;}
+  .stock-outlets-inline .op{font-size:9px;padding:1px 4px;}
+  .stock-style-inline{display:block!important;}
 
   .pager button{padding:10px 18px;}
 }
@@ -3794,6 +3797,8 @@ class Dash{
           <div class="stock-code-inline"><span class="cpill">${r.code}</span><button class="cbtn" onclick="copyCode(this,'${r.code}')" style="padding:2px 6px;min-height:24px;min-width:40px;font-size:10px">Copy</button></div>
           ${r.grape?`<div class="stock-grape" style="font-size:11px;color:var(--muted);margin-top:2px">${r.grape}</div>`:''}
           <div class="stock-winedesc">${descHtml}</div>
+          ${!isSpecial&&r.outlets&&r.outlets.length?`<div class="stock-outlets-inline" style="display:none;flex-wrap:wrap;gap:3px;margin-top:3px">${r.outlets.map(o=>`<span class="op">${o}</span>`).join('')}</div>`:''}
+          ${isSpecial&&r.style?`<div class="stock-style-inline" style="display:none;margin-top:2px;font-size:11px;color:var(--muted)">Style: ${r.style}</div>`:''}
           <div class="stock-actions" style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
             <span style="font-size:10px;background:#f1f5f9;border-radius:3px;padding:2px 6px;color:var(--muted)">${r.country||''}</span>
             <div class="briefing-wrap" onclick="renderTip(this,'${r.code}',event)" ontouchstart="handleTipTouch(event,this,'${r.code}')"><button class="cbtn" style="font-size:10px;padding:3px 8px" onclick="copyDesc(this,'${r.code}')">📋 Copy Desc</button><div class="briefing-tip"></div></div>
