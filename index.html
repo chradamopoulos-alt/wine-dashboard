@@ -528,7 +528,7 @@ tr:last-child td{border-bottom:none;}
   .wrap{margin-left:0;}
   .topbar-title{font-size:17px;}
 }
-@media(max-width:700px){
+@media(max-width:900px){
   html{font-size:14px;}
   .wrap{padding:10px 10px;}
   .filter-toggle{display:block;}
@@ -3760,7 +3760,7 @@ class Dash{
     const arw=k=>this.sortCol===k?(this.sortDir==='asc'?' \u25b2':' \u25bc'):'';
 
     let h='<table><thead><tr>';
-    h+=`<th onclick="D.sort('code')">ERP Code${arw('code')}</th>`;
+    h+=`<th class="col-erp" onclick="D.sort('code')">ERP Code${arw('code')}</th>`;
     h+=`<th onclick="D.sort('name')">Wine${arw('name')}</th>`;
     h+=`<th onclick="D.sort('category')">Cat${arw('category')}</th>`;
     h+=`<th onclick="D.sort('country')">Country${arw('country')}</th>`;
@@ -3786,11 +3786,19 @@ class Dash{
       const descHtml=`<div class="wine-desc">${desc.length>100?desc.slice(0,100)+'\u2026':desc}</div><div style="margin-top:3px" class="briefing-wrap" onclick="renderTip(this,'${r.code}',event)" ontouchstart="handleTipTouch(event,this,'${r.code}')"><div class="briefing-wrap" style="display:inline-block" onclick="renderTip(this,'${r.code}',event)" ontouchstart="handleTipTouch(event,this,'${r.code}')"><button class="cbtn" style="font-size:10px;padding:3px 8px" onclick="copyDesc(this,'${r.code}')">📋 Copy Desc</button><div class="briefing-tip"></div></div><div class="briefing-tip"></div></div>`;
       const codeId='c_'+r.code.replace(/\W/g,'');
       h+=`<tr>
-        <td><div class="code-cell">
+        <td class="col-erp"><div class="code-cell">
           <span class="cpill">${r.code}</span>
           <button class="cbtn" onclick="copyCode(this,'${r.code}')">Copy</button>
         </div></td>
-        <td><div class="wine-name">${r.name}${pc}${sp}${tagBadges}</div>${descHtml}</td>
+        <td><div class="wine-name">${r.name}${pc}${sp}${tagBadges}</div>
+          <div class="stock-code-inline"><span class="cpill">${r.code}</span><button class="cbtn" onclick="copyCode(this,'${r.code}')" style="padding:2px 6px;min-height:24px;min-width:40px;font-size:10px">Copy</button></div>
+          ${r.grape?`<div class="stock-grape" style="font-size:11px;color:var(--muted);margin-top:2px">${r.grape}</div>`:''}
+          <div class="stock-winedesc">${descHtml}</div>
+          <div class="stock-actions" style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
+            <span style="font-size:10px;background:#f1f5f9;border-radius:3px;padding:2px 6px;color:var(--muted)">${r.country||''}</span>
+            <div class="briefing-wrap" onclick="renderTip(this,'${r.code}',event)" ontouchstart="handleTipTouch(event,this,'${r.code}')"><button class="cbtn" style="font-size:10px;padding:3px 8px" onclick="copyDesc(this,'${r.code}')">📋 Copy Desc</button><div class="briefing-tip"></div></div>
+          </div>
+        </td>
         <td><span class="cat c-${r.category}">${r.category}</span></td>
         <td>${r.country}</td>
         <td class="col-grape" style="font-size:11px">${r.grape||'—'}</td>
