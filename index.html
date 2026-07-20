@@ -378,6 +378,7 @@ tr:last-child td{border-bottom:none;}
 .cbtn{background:none;border:1px solid #cbd5e1;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;color:var(--muted);min-height:32px;min-width:52px;touch-action:manipulation;}
 .cbtn:active,.cbtn:hover{background:var(--acc);color:#fff;border-color:var(--acc);}
 .cbtn.ok{background:var(--green);color:#fff;border-color:var(--green);}
+.stock-code-inline{display:none;align-items:center;gap:5px;margin-top:3px;}
 
 /* Wine name/desc cell */
 .wine-name{font-size:13px;font-weight:700;line-height:1.3;}
@@ -549,6 +550,18 @@ tr:last-child td{border-bottom:none;}
   .wine-name{font-size:12px;}
   /* Hide less critical columns on mobile */
   .col-grape,.col-outlets,.col-cover{display:none;}
+  /* Stock table: collapse ERP Code column into Description on mobile */
+  .col-erp{display:none;}
+  .stock-code-inline{display:flex;margin-top:2px;}
+  .stock-code-inline .cpill{font-size:10px;padding:2px 5px;}
+  .stock-code-inline .cbtn{min-height:22px;min-width:36px;font-size:9px;padding:1px 5px;}
+  /* Hide verbose detail on mobile, keep grape visible */
+  .stock-winedesc{display:none;}
+  /* Compact action row — single line */
+  .stock-actions{margin-top:3px!important;gap:4px!important;flex-wrap:nowrap!important;}
+  .stock-actions .cbtn{font-size:9px!important;padding:2px 5px!important;min-height:20px!important;min-width:auto!important;}
+  .btn-request-wine{font-size:9px;padding:2px 5px;min-height:20px;}
+  .stock-grape{font-size:10px!important;margin-top:1px!important;}
 
   .pager button{padding:10px 18px;}
 }
@@ -4236,7 +4249,7 @@ class Dash{
     const page=displayRows.slice(start,start+ps);
 
     let h='<table><thead><tr>';
-    h+='<th>ERP Code</th>';
+    h+='<th class="col-erp">ERP Code</th>';
     h+='<th>Description</th>';
     h+='<th>Visibility</th>';
     h+='<th>Qty</th>';
@@ -4252,15 +4265,16 @@ class Dash{
       const _mw=_stockMasterMap[r.code];
       const _wineDesc=r.wineDesc||(_mw&&_mw.description)||'';
       h+=`<tr>
-        <td><div class="code-cell">
+        <td class="col-erp"><div class="code-cell">
           <span class="cpill">${r.code}</span>
           <button class="cbtn" onclick="copyCode(this,'${r.code}')">Copy</button>
         </div></td>
         <td>
           <div class="wine-name" style="font-size:12px">${r.description}${(tagMap[r.code]||[]).map(t=>`<span class="wine-tag wine-tag-${t}">${t}</span>`).join('')}</div>
-          ${r.grape?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${r.grape}</div>`:''}
-          ${_wineDesc?`<div style="font-size:10px;color:var(--muted);margin-top:3px;font-style:italic;line-height:1.35">${_wineDesc}</div>`:''}
-          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+          <div class="stock-code-inline"><span class="cpill">${r.code}</span><button class="cbtn" onclick="copyCode(this,'${r.code}')" style="padding:2px 6px;min-height:24px;min-width:40px;font-size:10px">Copy</button></div>
+          ${r.grape?`<div class="stock-grape" style="font-size:11px;color:var(--muted);margin-top:2px">${r.grape}</div>`:''}
+          ${_wineDesc?`<div class="stock-winedesc" style="font-size:10px;color:var(--muted);margin-top:3px;font-style:italic;line-height:1.35">${_wineDesc}</div>`:''}
+          <div class="stock-actions" style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
             <span style="font-size:10px;background:#f1f5f9;border-radius:3px;padding:2px 6px;color:var(--muted)">${r.country||''}</span>
             <div class="briefing-wrap" style="display:inline-block" onclick="renderTip(this,'${r.code}',event)" ontouchstart="handleTipTouch(event,this,'${r.code}')"><button class="cbtn" style="font-size:10px;padding:3px 8px" onclick="copyDesc(this,'${r.code}')">📋 Copy Desc</button><div class="briefing-tip"></div></div>
             <button class="btn-request-wine" onclick="openRequestModal('${r.code}')">📋 Request</button>
