@@ -910,9 +910,6 @@ tr:last-child td{border-bottom:none;}
     <div class="tab" id="tab-order" onclick="D.switchTab('order')" style="border-left-color:#16a34a;">
       🛒 Order
     </div>
-    <div class="tab" id="tab-cocktails" onclick="D.switchTab('cocktails')" style="border-left-color:#db2777;">
-      🍸 Cocktails
-    </div>
     <div class="tab" id="tab-qr" onclick="D.switchTab('qr')" style="border-left-color:#0d9488;">
       📱 Guest QR
     </div>
@@ -1066,9 +1063,6 @@ tr:last-child td{border-bottom:none;}
 </div>
 <div id="order-panel" style="display:none;padding:8px 0;">
   <div id="order-content"></div>
-</div>
-<div id="cocktails-panel" style="display:none;padding:8px 0;">
-  <div id="cocktails-content"></div>
 </div>
 <div id="bar-panel" style="display:none;padding:8px 0;">
   <div id="bar-content"></div>
@@ -2542,7 +2536,7 @@ class Dash{
   }
   switchTab(tab){
     this.mode=tab;this.page=0;
-    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',consumption:'📉 Consumption 2026',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',cocktails:'🍸 Cocktails',qr:'📱 Guest QR',bar:'🍸 Bar Operations'};
+    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',consumption:'📉 Consumption 2026',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',qr:'📱 Guest QR',bar:'🍸 Bar Operations'};
     const ttEl=document.getElementById('topbar-title');if(ttEl)ttEl.textContent=TAB_TITLES[tab]||'Master List';
     const sbEl=document.getElementById('sidebar');if(sbEl)sbEl.classList.remove('open');
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -2556,7 +2550,6 @@ class Dash{
     const bvp=document.getElementById('beverages-panel');if(bvp)bvp.style.display='none';
     const alp=document.getElementById('alerts-panel');if(alp)alp.style.display='none';
     const orp=document.getElementById('order-panel');if(orp)orp.style.display='none';
-    const ckp=document.getElementById('cocktails-panel');if(ckp)ckp.style.display='none';
     const qrp=document.getElementById('qr-panel');if(qrp)qrp.style.display='none';
     const brp=document.getElementById('bar-panel');if(brp)brp.style.display='none';
     const kpiRow2=document.querySelector('.kpi-row');if(kpiRow2)kpiRow2.style.display='';
@@ -2684,21 +2677,6 @@ class Dash{
       document.getElementById('order-panel').style.display='block';
       this.mode='order';
       this.renderOrder();
-      return;
-    }
-    if(tab==='cocktails'){
-      const hideIds=['charts-section','special-note','stock-note'];
-      hideIds.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
-      const tblCard=document.getElementById('tbl');if(tblCard&&tblCard.closest('.card'))tblCard.closest('.card').style.display='none';
-      const srchRow=document.querySelector('.search-row');if(srchRow)srchRow.closest('.card').style.display='none';
-      const kpiRow=document.querySelector('.kpi-row');if(kpiRow)kpiRow.style.display='none';
-      outletFg.style.opacity='0.4';document.getElementById('f-outlet').disabled=true;
-      pcFg.style.opacity='0.4';document.getElementById('f-pc').disabled=true;
-      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-      document.getElementById('tab-cocktails').classList.add('active');
-      document.getElementById('cocktails-panel').style.display='block';
-      this.mode='cocktails';
-      this.renderCocktails();
       return;
     }
     if(tab==='bar'){
@@ -2842,51 +2820,6 @@ class Dash{
     h+=`</div>`;
 
     h+=`<div style="margin-top:16px;text-align:center;"><button onclick="window.print()" style="padding:10px 20px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;">🖨️ Print All</button></div>`;
-    out.innerHTML=h;
-  }
-  _cocktailPool(){
-    // known: every ERP code we track (drinks/food inventory). available: those currently in stock (qty>0).
-    // Codes NOT tracked at all here (fresh produce, ice, garnish, disposables) are assumed always available, like a pantry item.
-    const known=new Set(), available=new Set();
-    BEVERAGES.forEach(b=>{if(b.code){known.add(b.code); if(b.qty>0)available.add(b.code);}});
-    STOCK_DATA.forEach(s=>{if(s.code){known.add(s.code); if((s.qty||0)>0)available.add(s.code);}});
-    return {known,available};
-  }
-  _cocktailStatus(ck,pool){
-    const have=[],missing=[];
-    ck.ing.forEach(ing=>{ if(!ing.code || !pool.known.has(ing.code) || pool.available.has(ing.code))have.push(ing.item); else missing.push(ing.item); });
-    return {have,missing};
-  }
-  renderCocktails(){
-    const out=document.getElementById('cocktails-content'); if(!out) return;
-    const cat=(document.getElementById('ck-cat')||{}).value||'';
-    const pool=this._cocktailPool();
-    let ready=[],near=[];
-    COCKTAILS.forEach(ck=>{ if(cat&&ck.cat!==cat)return; const st=this._cocktailStatus(ck,pool);
-      if(st.missing.length===0)ready.push({ck,st}); else if(st.missing.length===1)near.push({ck,st}); });
-    const cats=[...new Set(COCKTAILS.map(c=>c.cat))];
-
-    const card=(o,dim)=>{ const {ck,st}=o;
-      const ingH=ck.ing.map(ing=>{ const ok=st.have.includes(ing.item);
-        return `<span style="font-size:11px;padding:2px 8px;border-radius:20px;margin:2px;display:inline-block;${ok?'background:#dcfce7;color:#166534':'background:#fee2e2;color:#991b1b'}">${ok?'✓':'✗'} ${ing.item}</span>`; }).join('');
-      return `<div style="border:1px solid var(--border);border-radius:12px;padding:13px 15px;margin-bottom:10px;background:${dim?'#fffbeb':'#f0fdf4'};${dim?'border-color:#fde68a':'border-color:#86efac'}">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span style="font-weight:800;font-size:15px;">${ck.n}</span>
-          <span style="font-size:11px;color:var(--muted);padding:2px 8px;background:var(--bg2,#f1f5f9);border-radius:20px;">${ck.cat}</span>
-          <span style="font-size:11px;color:var(--muted);">· cost €${ck.cost.toFixed(2)}/portion</span>
-          ${dim?`<span style="margin-left:auto;font-size:11px;font-weight:700;color:#a16207;">missing: ${st.missing.join(', ')}</span>`:''}
-        </div>
-        <div style="margin-top:6px;">${ingH}</div>
-      </div>`;
-    };
-
-    let h=`<div style="background:#fdf2f8;border:1px solid #fbcfe8;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#9d174d;">
-      🍸 <b>Cocktail Bot</b> — what you can make right now, based on live stock of each recipe's exact ERP ingredients.</div>`;
-    h+=`<div class="card" style="padding:12px 14px;margin-bottom:14px;"><label style="font-size:12px;">🍹 Category: <select id="ck-cat" onchange="D.renderCocktails()" style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff;"><option value="">All</option>${cats.map(x=>`<option value="${x}" ${cat===x?'selected':''}>${x}</option>`).join('')}</select></label></div>`;
-    h+=`<div class="card" style="padding:16px;margin-bottom:14px"><div style="font-weight:700;font-size:14px;color:#166534;margin-bottom:10px">✅ You can make now (${ready.length})</div>`;
-    h+= ready.length?ready.map(o=>card(o,false)).join(''):`<div style="font-size:13px;color:var(--muted)">No complete recipe in this category.</div>`;
-    h+=`</div>`;
-    if(near.length){ h+=`<div class="card" style="padding:16px"><div style="font-weight:700;font-size:14px;color:#a16207;margin-bottom:10px">🔸 Missing 1 ingredient (${near.length})</div>`+near.map(o=>card(o,true)).join('')+`</div>`; }
     out.innerHTML=h;
   }
   /* ── BAR MODULE ── Outlet Menus + Recipe Book ── */
