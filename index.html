@@ -453,6 +453,43 @@ tr:last-child td{border-bottom:none;}
 .btn-brief-close{background:#f1f5f9;color:#334155;}
 @keyframes fadeInTip{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
+/* Request Wine modal (reuses briefing-overlay look) */
+.req-modal{background:#fff;border-radius:14px;padding:20px 22px;max-width:440px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.35);border-top:4px solid #7b3f9e;}
+.req-modal h4{margin:0 0 3px;font-size:16px;color:#7b3f9e;}
+.req-modal .req-wine{font-size:12px;color:var(--muted);margin-bottom:14px;}
+.req-field{margin-bottom:12px;}
+.req-field label{display:block;font-size:11px;font-weight:700;color:#334155;margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px;}
+.req-field input[type=text],.req-field textarea{width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;}
+.req-field textarea{min-height:70px;resize:vertical;}
+.req-priority{display:flex;gap:10px;}
+.req-priority label{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;text-transform:none;cursor:pointer;color:#334155;}
+.req-modal-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end;}
+.btn-req-submit{padding:9px 18px;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;background:#7b3f9e;color:#fff;}
+.btn-req-cancel{padding:9px 18px;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;background:#f1f5f9;color:#334155;}
+.btn-request-wine{font-size:10px;padding:3px 8px;border:1px solid #7b3f9e40;background:#7b3f9e12;color:#7b3f9e;border-radius:6px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.btn-request-wine:hover{background:#7b3f9e22;}
+/* Toast notifications */
+#toast-stack{position:fixed;top:16px;right:16px;z-index:2000;display:flex;flex-direction:column;gap:8px;max-width:320px;}
+.toast{background:#1c2340;color:#fff;padding:11px 16px;border-radius:9px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:toastIn .2s ease-out;border-left:4px solid #16a34a;}
+.toast.toast-err{border-left-color:#dc2626;}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0}}
+.toast.toast-out{animation:toastOut .3s ease-in forwards;}
+/* Requests tab cards */
+.req-card{background:#fff;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.07);border-left:4px solid #d97706;}
+.req-card.req-approved{border-left-color:#16a34a;}
+.req-card.req-rejected{border-left-color:#dc2626;}
+.req-status-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;text-transform:uppercase;letter-spacing:.3px;}
+.req-status-pending{background:#fef3c7;color:#92400e;}
+.req-status-approved{background:#dcfce7;color:#166534;}
+.req-status-rejected{background:#fee2e2;color:#991b1b;}
+.req-prio-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+.req-prio-normal{background:#e0e7ff;color:#3730a3;}
+.req-prio-urgent{background:#fee2e2;color:#991b1b;}
+.req-toggle{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px;}
+.req-toggle button{border:none;background:#fff;padding:8px 18px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted);}
+.req-toggle button.active{background:#7b3f9e;color:#fff;}
+
 /* Badges */
 .cat{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;white-space:nowrap;}
 .c-WHITE{background:#dbeafe;color:#1e40af;}.c-RED{background:#fee2e2;color:#991b1b;}.c-ROSE{background:#fce7f3;color:#9d174d;}
@@ -913,6 +950,9 @@ tr:last-child td{border-bottom:none;}
     <div class="tab" id="tab-qr" onclick="D.switchTab('qr')" style="border-left-color:#0d9488;">
       📱 Guest QR
     </div>
+    <div class="tab" id="tab-requests" onclick="D.switchTab('requests')" style="border-left-color:#7b3f9e;">
+      📋 Requests <span class="tbadge" style="background:#7b3f9e" id="badge-requests">0</span>
+    </div>
   </div>
   <div class="sb-user" id="sb-user-slot"></div>
 </div>
@@ -1070,6 +1110,9 @@ tr:last-child td{border-bottom:none;}
 <div id="qr-panel" style="display:none;padding:8px 0;">
   <div id="qr-content"></div>
 </div>
+<div id="requests-panel" style="display:none;padding:8px 0;">
+  <div id="requests-content"></div>
+</div>
 
 </div>
 
@@ -1127,6 +1170,37 @@ tr:last-child td{border-bottom:none;}
     </div>
   </div>
 </div>
+
+<!-- REQUEST WINE MODAL -->
+<div class="briefing-overlay" id="reqModalOverlay">
+  <div class="req-modal">
+    <h4>📋 Request Wine — Special Request</h4>
+    <div class="req-wine" id="req-wine-label"></div>
+    <div class="req-field">
+      <label>Requesting Staff Member</label>
+      <input type="text" id="req-requester" placeholder="Your name">
+    </div>
+    <div class="req-field">
+      <label>Reason / Note</label>
+      <textarea id="req-reason" placeholder="e.g. Guest at Villa 12 specifically asked for this"></textarea>
+    </div>
+    <div class="req-field">
+      <label>Priority</label>
+      <div class="req-priority">
+        <label><input type="radio" name="req-priority" value="normal" checked> Normal</label>
+        <label><input type="radio" name="req-priority" value="urgent"> Urgent</label>
+      </div>
+    </div>
+    <div style="background:#f3e8ff;border:1px solid #e9d5ff;border-radius:8px;padding:8px 10px;font-size:11.5px;color:#6b21a8;">
+      ⏱️ Standard lead time: 3 days from approval. Please advise the guest accordingly.
+    </div>
+    <div class="req-modal-actions">
+      <button class="btn-req-cancel" onclick="closeRequestModal()">Cancel</button>
+      <button class="btn-req-submit" onclick="submitWineRequest()">Submit Request</button>
+    </div>
+  </div>
+</div>
+<div id="toast-stack"></div>
 
 <script>
 const wines = [
@@ -1851,6 +1925,85 @@ const HotelData = {
 // Startup hook (no-op in embedded mode). Safe to await; failures don't break the app.
 HotelData.load().catch(e=>console.warn('HotelData.load skipped:',e.message));
 
+/* ── SPECIAL REQUEST WORKFLOW ────────────────────────────────────────────
+   Staff request wines for Special Request status; admin approves/rejects.
+   Stored in localStorage today; the WineRequests object is the only place
+   that touches the storage layer, so it can later be swapped for a backend
+   call (see HotelData seam above) without touching the UI.
+   Business rule: standard procurement lead time is communicated as 3 days
+   from approval — even when the wine is already in stock — to add friction
+   to special requests at this all-inclusive property. Actual stock level is
+   an admin-only detail and must never surface on the request form. */
+const REQ_STORAGE_KEY='wine_requests';
+const REQ_LEAD_DAYS=3;
+const WineRequests={
+  load(){ try{ return JSON.parse(localStorage.getItem(REQ_STORAGE_KEY))||[]; }catch(e){ return []; } },
+  save(list){ localStorage.setItem(REQ_STORAGE_KEY, JSON.stringify(list)); },
+  add(req){ const list=this.load(); list.unshift(req); this.save(list); return req; },
+  update(id,patch){ const list=this.load(); const i=list.findIndex(r=>r.id===id); if(i<0)return null; list[i]=Object.assign({},list[i],patch); this.save(list); return list[i]; },
+  all(){ return this.load(); },
+  pending(){ return this.load().filter(r=>r.status==='pending'); },
+  pendingCount(){ return this.pending().length; },
+  hasUrgentPending(){ return this.pending().some(r=>r.priority==='urgent'); }
+};
+function reqAddDays(iso,n){ const d=iso?new Date(iso):new Date(); d.setDate(d.getDate()+n); return d; }
+function reqFmtDate(d){ return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+function reqFmtDateTime(iso){ const d=new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
+function showToast(msg,ok){
+  const stack=document.getElementById('toast-stack'); if(!stack)return;
+  const t=document.createElement('div');
+  t.className='toast'+(ok===false?' toast-err':'');
+  t.textContent=msg;
+  stack.appendChild(t);
+  setTimeout(()=>{ t.classList.add('toast-out'); setTimeout(()=>t.remove(),300); },3000);
+}
+function openRequestModal(code){
+  const s=STOCK_DATA.find(x=>x.code===code);
+  const name=s?s.description:code;
+  document.getElementById('req-wine-label').textContent=code+' — '+name;
+  document.getElementById('req-wine-label').dataset.code=code;
+  document.getElementById('req-wine-label').dataset.name=name;
+  document.getElementById('req-requester').value='';
+  document.getElementById('req-reason').value='';
+  document.querySelector('input[name="req-priority"][value="normal"]').checked=true;
+  document.getElementById('reqModalOverlay').classList.add('active');
+}
+function closeRequestModal(){ document.getElementById('reqModalOverlay').classList.remove('active'); }
+function submitWineRequest(){
+  const lbl=document.getElementById('req-wine-label');
+  const code=lbl.dataset.code, name=lbl.dataset.name;
+  const requester=document.getElementById('req-requester').value.trim();
+  const reason=document.getElementById('req-reason').value.trim();
+  const priority=document.querySelector('input[name="req-priority"]:checked').value;
+  if(!requester){ showToast('Please enter your name.',false); return; }
+  if(!reason){ showToast('Please add a short reason for the request.',false); return; }
+  WineRequests.add({
+    id:Date.now(), code, name, requester, reason, priority,
+    status:'pending', rejectionReason:'',
+    createdAt:new Date().toISOString(), processedAt:null, processedBy:null
+  });
+  closeRequestModal();
+  showToast('✅ Request submitted for '+code+'.');
+  if(window.D){ window.D.updateRequestsBadge(); if(window.D.mode==='requests') window.D.renderRequests(); }
+}
+function approveWineRequest(id){
+  WineRequests.update(id,{status:'approved',processedAt:new Date().toISOString(),processedBy:(JSON.parse(sessionStorage.getItem('ikos_auth')||'{}').name)||'Admin'});
+  showToast('✅ Request approved.');
+  if(window.D){ window.D.updateRequestsBadge(); window.D.renderRequests(); }
+}
+function rejectWineRequestPrompt(id){
+  const box=document.getElementById('reject-reason-'+id); if(!box)return;
+  box.style.display=box.style.display==='none'?'flex':'none';
+  if(box.style.display==='flex'){ const inp=box.querySelector('input'); if(inp)inp.focus(); }
+}
+function rejectWineRequestConfirm(id){
+  const inp=document.getElementById('reject-input-'+id);
+  const reason=(inp&&inp.value.trim())||'Not available';
+  WineRequests.update(id,{status:'rejected',rejectionReason:reason,processedAt:new Date().toISOString(),processedBy:(JSON.parse(sessionStorage.getItem('ikos_auth')||'{}').name)||'Admin'});
+  showToast('❌ Request rejected.',false);
+  if(window.D){ window.D.updateRequestsBadge(); window.D.renderRequests(); }
+}
+
 const COLORS=['#7b3f9e','#c8952a','#2563eb','#16a34a','#dc2626','#0891b2','#d97706','#7c3aed','#0f766e','#b45309'];
 const CAT_C={WHITE:'#2563eb',RED:'#dc2626',ROSE:'#ec4899',SPARKLING:'#16a34a',CHAMPAGNE:'#d97706',SWEET:'#7c3aed',FORTIFIED:'#9a3412'};
 
@@ -2531,12 +2684,19 @@ class Dash{
     document.getElementById('badge-stock').textContent=STOCK_DATA.length;
     const ac=this.alertData(1.0,6,6); const badge=document.getElementById('badge-alerts');
     if(badge)badge.textContent=ac.wineUrgent.length+ac.wineLow.length+ac.bev.length;
+    this.updateRequestsBadge();
     this.apply();
     this.buildOutletChart();
   }
+  updateRequestsBadge(){
+    const badge=document.getElementById('badge-requests'); if(!badge)return;
+    const n=WineRequests.pendingCount();
+    badge.textContent=n;
+    badge.style.background=WineRequests.hasUrgentPending()?'#dc2626':'#7b3f9e';
+  }
   switchTab(tab){
     this.mode=tab;this.page=0;
-    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',consumption:'📉 Consumption 2026',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',qr:'📱 Guest QR',bar:'🍸 Bar Operations'};
+    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',consumption:'📉 Consumption 2026',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',qr:'📱 Guest QR',bar:'🍸 Bar Operations',requests:'📋 Special Requests'};
     const ttEl=document.getElementById('topbar-title');if(ttEl)ttEl.textContent=TAB_TITLES[tab]||'Master List';
     const sbEl=document.getElementById('sidebar');if(sbEl)sbEl.classList.remove('open');
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -2552,6 +2712,7 @@ class Dash{
     const orp=document.getElementById('order-panel');if(orp)orp.style.display='none';
     const qrp=document.getElementById('qr-panel');if(qrp)qrp.style.display='none';
     const brp=document.getElementById('bar-panel');if(brp)brp.style.display='none';
+    const rqp=document.getElementById('requests-panel');if(rqp)rqp.style.display='none';
     const kpiRow2=document.querySelector('.kpi-row');if(kpiRow2)kpiRow2.style.display='';
     const tblCard2=document.getElementById('tbl');
     if(tblCard2&&tblCard2.closest('.card'))tblCard2.closest('.card').style.display='';
@@ -2707,6 +2868,22 @@ class Dash{
       document.getElementById('qr-panel').style.display='block';
       this.mode='qr';
       this.renderQR();
+      return;
+    }
+    if(tab==='requests'){
+      const hideIds=['charts-section','special-note','stock-note'];
+      hideIds.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+      const tblCard=document.getElementById('tbl');if(tblCard&&tblCard.closest('.card'))tblCard.closest('.card').style.display='none';
+      const srchRow=document.querySelector('.search-row');if(srchRow)srchRow.closest('.card').style.display='none';
+      const kpiRow=document.querySelector('.kpi-row');if(kpiRow)kpiRow.style.display='none';
+      outletFg.style.opacity='0.4';document.getElementById('f-outlet').disabled=true;
+      pcFg.style.opacity='0.4';document.getElementById('f-pc').disabled=true;
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.getElementById('tab-requests').classList.add('active');
+      document.getElementById('requests-panel').style.display='block';
+      this.mode='requests';
+      this.reqView='pending';
+      this.renderRequests();
       return;
     }
     if(tab==='special'){
@@ -3295,6 +3472,95 @@ class Dash{
     h+=`</tbody></table></div></div>`;
 
     document.getElementById('consumption-content').innerHTML=h;
+  }
+  reqSetView(v){ this.reqView=v; this.renderRequests(); }
+  renderRequests(){
+    const out=document.getElementById('requests-content'); if(!out)return;
+    this.reqView=this.reqView||'pending';
+    this.updateRequestsBadge();
+    const all=WineRequests.all();
+    const pending=all.filter(r=>r.status==='pending');
+    const history=all.filter(r=>r.status!=='pending');
+    const stockOf={}; STOCK_DATA.forEach(s=>{stockOf[s.code]={qty:s.qty,price:s.price};});
+    const eur=n=>'€'+(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    const prioBadge=p=>`<span class="req-prio-badge req-prio-${p}">${p==='urgent'?'🔴 Urgent':'🔵 Normal'}</span>`;
+    const statusBadge=s=>`<span class="req-status-badge req-status-${s}">${s==='pending'?'⏳ Pending':s==='approved'?'✅ Approved':'❌ Rejected'}</span>`;
+
+    let h=`<div style="background:#f3e8ff;border:1px solid #e9d5ff;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#6b21a8;">
+      📋 <b>Special Request Workflow</b> — staff submit wine requests from the Stock tab; approve or reject here. Stored locally on this device for now (backend-ready).</div>`;
+
+    h+=`<div class="kpi-row" style="display:grid">
+      <div class="kpi" style="border-top:3px solid #d97706"><div class="lbl">Pending</div><div class="val">${pending.length}</div><div class="sub2">Awaiting decision</div></div>
+      <div class="kpi" style="border-top:3px solid #16a34a"><div class="lbl">Approved</div><div class="val">${history.filter(r=>r.status==='approved').length}</div><div class="sub2">All time</div></div>
+      <div class="kpi" style="border-top:3px solid #dc2626"><div class="lbl">Rejected</div><div class="val">${history.filter(r=>r.status==='rejected').length}</div><div class="sub2">All time</div></div>
+      <div class="kpi" style="border-top:3px solid #7b3f9e"><div class="lbl">Total Requests</div><div class="val">${all.length}</div><div class="sub2">All time</div></div>
+    </div>`;
+
+    h+=`<div class="req-toggle" style="margin-top:14px">
+      <button class="${this.reqView==='pending'?'active':''}" onclick="D.reqSetView('pending')">⏳ Pending (${pending.length})</button>
+      <button class="${this.reqView==='history'?'active':''}" onclick="D.reqSetView('history')">🗂️ History (${history.length})</button>
+    </div>`;
+
+    if(this.reqView==='pending'){
+      if(!pending.length){
+        h+=`<div class="card" style="padding:24px;text-align:center;color:var(--muted);font-size:13px">✅ No pending requests.</div>`;
+      } else {
+        pending.forEach(r=>{
+          const st=stockOf[r.code];
+          const stockNote=st ? (st.qty>0?`📦 Internal: ${st.qty} bottles in stock`:'📦 Internal: 0 bottles — sold out') : '📦 Internal: not currently in ERP stock';
+          const priceNote=st&&st.price?` · ${eur(st.price)}/bottle`:'';
+          const etaIfToday=reqFmtDate(reqAddDays(new Date().toISOString(),REQ_LEAD_DAYS));
+          h+=`<div class="req-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+              <div>
+                <div style="font-weight:700;font-size:13.5px">${r.name}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px"><span class="cpill" style="font-size:10px">${r.code}</span></div>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center">${prioBadge(r.priority)}${statusBadge(r.status)}</div>
+            </div>
+            <div style="font-size:12px;margin-top:10px"><b>Requested by:</b> ${r.requester}</div>
+            <div style="font-size:12px;margin-top:3px"><b>Reason:</b> ${r.reason}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">Submitted ${reqFmtDateTime(r.createdAt)}</div>
+            <div style="font-size:11.5px;color:#7b3f9e;margin-top:6px">⏱️ Estimated availability if approved today: <b>${etaIfToday}</b> (3-day standard lead time)</div>
+            <div style="font-size:11px;background:#f8fafc;border:1px dashed var(--border);border-radius:6px;padding:5px 8px;margin-top:8px;color:#475569">${stockNote}${priceNote} <span style="color:#94a3b8">(admin-only — not shown to requester)</span></div>
+            <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+              <button class="btn-req-submit" style="background:#16a34a" onclick="approveWineRequest(${r.id})">✅ Approve</button>
+              <button class="btn-req-submit" style="background:#dc2626" onclick="rejectWineRequestPrompt(${r.id})">❌ Reject</button>
+            </div>
+            <div id="reject-reason-${r.id}" style="display:none;gap:8px;margin-top:10px;align-items:center">
+              <input type="text" id="reject-input-${r.id}" placeholder="Brief rejection reason…" style="flex:1;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12px;">
+              <button class="btn-req-submit" style="background:#991b1b;padding:7px 12px" onclick="rejectWineRequestConfirm(${r.id})">Confirm</button>
+            </div>
+          </div>`;
+        });
+      }
+    } else {
+      if(!history.length){
+        h+=`<div class="card" style="padding:24px;text-align:center;color:var(--muted);font-size:13px">No processed requests yet.</div>`;
+      } else {
+        history.forEach(r=>{
+          h+=`<div class="req-card req-${r.status}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+              <div>
+                <div style="font-weight:700;font-size:13.5px">${r.name}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px"><span class="cpill" style="font-size:10px">${r.code}</span></div>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center">${prioBadge(r.priority)}${statusBadge(r.status)}</div>
+            </div>
+            <div style="font-size:12px;margin-top:10px"><b>Requested by:</b> ${r.requester} · <b>Reason:</b> ${r.reason}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">Submitted ${reqFmtDateTime(r.createdAt)}</div>
+            ${r.status==='approved'?`
+              <div style="font-size:12.5px;color:#166534;font-weight:700;margin-top:8px">🚚 Estimated delivery: ${reqFmtDate(reqAddDays(r.processedAt,REQ_LEAD_DAYS))}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Approved — will be added in the next stock update.</div>
+            `:`
+              <div style="font-size:12px;color:#991b1b;margin-top:8px"><b>Rejection reason:</b> ${r.rejectionReason||'—'}</div>
+            `}
+            <div style="font-size:11px;color:var(--muted);margin-top:6px">Processed by ${r.processedBy||'—'} on ${r.processedAt?reqFmtDateTime(r.processedAt):'—'}</div>
+          </div>`;
+        });
+      }
+    }
+    out.innerHTML=h;
   }
   getSource(){const src=this.mode==='master'?MASTER:SPECIAL;return src.filter(r=>r.code&&r.code.length>3);}
   reset(){
@@ -3995,6 +4261,7 @@ class Dash{
           <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
             <span style="font-size:10px;background:#f1f5f9;border-radius:3px;padding:2px 6px;color:var(--muted)">${r.country||''}</span>
             <div class="briefing-wrap" style="display:inline-block" onclick="renderTip(this,'${r.code}',event)" ontouchstart="handleTipTouch(event,this,'${r.code}')"><button class="cbtn" style="font-size:10px;padding:3px 8px" onclick="copyDesc(this,'${r.code}')">📋 Copy Desc</button><div class="briefing-tip"></div></div>
+            <button class="btn-request-wine" onclick="openRequestModal('${r.code}')">📋 Request</button>
           </div>
         </td>
         <td>${visBadge(r.visibility)}</td>
