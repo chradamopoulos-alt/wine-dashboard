@@ -920,10 +920,10 @@ tr:last-child td{border-bottom:none;}
       📦 Wine Stock <span class="tbadge" style="background:#0891b2" id="badge-stock">—</span>
     </div>
     <div class="tab special-tab" id="tab-special" onclick="D.switchTab('special')" style="border-left-color:#b45309;">
-      &#11088; Special Request Wines <span class="tbadge" id="tab-special-badge">105</span>
+      &#11088; Special Request Wines <span class="tbadge" id="tab-special-badge">108</span>
     </div>
     <div class="tab" id="tab-beverages" onclick="D.switchTab('beverages')" style="border-left-color:#0891b2;">
-      🥤 Beverages Inventory <span class="tbadge" style="background:#0891b2">430</span>
+      🥤 Beverages Inventory <span class="tbadge" style="background:#0891b2" id="tab-beverages-badge">430</span>
     </div>
     <div class="tab" id="tab-bar" onclick="D.switchTab('bar')" style="border-left-color:#9333ea;">
       🍸 Bar Operations <span class="tbadge" style="background:#9333ea" id="tab-bar-badge">210</span>
@@ -3617,6 +3617,7 @@ class Dash{
     this.table();
     document.getElementById('tab-master-badge').textContent=MASTER.length;
     document.getElementById('tab-special-badge').textContent=SPECIAL.length;
+    document.getElementById('tab-beverages-badge').textContent=BEVERAGES.length;
     document.getElementById('tab-bar-badge').textContent=BAR_ITEMS.length;
     document.getElementById('res-count').textContent=this.searched.length+' results';
   }
@@ -4482,19 +4483,9 @@ async function _handleFileImportAsync(input){
 
 // Robust D initialization — always a real Dash when DOM is ready
 window.D = {};
-let D = window.D;
 
 function _initDash() {
-  const inst = new Dash();
-  // Copy all methods to the shared D object so existing onclick refs still work
-  Object.getOwnPropertyNames(Dash.prototype).forEach(k => {
-    if (k !== 'constructor') D[k] = inst[k].bind(inst);
-  });
-  // Copy instance state
-  Object.assign(D, inst);
-  // Replace D with the real instance for new code
-  Object.setPrototypeOf(D, Dash.prototype);
-  window.D = D;
+  window.D = new Dash();
 }
 
 function _tryInitDash() {
