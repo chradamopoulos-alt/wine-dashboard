@@ -1174,7 +1174,7 @@ tr:last-child td{border-bottom:none;}
 <!-- REQUEST WINE MODAL -->
 <div class="briefing-overlay" id="reqModalOverlay">
   <div class="req-modal">
-    <h4>📋 Request Wine — Special Request</h4>
+    <h4>📋 Request Item — Special Request</h4>
     <div class="req-wine" id="req-wine-label"></div>
     <div class="req-field">
       <label>Requesting Staff Member</label>
@@ -1958,7 +1958,7 @@ function showToast(msg,ok){
   setTimeout(()=>{ t.classList.add('toast-out'); setTimeout(()=>t.remove(),300); },3000);
 }
 function openRequestModal(code){
-  const s=STOCK_DATA.find(x=>x.code===code);
+  const s=STOCK_DATA.find(x=>x.code===code)||BEVERAGES.find(x=>x.code===code);
   const name=s?s.description:code;
   document.getElementById('req-wine-label').textContent=code+' — '+name;
   document.getElementById('req-wine-label').dataset.code=code;
@@ -2958,14 +2958,15 @@ class Dash{
     }).sort((a,b)=>b.qty*b.price-a.qty*a.price);
     const tv=rows.reduce((s,b)=>s+b.qty*b.price,0);
     document.getElementById('bev-count').innerHTML=`${rows.length} items · value <b>${eur(tv)}</b>`;
-    let h='<table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Code</th><th>Description</th><th>Category</th><th style="text-align:right">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Value</th></tr></thead><tbody>';
+    let h='<table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Code</th><th>Description</th><th>Category</th><th style="text-align:right">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Value</th><th></th></tr></thead><tbody>';
     rows.slice(0,400).forEach(b=>{h+=`<tr>
       <td><span class="cpill" style="font-size:10px">${b.code}</span></td>
       <td>${b.description}</td>
       <td style="white-space:nowrap;color:var(--muted)">${b.category}</td>
       <td style="text-align:right;font-weight:700">${b.qty.toLocaleString()}</td>
       <td style="text-align:right">€${b.price.toFixed(2)}</td>
-      <td style="text-align:right;font-weight:700">${eur(b.qty*b.price)}</td></tr>`;});
+      <td style="text-align:right;font-weight:700">${eur(b.qty*b.price)}</td>
+      <td><button class="btn-request-wine" onclick="openRequestModal('${b.code}')">📋 Request</button></td></tr>`;});
     h+='</tbody></table>';
     if(rows.length>400)h+=`<div style="font-size:11px;color:var(--muted);margin-top:8px">Showing the first 400. Search to narrow down.</div>`;
     tbl.innerHTML=h;
@@ -3481,7 +3482,7 @@ class Dash{
     const all=WineRequests.all();
     const pending=all.filter(r=>r.status==='pending');
     const history=all.filter(r=>r.status!=='pending');
-    const stockOf={}; STOCK_DATA.forEach(s=>{stockOf[s.code]={qty:s.qty,price:s.price};});
+    const stockOf={}; STOCK_DATA.forEach(s=>{stockOf[s.code]={qty:s.qty,price:s.price};}); BEVERAGES.forEach(b=>{if(!stockOf[b.code])stockOf[b.code]={qty:b.qty,price:b.price};});
     const eur=n=>'€'+(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
     const prioBadge=p=>`<span class="req-prio-badge req-prio-${p}">${p==='urgent'?'🔴 Urgent':'🔵 Normal'}</span>`;
     const statusBadge=s=>`<span class="req-status-badge req-status-${s}">${s==='pending'?'⏳ Pending':s==='approved'?'✅ Approved':'❌ Rejected'}</span>`;
@@ -3507,8 +3508,8 @@ class Dash{
       } else {
         pending.forEach(r=>{
           const st=stockOf[r.code];
-          const stockNote=st ? (st.qty>0?`📦 Internal: ${st.qty} bottles in stock`:'📦 Internal: 0 bottles — sold out') : '📦 Internal: not currently in ERP stock';
-          const priceNote=st&&st.price?` · ${eur(st.price)}/bottle`:'';
+          const stockNote=st ? (st.qty>0?`📦 Internal: ${st.qty} units in stock`:'📦 Internal: 0 units — sold out') : '📦 Internal: not currently in ERP stock';
+          const priceNote=st&&st.price?` · ${eur(st.price)}/unit`:'';
           const etaIfToday=reqFmtDate(reqAddDays(new Date().toISOString(),REQ_LEAD_DAYS));
           h+=`<div class="req-card">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
