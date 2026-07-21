@@ -2707,6 +2707,7 @@ class Dash{
   }
   _recalcCocktailCosts(){
     COCKTAILS.forEach(c=>{
+      if(c._origCost==null)c._origCost=c.cost;
       if(!Array.isArray(c.ing)||!c.ing.length)return;
       let sum=0,found=false;
       c.ing.forEach(i=>{
@@ -2715,6 +2716,11 @@ class Dash{
       });
       if(found)c.cost=Math.round(sum*100)/100;
     });
+  }
+  _bcDelta(c){
+    const o=c._origCost; if(o==null)return 0;
+    const d=c.cost-o;
+    return Math.abs(d)<0.005?0:d;
   }
   updateRequestsBadge(){
     const badge=document.getElementById('badge-requests'); if(!badge)return;
@@ -3173,8 +3179,10 @@ class Dash{
     const maxC=COCKTAILS.reduce((a,b)=>b.cost>a.cost?b:a,COCKTAILS[0]);
     const minC=COCKTAILS.reduce((a,b)=>b.cost<a.cost?b:a,COCKTAILS[0]);
     const cats=[...new Set(COCKTAILS.map(c=>c.cat))];
+    const deltas=COCKTAILS.map(c=>this._bcDelta(c));
+    const nUp=deltas.filter(d=>d>0).length, nDown=deltas.filter(d=>d<0).length, nChanged=nUp+nDown;
 
-    const kpi=(lbl,val,sub)=>`<div class="card" style="padding:14px 16px;"><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.03em;">${lbl}</div><div style="font-size:22px;font-weight:800;color:#9333ea;margin-top:4px;">${val}</div>${sub?`<div style="font-size:11.5px;color:var(--muted);margin-top:2px;">${sub}</div>`:''}</div>`;
+    const kpi=(lbl,val,sub,color)=>`<div class="card" style="padding:14px 16px;"><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.03em;">${lbl}</div><div style="font-size:22px;font-weight:800;color:${color||'#9333ea'};margin-top:4px;">${val}</div>${sub?`<div style="font-size:11.5px;color:var(--muted);margin-top:2px;">${sub}</div>`:''}</div>`;
 
     let h=`<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#5b21b6;">
       💰 <b>Cost Analysis</b> — per-portion cost breakdown for all ${n} bar/restaurant recipes, sourced from the recipe costing sheet.</div>`;
@@ -3183,6 +3191,7 @@ class Dash{
     h+=kpi('Avg Cost / Portion','€'+avg.toFixed(2));
     h+=kpi('Most Expensive','€'+maxC.cost.toFixed(2),maxC.n);
     h+=kpi('Cheapest','€'+minC.cost.toFixed(2),minC.n);
+    h+=kpi('Price Changes',nChanged+' recipes',`<span style="color:#ef4444;font-weight:700;">${nUp} ↑</span> / <span style="color:#22c55e;font-weight:700;">${nDown} ↓</span>`,nChanged?'#5b21b6':'#9333ea');
     h+=`</div>`;
 
     // category breakdown table
@@ -3223,6 +3232,12 @@ class Dash{
         <option value="cost_asc" ${this._bcSort==='cost_asc'?'selected':''}>Cost ↑</option>
         <option value="name" ${this._bcSort==='name'?'selected':''}>Name A-Z</option>
       </select></label>
+      <label style="font-size:12px;">Price change: <select id="bc-changesel" onchange="D._barFilterCosting()" style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+        <option value="" ${!this._bcChange?'selected':''}>All</option>
+        <option value="up" ${this._bcChange==='up'?'selected':''}>Price Increased ↑</option>
+        <option value="down" ${this._bcChange==='down'?'selected':''}>Price Decreased ↓</option>
+        <option value="changed" ${this._bcChange==='changed'?'selected':''}>Changed</option>
+      </select></label>
     </div>
     <div id="bc-count" style="font-size:12.5px;color:var(--muted);margin-bottom:8px;"></div>
     <div id="bc-list"></div>`;
@@ -3245,10 +3260,17 @@ class Dash{
     this._bcSearch=(document.getElementById('bc-search')||{}).value||'';
     this._bcCat=(document.getElementById('bc-catsel')||{}).value||'';
     this._bcSort=(document.getElementById('bc-sortsel')||{}).value||'cost_desc';
+    this._bcChange=(document.getElementById('bc-changesel')||{}).value||'';
     const q=this._bcSearch.toLowerCase();
     let list=COCKTAILS.filter(c=>{
       if(this._bcCat && c.cat!==this._bcCat)return false;
       if(q && !c.n.toLowerCase().includes(q))return false;
+      if(this._bcChange){
+        const d=this._bcDelta(c);
+        if(this._bcChange==='up' && !(d>0))return false;
+        if(this._bcChange==='down' && !(d<0))return false;
+        if(this._bcChange==='changed' && d===0)return false;
+      }
       return true;
     });
     if(this._bcSort==='cost_desc')list=list.slice().sort((a,b)=>b.cost-a.cost);
@@ -3266,10 +3288,21 @@ class Dash{
         </tr></thead><tbody>`;
     list.forEach(c=>{
       const open=this._bcOpen===c.n;
+      const d=this._bcDelta(c);
+      let costCell;
+      if(d>0){
+        const pct=c._origCost?(d/c._origCost*100):0;
+        costCell=`<span style="color:#ef4444;">€${c.cost.toFixed(2)} ↑</span> <span style="font-size:10.5px;font-weight:700;color:#ef4444;background:#fee2e2;padding:1px 7px;border-radius:20px;">+€${d.toFixed(2)} (+${pct.toFixed(1)}%)</span>`;
+      }else if(d<0){
+        const pct=c._origCost?(d/c._origCost*100):0;
+        costCell=`<span style="color:#22c55e;">€${c.cost.toFixed(2)} ↓</span> <span style="font-size:10.5px;font-weight:700;color:#16a34a;background:#dcfce7;padding:1px 7px;border-radius:20px;">-€${Math.abs(d).toFixed(2)} (${pct.toFixed(1)}%)</span>`;
+      }else{
+        costCell=`€${c.cost.toFixed(2)}`;
+      }
       h+=`<tr style="border-bottom:1px solid var(--border);cursor:pointer;" onclick="D.barCostSetOpen('${c.n.replace(/'/g,"\\'")}')">
         <td style="padding:9px 12px;font-weight:700;">${c.n} <span style="color:var(--muted);font-size:11px;">${open?'▲':'▼'}</span></td>
         <td style="padding:9px 12px;"><span style="font-size:11px;font-weight:700;color:#6b21a8;background:#f3e8ff;padding:2px 9px;border-radius:20px;">${c.cat}</span></td>
-        <td style="padding:9px 12px;font-weight:700;color:#9333ea;">€${c.cost.toFixed(2)}</td>
+        <td style="padding:9px 12px;font-weight:700;color:#9333ea;">${costCell}</td>
         <td style="padding:9px 12px;">${c.ing.length}</td>
       </tr>`;
       if(open){
