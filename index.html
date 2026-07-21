@@ -2701,8 +2701,20 @@ class Dash{
     const ac=this.alertData(1.0,6,6); const badge=document.getElementById('badge-alerts');
     if(badge)badge.textContent=ac.wineUrgent.length+ac.wineLow.length+ac.bev.length;
     this.updateRequestsBadge();
+    this._recalcCocktailCosts();
     this.apply();
     this.buildOutletChart();
+  }
+  _recalcCocktailCosts(){
+    COCKTAILS.forEach(c=>{
+      if(!Array.isArray(c.ing)||!c.ing.length)return;
+      let sum=0,found=false;
+      c.ing.forEach(i=>{
+        const p=this._bcPriceOf(i.code);
+        if(p!=null){found=true;sum+=p*i.qty;}
+      });
+      if(found)c.cost=Math.round(sum*100)/100;
+    });
   }
   updateRequestsBadge(){
     const badge=document.getElementById('badge-requests'); if(!badge)return;
