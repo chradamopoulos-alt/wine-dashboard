@@ -3051,9 +3051,10 @@ class Dash{
       <button onclick="D.barSetSub('menus')" style="padding:9px 16px;border-radius:8px;border:none;font-weight:700;font-size:12.5px;cursor:pointer;background:${sub==='menus'?'#9333ea':'#f1f5f9'};color:${sub==='menus'?'#fff':'#334155'};">🍹 Outlet Menus</button>
       <button onclick="D.barSetSub('recipes')" style="padding:9px 16px;border-radius:8px;border:none;font-weight:700;font-size:12.5px;cursor:pointer;background:${sub==='recipes'?'#9333ea':'#f1f5f9'};color:${sub==='recipes'?'#fff':'#334155'};">📖 Recipe Book</button>
       <button onclick="D.barSetSub('costing')" style="padding:9px 16px;border-radius:8px;border:none;font-weight:700;font-size:12.5px;cursor:pointer;background:${sub==='costing'?'#9333ea':'#f1f5f9'};color:${sub==='costing'?'#fff':'#334155'};">💰 Cost Analysis</button>
+      <button onclick="D.barSetSub('calculator')" style="padding:9px 16px;border-radius:8px;border:none;font-weight:700;font-size:12.5px;cursor:pointer;background:${sub==='calculator'?'#9333ea':'#f1f5f9'};color:${sub==='calculator'?'#fff':'#334155'};">🧮 Recipe Calculator</button>
     </div><div id="bar-sub"></div>`;
     out.innerHTML=h;
-    if(sub==='recipes')this.renderBarRecipes(true); else if(sub==='costing')this.renderBarCosting(); else this.renderBarMenus();
+    if(sub==='recipes')this.renderBarRecipes(true); else if(sub==='costing')this.renderBarCosting(); else if(sub==='calculator')this.renderBarCalculator(); else this.renderBarMenus();
   }
   renderBarMenus(){
     const out=document.getElementById('bar-sub'); if(!out) return;
@@ -3285,6 +3286,137 @@ class Dash{
     if(!list.length)h+=`<tr><td colspan="4" style="padding:16px;font-size:13px;color:var(--muted);">No recipe matches the search.</td></tr>`;
     h+=`</tbody></table></div>`;
     listEl.innerHTML=h;
+  }
+  /* ── BAR MODULE ── Recipe Calculator ── */
+  _calcNewRow(){ return {q:'',code:null,name:'',unitPrice:null,packSize:null,packUnit:'ml',qty:''}; }
+  barCalcInit(){
+    if(!this._calcRows)this._calcRows=[this._calcNewRow(),this._calcNewRow(),this._calcNewRow()];
+    if(this._calcRecipeName==null)this._calcRecipeName='';
+    if(!this._calcDocListenerAdded){
+      document.addEventListener('click',e=>{
+        document.querySelectorAll('.calc-row-wrap').forEach(w=>{
+          if(!w.contains(e.target)){ const dd=w.querySelector('.calc-dd'); if(dd){dd.innerHTML='';dd.style.display='none';} }
+        });
+      });
+      this._calcDocListenerAdded=true;
+    }
+  }
+  _calcParsePackSize(desc){
+    if(!desc)return null;
+    const m=desc.match(/(\d+(?:[.,]\d+)?)\s*(ML|L|KG|G)(?![A-Za-z])/i);
+    if(!m)return null;
+    let num=parseFloat(m[1].replace(',','.'));
+    let unit=m[2].toUpperCase();
+    if(unit==='L'){num*=1000;unit='ML';}
+    else if(unit==='KG'){num*=1000;unit='G';}
+    return {size:num,unit:unit==='ML'?'ml':'g'};
+  }
+  _calcLineCost(row){
+    const price=row.unitPrice,pack=row.packSize,qty=parseFloat(row.qty);
+    if(price==null||!pack||pack<=0||!qty||qty<=0)return 0;
+    return (price/pack)*qty;
+  }
+  barCalcSetName(v){ this._calcRecipeName=v; }
+  barCalcAddRow(){ this._calcRows.push(this._calcNewRow()); this.renderBarCalculator(); }
+  barCalcRemoveRow(i){ this._calcRows.splice(i,1); if(!this._calcRows.length)this._calcRows.push(this._calcNewRow()); this.renderBarCalculator(); }
+  barCalcSearchInput(i,val){
+    const row=this._calcRows[i]; if(!row)return;
+    row.q=val; row.code=null; row.name=''; row.unitPrice=null;
+    const priceEl=document.getElementById('calc-price-'+i); if(priceEl)priceEl.textContent='—';
+    this._calcUpdateLineCost(i);
+    const dd=document.getElementById('calc-dropdown-'+i); if(!dd)return;
+    const q=val.trim().toLowerCase();
+    if(!q){dd.innerHTML='';dd.style.display='none';return;}
+    const matches=BEVERAGES.filter(b=>b.description.toLowerCase().includes(q)||b.code.toLowerCase().includes(q)).slice(0,8);
+    if(!matches.length){ dd.innerHTML=`<div style="padding:8px 10px;font-size:12px;color:var(--muted);">No matches</div>`; dd.style.display='block'; return; }
+    dd.innerHTML=matches.map(m=>`<div onclick="D.barCalcSelectItem(${i},'${m.code}')" style="padding:8px 10px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background='#f3e8ff'" onmouseout="this.style.background='#fff'">
+      <div style="font-weight:600;">${m.description}</div>
+      <div style="color:var(--muted);font-size:11px;">${m.code} · €${m.price.toFixed(2)} · ${m.category}</div>
+    </div>`).join('');
+    dd.style.display='block';
+  }
+  barCalcSelectItem(i,code){
+    const item=BEVERAGES.find(b=>b.code===code)||STOCK_DATA.find(b=>b.code===code);
+    if(!item)return;
+    const row=this._calcRows[i]; if(!row)return;
+    row.code=item.code; row.name=item.description||item.fullName||item.code; row.q=row.name; row.unitPrice=item.price;
+    const parsed=this._calcParsePackSize(row.name);
+    row.packSize=parsed?parsed.size:1; row.packUnit=parsed?parsed.unit:'unit';
+    const dd=document.getElementById('calc-dropdown-'+i); if(dd){dd.innerHTML='';dd.style.display='none';}
+    this.renderBarCalculator();
+  }
+  barCalcSetPack(i,val){ const row=this._calcRows[i]; if(!row)return; row.packSize=parseFloat(val)||null; this._calcUpdateLineCost(i); }
+  barCalcSetQty(i,val){ const row=this._calcRows[i]; if(!row)return; row.qty=val; this._calcUpdateLineCost(i); }
+  _calcUpdateLineCost(i){
+    const row=this._calcRows[i]; if(!row)return;
+    const cost=this._calcLineCost(row);
+    const el=document.getElementById('calc-linecost-'+i); if(el)el.textContent='€'+cost.toFixed(3);
+    this._calcUpdateSummary();
+  }
+  _calcUpdateSummary(){
+    const rows=this._calcRows||[];
+    const total=rows.reduce((s,r)=>s+this._calcLineCost(r),0);
+    const totalEl=document.getElementById('calc-total'); if(totalEl)totalEl.textContent='€'+total.toFixed(3);
+    const countEl=document.getElementById('calc-count'); if(countEl)countEl.textContent=rows.filter(r=>r.code&&this._calcLineCost(r)>0).length;
+    const bd=document.getElementById('calc-breakdown'); if(!bd)return;
+    const active=rows.filter(r=>this._calcLineCost(r)>0);
+    if(!active.length){ bd.innerHTML=`<div style="font-size:12px;color:var(--muted);">Add ingredients with a quantity to see the cost breakdown.</div>`; return; }
+    bd.innerHTML=active.map(r=>{
+      const cost=this._calcLineCost(r); const pct=total>0?(cost/total*100):0;
+      return `<div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>${r.name||r.q||'Ingredient'}</span><span style="font-weight:700;color:#9333ea;">${pct.toFixed(1)}% · €${cost.toFixed(3)}</span></div>
+        <div style="height:6px;background:#f1f5f9;border-radius:4px;overflow:hidden;"><div style="height:100%;width:${pct.toFixed(1)}%;background:#9333ea;"></div></div>
+      </div>`;
+    }).join('');
+  }
+  renderBarCalculator(){
+    const out=document.getElementById('bar-sub'); if(!out)return;
+    this.barCalcInit();
+    const rows=this._calcRows;
+    let h=`<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#5b21b6;">
+      🧮 <b>Recipe Calculator</b> — search products from the beverage inventory, set the quantity used per portion, and get an instant per-portion cost. This tool is for calculation only; it does not save to the Recipe Book.</div>`;
+    h+=`<div class="card" style="padding:16px;margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Recipe Name</label>
+      <input id="calc-name" type="text" placeholder="e.g. Aria Spritz" value="${(this._calcRecipeName||'').replace(/"/g,'&quot;')}" oninput="D.barCalcSetName(this.value)" style="width:100%;max-width:420px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;font-weight:600;">
+    </div>`;
+    h+=`<div class="card" style="padding:16px;margin-bottom:14px;overflow:visible;">
+      <div style="display:flex;gap:8px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;padding:0 4px 8px;flex-wrap:wrap;">
+        <div style="flex:2;min-width:180px;">Product</div><div style="width:90px;">Unit Price</div><div style="width:90px;">Pack Size</div><div style="width:90px;">Qty Used</div><div style="width:90px;">Line Cost</div><div style="width:28px;"></div>
+      </div>`;
+    h+=rows.map((r,i)=>{
+      return `<div class="calc-row-wrap" style="position:relative;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 4px;border-top:1px solid var(--border);">
+        <div style="flex:2;min-width:180px;position:relative;">
+          <input id="calc-search-${i}" type="text" placeholder="🔍 Search product or code…" value="${(r.q||'').replace(/"/g,'&quot;')}" oninput="D.barCalcSearchInput(${i},this.value)" autocomplete="off" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;">
+          <div id="calc-dropdown-${i}" class="calc-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.15);z-index:60;max-height:260px;overflow-y:auto;margin-top:2px;"></div>
+        </div>
+        <div id="calc-price-${i}" style="width:90px;font-size:12.5px;font-weight:600;color:var(--muted);">${r.unitPrice!=null?'€'+r.unitPrice.toFixed(2):'—'}</div>
+        <div style="width:90px;display:flex;align-items:center;gap:3px;">
+          <input id="calc-pack-${i}" type="number" min="0" step="0.01" value="${r.packSize!=null?r.packSize:''}" placeholder="size" oninput="D.barCalcSetPack(${i},this.value)" style="width:56px;padding:8px 6px;border:1px solid var(--border);border-radius:8px;font-size:12px;">
+          <span style="font-size:11px;color:var(--muted);">${r.packUnit||'ml'}</span>
+        </div>
+        <div style="width:90px;display:flex;align-items:center;gap:3px;">
+          <input id="calc-qty-${i}" type="number" min="0" step="0.01" value="${r.qty||''}" placeholder="qty" oninput="D.barCalcSetQty(${i},this.value)" style="width:56px;padding:8px 6px;border:1px solid var(--border);border-radius:8px;font-size:12px;">
+          <span style="font-size:11px;color:var(--muted);">${r.packUnit||'ml'}</span>
+        </div>
+        <div id="calc-linecost-${i}" style="width:90px;font-weight:700;color:#9333ea;font-size:13px;">€${this._calcLineCost(r).toFixed(3)}</div>
+        <div style="width:28px;text-align:center;"><button onclick="D.barCalcRemoveRow(${i})" title="Remove ingredient" style="border:none;background:#fee2e2;color:#991b1b;width:24px;height:24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;line-height:1;">✕</button></div>
+      </div>`;
+    }).join('');
+    h+=`<div style="margin-top:12px;"><button onclick="D.barCalcAddRow()" style="padding:9px 16px;border-radius:8px;border:1px dashed #9333ea;background:#faf5ff;color:#6b21a8;font-weight:700;font-size:12.5px;cursor:pointer;">+ Add Ingredient</button></div>`;
+    h+=`</div>`;
+    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">`;
+    h+=`<div class="card" style="padding:18px;text-align:center;">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.03em;">Total Cost / Portion</div>
+      <div id="calc-total" style="font-size:32px;font-weight:800;color:#9333ea;margin-top:6px;">€0.000</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:4px;"><span id="calc-count">0</span> priced ingredients</div>
+    </div>`;
+    h+=`<div class="card" style="padding:16px;grid-column:span 2;">
+      <div style="font-weight:700;font-size:13.5px;color:#5b21b6;margin-bottom:10px;">Cost Breakdown</div>
+      <div id="calc-breakdown"></div>
+    </div>`;
+    h+=`</div>`;
+    out.innerHTML=h;
+    this._calcUpdateSummary();
   }
   orderData(targetMonths,pack){
     const nM=CONS_MONTHS.length; const list=[];
