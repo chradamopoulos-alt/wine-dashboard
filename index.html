@@ -3978,8 +3978,7 @@ class Dash{
           ${isSpecial&&r.style?`<div class="stock-style-inline" style="display:none;margin-top:2px;font-size:11px;color:var(--muted)">Style: ${r.style}</div>`:''}
           <div class="stock-actions" style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
             <span style="font-size:10px;background:#f1f5f9;border-radius:3px;padding:2px 6px;color:var(--muted)">${r.country||''}</span>
-            <div class="briefing-wrap" onclick="renderTip(this,'${r.code}',event)" ontouchstart="handleTipTouch(event,this,'${r.code}')"><button class="cbtn" style="font-size:10px;padding:3px 8px" onclick="copyDesc(this,'${r.code}')">📋 Copy Desc</button><div class="briefing-tip"></div></div>
-            ${isSpecial?`<button class="btn-request-wine" onclick="openRequestModal('${r.code}')">📋 Request</button>`:''}
+            <button class="btn-request-wine" onclick="openRequestModal('${r.code}')">📋 Request</button>
           </div>
         </td>
         <td><span class="cat c-${r.category}">${r.category}</span></td>
@@ -4468,6 +4467,7 @@ class Dash{
           <div class="stock-actions" style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
             <span style="font-size:10px;background:#f1f5f9;border-radius:3px;padding:2px 6px;color:var(--muted)">${r.country||''}</span>
             <div class="briefing-wrap" style="display:inline-block" onclick="renderTip(this,'${r.code}',event)" ontouchstart="handleTipTouch(event,this,'${r.code}')"><button class="cbtn" style="font-size:10px;padding:3px 8px" onclick="copyDesc(this,'${r.code}')">📋 Copy Desc</button><div class="briefing-tip"></div></div>
+            <button class="btn-request-wine" onclick="openRequestModal('${r.code}')">📋 Request</button>
           </div>
         </td>
         <td>${visBadge(r.visibility)}</td>
