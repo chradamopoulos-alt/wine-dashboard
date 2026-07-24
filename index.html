@@ -993,7 +993,7 @@ tr:last-child td{border-bottom:none;}
 
 <div class="filters" id="filter-panel">
   <div class="fg"><label>Category</label>
-    <select id="f-cat" onchange="D.apply()" aria-label="Category filter">
+    <select id="f-cat" onchange="D.mode==='stock'?D.stockTable():D.apply()" aria-label="Category filter">
       <option value="">All Categories</option>
       <option>WHITE</option><option>RED</option><option>ROSE</option>
       <option>SPARKLING</option><option>CHAMPAGNE</option><option>SWEET</option><option>FORTIFIED</option>
@@ -2022,6 +2022,16 @@ function rejectWineRequestConfirm(id){
 
 const COLORS=['#7b3f9e','#c8952a','#2563eb','#16a34a','#dc2626','#0891b2','#d97706','#7c3aed','#0f766e','#b45309'];
 const CAT_C={WHITE:'#2563eb',RED:'#dc2626',ROSE:'#ec4899',SPARKLING:'#16a34a',CHAMPAGNE:'#d97706',SWEET:'#7c3aed',FORTIFIED:'#9a3412'};
+// Fallback category detection from ERP code prefix, used when a STOCK_DATA row has no category field.
+function stockCatFromCode(code){
+  const c=String(code||'');
+  if(/^F2400/.test(c))return'RED';
+  if(/^F2410/.test(c))return'WHITE';
+  if(/^F2420/.test(c))return'ROSE';
+  if(/^F2430/.test(c))return'SPARKLING';
+  if(/^F2440/.test(c))return'CHAMPAGNE';
+  return'';
+}
 
 function fmt(v,t){
   if(v===null||v===undefined)return'—';
@@ -4365,11 +4375,13 @@ class Dash{
     const srch=(document.getElementById('srch').value||'').toLowerCase();
     const vis=document.getElementById('s-stock-vis')?document.getElementById('s-stock-vis').value:'';
     const tagFilter=document.getElementById('f-tag')?document.getElementById('f-tag').value:'';
+    const catFilter=document.getElementById('f-cat')?document.getElementById('f-cat').value:'';
     // Build tag lookup from MASTER+SPECIAL
     const tagMap={};
     [...MASTER,...SPECIAL].forEach(w=>{if(w.code&&w.tags&&w.tags.length)tagMap[w.code]=w.tags;});
     let rows=STOCK_DATA.filter(r=>{
       if(vis&&r.visibility!==vis)return false;
+      if(catFilter&&(r.category||stockCatFromCode(r.code))!==catFilter)return false;
       if(tagFilter&&!(tagMap[r.code]||[]).includes(tagFilter))return false;
       if(srch){
         const tags=(tagMap[r.code]||[]).join(' ').toLowerCase();
@@ -4433,6 +4445,22 @@ class Dash{
       if(v==='Not Visible')return'<span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;">🚫 Not Visible</span>';
       return'<span style="background:#f3e8ff;color:#6b21a8;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;">⭐ Special</span>';
     }
+    // Category badge (colored pill) — falls back to code-prefix detection if no category field
+    function catBadge(r){
+      const cat=r.category||stockCatFromCode(r.code);
+      const map={
+        RED:{c:'#991b1b',bg:'#fee2e2',l:'Red'},
+        WHITE:{c:'#b45309',bg:'#fef3c7',l:'White'},
+        ROSE:{c:'#db2777',bg:'#fce7f3',l:'Rosé'},
+        SPARKLING:{c:'#0891b2',bg:'#cffafe',l:'Sparkling'},
+        CHAMPAGNE:{c:'#ca8a04',bg:'#fef9c3',l:'Champagne'},
+        SWEET:{c:'#7c3aed',bg:'#ede9fe',l:'Sweet'},
+        FORTIFIED:{c:'#9a3412',bg:'#ffedd5',l:'Fortified'}
+      };
+      const m=map[cat];
+      if(!m)return'<span style="color:var(--muted);font-size:11px;">—</span>';
+      return`<span style="background:${m.bg};color:${m.c};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;">${m.l}</span>`;
+    }
 
     // Pager
     const ps=this.ps, start=this.page*ps;
@@ -4441,6 +4469,7 @@ class Dash{
     let h='<table><thead><tr>';
     h+='<th class="col-erp">ERP Code</th>';
     h+='<th>Description</th>';
+    h+='<th>Category</th>';
     h+='<th>Visibility</th>';
     h+='<th>Qty</th>';
     h+='<th>Cost €</th>';
@@ -4470,6 +4499,7 @@ class Dash{
             <button class="btn-request-wine" onclick="openRequestModal('${r.code}')">📋 Request</button>
           </div>
         </td>
+        <td>${catBadge(r)}</td>
         <td>${visBadge(r.visibility)}</td>
         <td><b>${r.qty.toLocaleString()}</b></td>
         <td>€${r.price.toFixed(2)}</td>
