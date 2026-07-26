@@ -1064,7 +1064,7 @@ body.no-costs .col-cost{display:none !important;}
       <option>FLAVORS</option><option>OUZO</option><option>OLIVA</option><option>KOS</option><option>SEASONS</option>
       <option>BARS</option><option>DINE OUT</option>
     </select></div>
-  <div class="fg"><label>Price Tier</label>
+  <div class="fg col-cost"><label>Price Tier</label>
     <select id="f-tier" onchange="D.apply()" aria-label="Price tier filter">
       <option value="">All Tiers</option>
       <option>Economy (&lt;&#8364;3)</option><option>Standard (&#8364;3-5)</option>
@@ -1092,10 +1092,10 @@ body.no-costs .col-cost{display:none !important;}
 <!-- KPIs -->
 <div class="kpi-row">
   <div class="kpi"><div class="lbl">Labels</div><div class="val" id="k-sku">—</div><div class="sub2">Wine codes</div></div>
-  <div class="kpi gold"><div class="lbl">Stock Value</div><div class="val" id="k-cost">—</div><div class="sub2">Total &#8364;</div></div>
+  <div class="kpi gold col-cost"><div class="lbl">Stock Value</div><div class="val" id="k-cost">—</div><div class="sub2">Total &#8364;</div></div>
   <div class="kpi"><div class="lbl">In Stock</div><div class="val" id="k-stk">—</div><div class="sub2">Bottles</div></div>
   <div class="kpi green"><div class="lbl">Consumed</div><div class="val" id="k-con">—</div><div class="sub2">2025 bottles</div></div>
-  <div class="kpi"><div class="lbl">Avg Cost</div><div class="val" id="k-avg">—</div><div class="sub2">Per bottle</div></div>
+  <div class="kpi col-cost"><div class="lbl">Avg Cost</div><div class="val" id="k-avg">—</div><div class="sub2">Per bottle</div></div>
   <div class="kpi amber"><div class="lbl" id="kpi6-lbl">Pvt Cellar</div><div class="val" id="k-pc">—</div><div class="sub2" id="kpi6-sub">Labels</div></div>
 </div>
 
@@ -1116,7 +1116,7 @@ body.no-costs .col-cost{display:none !important;}
   </div>
   <div class="crow chart-page" id="chp-2" style="display:none;">
     <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Top 10 by Consumption</h3><canvas id="ch-top" style="max-height:320px;"></canvas></div>
-    <div class="card" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Price Tiers</h3><canvas id="ch-tier" style="max-height:320px;"></canvas></div>
+    <div class="card col-cost" style="padding:12px;"><h3 style="font-size:11px;margin-bottom:4px;">Price Tiers</h3><canvas id="ch-tier" style="max-height:320px;"></canvas></div>
   </div>
 </div>
 
@@ -3682,14 +3682,14 @@ class Dash{
       .sort((a,b)=>b.q-a.q).slice(0,20);
 
     const maxM=Math.max(...monthTot,1);
-    const kpi=(lbl,val,sub,clr)=>`<div class="kpi" style="border-top:3px solid ${clr}"><div class="lbl">${lbl}</div><div class="val">${val}</div><div class="sub2">${sub}</div></div>`;
+    const kpi=(lbl,val,sub,clr,xc)=>`<div class="kpi ${xc||''}" style="border-top:3px solid ${clr}"><div class="lbl">${lbl}</div><div class="val">${val}</div><div class="sub2">${sub}</div></div>`;
 
     let h=`<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#065f46;">
       📉 <b>2026 Season Consumption</b> — data from the ERP («ΑΝΑΛΩΣΕΙΣ» tab). Refreshed with each new Excel. Months: ${CONS_MONTHS.join(' · ')}.</div>`;
 
     h+=`<div class="kpi-row" style="display:grid">
       ${kpi('Total Consumption',num(totQty),'bottles 2026','#16a34a')}
-      ${kpi('Consumption Value',eur(totVal),'cost 2026','#c8952a')}
+      ${kpi('Consumption Value',eur(totVal),'cost 2026','#c8952a','col-cost')}
       ${kpi('Avg / month',num(totQty/nM),'bottles/month','#0891b2')}
       ${kpi('Wines that moved',moved,'out of '+codes.length+' codes','#7c3aed')}
     </div>`;
@@ -3718,18 +3718,18 @@ class Dash{
 
     // Dead stock
     h+=`<div class="card" style="padding:16px;margin-top:14px"><div style="font-weight:700;font-size:13px;margin-bottom:4px;color:#a16207">💤 DEAD STOCK — stock with no 2026 consumption</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Tied-up capital: <b>${eur(deadVal)}</b> across ${dead.length} codes. Top 40 by value.</div>`;
+      <div class="col-cost" style="font-size:11px;color:var(--muted);margin-bottom:10px">Tied-up capital: <b>${eur(deadVal)}</b> across ${dead.length} codes. Top 40 by value.</div>`;
     if(deadTop.length){
-      h+=`<div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Code</th><th>Wine</th><th style="text-align:right">Stock</th><th style="text-align:right">Value</th></tr></thead><tbody>`;
-      deadTop.forEach(x=>{h+=`<tr><td><span class="cpill">${x.code}</span></td><td>${x.desc}</td><td style="text-align:right;font-weight:700">${x.qty}</td><td style="text-align:right;font-weight:700;color:#a16207">${eur(x.val)}</td></tr>`;});
+      h+=`<div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Code</th><th>Wine</th><th style="text-align:right">Stock</th><th class="col-cost" style="text-align:right">Value</th></tr></thead><tbody>`;
+      deadTop.forEach(x=>{h+=`<tr><td><span class="cpill">${x.code}</span></td><td>${x.desc}</td><td style="text-align:right;font-weight:700">${x.qty}</td><td class="col-cost" style="text-align:right;font-weight:700;color:#a16207">${eur(x.val)}</td></tr>`;});
       h+=`</tbody></table></div>`;
     } else { h+=`<div style="font-size:13px;color:var(--muted)">No dead stock.</div>`; }
     h+=`</div>`;
 
     // Top movers
     h+=`<div class="card" style="padding:16px;margin-top:14px"><div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#166534">🔝 TOP 20 MOVERS 2026</div>
-      <div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>#</th><th>Wine</th><th style="text-align:right">Bottles</th><th style="text-align:right">Value</th></tr></thead><tbody>`;
-    top.forEach((x,i)=>{h+=`<tr><td style="color:var(--muted)">${i+1}</td><td><span class="cpill" style="font-size:10px">${x.code}</span> ${x.desc}</td><td style="text-align:right;font-weight:700">${num(x.q)}</td><td style="text-align:right">${eur(x.v)}</td></tr>`;});
+      <div style="overflow-x:auto"><table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>#</th><th>Wine</th><th style="text-align:right">Bottles</th><th class="col-cost" style="text-align:right">Value</th></tr></thead><tbody>`;
+    top.forEach((x,i)=>{h+=`<tr><td style="color:var(--muted)">${i+1}</td><td><span class="cpill" style="font-size:10px">${x.code}</span> ${x.desc}</td><td style="text-align:right;font-weight:700">${num(x.q)}</td><td class="col-cost" style="text-align:right">${eur(x.v)}</td></tr>`;});
     h+=`</tbody></table></div></div>`;
 
     document.getElementById('consumption-content').innerHTML=h;
@@ -3769,7 +3769,7 @@ class Dash{
         pending.forEach(r=>{
           const st=stockOf[r.code];
           const stockNote=st ? (st.qty>0?`📦 Internal: ${st.qty} units in stock`:'📦 Internal: 0 units — sold out') : '📦 Internal: not currently in ERP stock';
-          const priceNote=st&&st.price?` · ${eur(st.price)}/unit`:'';
+          const priceNote=st&&st.price?` · <span class="col-cost">${eur(st.price)}/unit</span>`:'';
           const etaIfToday=reqFmtDate(reqAddDays(new Date().toISOString(),REQ_LEAD_DAYS));
           h+=`<div class="req-card">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
@@ -4231,7 +4231,7 @@ class Dash{
           <span style="font-weight:700;font-size:14px;">${(w.name||'').replace(/\s*\(750ML\)/i,'')}</span>
           <span class="cpill" style="font-size:10px;">${w.code}</span>
         </div>
-        <div style="font-size:12px;color:var(--muted);margin:5px 0 4px;">${w.grape||''}${w.country?' · '+w.country:''} · €${(w.price||0).toFixed(2)} · ${w.stock} btl in stock</div>
+        <div style="font-size:12px;color:var(--muted);margin:5px 0 4px;">${w.grape||''}${w.country?' · '+w.country:''}<span class="col-cost"> · €${(w.price||0).toFixed(2)} · ${w.stock} btl in stock</div>
         <div style="font-size:13px;color:var(--text);"><b>Why:</b> ${reason}</div>
         ${dishes.length?`<div style="font-size:12px;color:#0369a1;margin-top:5px;">🍽 Pairs with: ${dishes.join(', ')}</div>`:''}
       </div>`;
@@ -4266,7 +4266,7 @@ class Dash{
           ${i===0?'<span style="font-size:10px;font-weight:800;background:#16a34a;color:#fff;padding:2px 8px;border-radius:20px;">TOP</span>':`<span style="font-size:11px;color:var(--muted);font-weight:700;">#${i+1}</span>`}
           <span style="font-weight:700;font-size:14px;">${p.name}</span>
           <span class="cpill" style="font-size:10px;">${p.code}</span>
-          ${oos?'<span style="font-size:10px;font-weight:700;background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:20px;">out of stock</span>':`<span style="font-size:11px;color:var(--muted);">${s.qty} btl · €${(s.price||0).toFixed(2)}</span>`}
+          ${oos?'<span style="font-size:10px;font-weight:700;background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:20px;">out of stock</span>':`<span style="font-size:11px;color:var(--muted);">${s.qty} btl<span class="col-cost"> · €${(s.price||0).toFixed(2)}</span></span>`}
         </div>
         <div style="font-size:13px;color:var(--text);margin-top:4px;"><b>Why:</b> ${p.reason}</div>
       </div>`; });
@@ -4455,8 +4455,9 @@ class Dash{
     const totalQty=inStock.reduce((s,r)=>s+r.qty,0);
     const totalVal=inStock.reduce((s,r)=>s+r.qty*r.price,0);
     const pricesWithVal=inStock.filter(r=>r.price>0).map(r=>r.price);
+    const _showCost=!document.body.classList.contains('no-costs');
     document.getElementById('res-count').textContent=
-      `${inStock.length} in-stock Labels · ${totalQty.toLocaleString()} bottles · €${(totalVal/1000).toFixed(1)}K value · ${soldOut} sold out`;
+      `${inStock.length} in-stock Labels · ${totalQty.toLocaleString()} bottles${_showCost?` · €${(totalVal/1000).toFixed(1)}K value`:''} · ${soldOut} sold out`;
 
     // Update the 6 KPI cards for Stock tab (reflect the active filter)
     document.getElementById('k-sku').textContent=inStock.length;
