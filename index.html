@@ -523,6 +523,43 @@ tr:last-child td{border-bottom:none;}
 /* ═══════════════ ROLE ACCESS ═══════════════ */
 body.no-costs .col-cost{display:none !important;}
 
+/* ═══════════════ ALLERGY ORDER → VIBER ═══════════════ */
+.ab-pick{width:17px;height:17px;accent-color:#16a34a;cursor:pointer;flex-shrink:0;}
+.ab-bar{position:sticky;bottom:0;z-index:20;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin-top:12px;padding:11px 14px;background:var(--card);border:1px solid var(--border);
+  border-radius:11px;box-shadow:0 -3px 14px rgba(0,0,0,.09);}
+.ab-bar-count{font-size:13px;font-weight:700;color:var(--text);}
+.ab-bar-count b{color:#16a34a;}
+.ab-btn{padding:9px 16px;border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;
+  font-family:inherit;min-height:38px;}
+.ab-btn-send{background:#7360f2;color:#fff;margin-left:auto;}
+.ab-btn-send:disabled{opacity:.4;cursor:default;}
+.ab-btn-clear{background:var(--bg);color:var(--muted);border:1px solid var(--border);}
+.ab-ov{position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:9000;display:none;
+  align-items:center;justify-content:center;padding:18px;}
+.ab-ov.on{display:flex;}
+.ab-modal{background:var(--card);border-radius:15px;padding:22px;width:100%;max-width:440px;
+  max-height:90vh;overflow-y:auto;box-shadow:0 22px 55px rgba(0,0,0,.32);}
+.ab-modal h3{font-size:17px;margin:2px 0 3px;color:var(--text);}
+.ab-eyebrow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#7360f2;}
+.ab-ta{width:100%;height:190px;margin:12px 0 10px;padding:11px;border:1px solid var(--border);
+  border-radius:9px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.5;
+  background:var(--bg);color:var(--text);resize:vertical;box-sizing:border-box;}
+.ab-hint{font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:10px;}
+.ab-ok{display:none;background:#dcfce7;border:1px solid #86efac;color:#166534;border-radius:8px;
+  padding:8px 11px;font-size:12.5px;font-weight:700;text-align:center;margin-bottom:9px;}
+.ab-ok.on{display:block;}
+.ab-copy{width:100%;padding:13px;background:#16a34a;color:#fff;border:none;border-radius:9px;
+  font-size:14.5px;font-weight:700;cursor:pointer;font-family:inherit;}
+.ab-copy.done{background:#15803d;}
+.ab-rcp{display:flex;flex-direction:column;gap:8px;margin:12px 0 10px;}
+.ab-viber{padding:11px;background:#7360f2;color:#fff;border:none;border-radius:9px;font-size:13.5px;
+  font-weight:700;cursor:pointer;text-align:left;font-family:inherit;}
+.ab-viber small{display:block;font-weight:500;opacity:.85;font-size:11px;margin-top:2px;}
+.ab-close{width:100%;padding:10px;background:transparent;color:var(--muted);border:1px solid var(--border);
+  border-radius:9px;font-size:13px;cursor:pointer;font-family:inherit;}
+@media print{.ab-bar,.ab-ov{display:none !important;}}
+
 /* ═══════════════ MOBILE ═══════════════ */
 @media(max-width:768px){
   .hamburger{display:inline-flex;align-items:center;justify-content:center;}
@@ -1232,6 +1269,34 @@ body.no-costs .col-cost{display:none !important;}
   </div>
 </div>
 
+<!-- ALLERGY SELECTION → VIBER MODAL -->
+<div class="ab-ov" id="ab-ov">
+  <div class="ab-modal">
+    <div class="ab-eyebrow">Allergy Bot · Safe Dishes</div>
+    <h3>Send Selection</h3>
+    <textarea class="ab-ta" id="ab-ta" readonly></textarea>
+    <div class="ab-hint">
+      <b>1.</b> Press Copy &nbsp;·&nbsp; <b>2.</b> Choose a recipient &nbsp;·&nbsp;
+      <b>3.</b> In Viber paste and send.<br>
+      You can also paste into WhatsApp, SMS, email or any other app.
+    </div>
+    <div class="ab-ok" id="ab-ok">✓ Copied to clipboard</div>
+    <button class="ab-copy" id="ab-copy" onclick="abCopy()">📋 Copy Message</button>
+    <div class="ab-rcp">
+      <button class="ab-viber" onclick="openViber('306945796762')">
+        📱 Open Viber<small>Adamopoulos · 694 579 6762</small>
+      </button>
+      <button class="ab-viber" onclick="openViber('306978194044')">
+        📱 Open Viber<small>Chatzopoulos · 697 819 4044</small>
+      </button>
+      <button class="ab-viber" style="background:#475569;" onclick="abOpenViberAny()">
+        📱 Open Viber — other number<small>Type the number in Viber yourself</small>
+      </button>
+    </div>
+    <button class="ab-close" onclick="abClose()">Close</button>
+  </div>
+</div>
+
 <!-- BRIEFING MODAL -->
 <div class="briefing-overlay" id="briefingOverlay">
   <div class="briefing-modal">
@@ -1765,6 +1830,30 @@ function showCopied(){
   const b=document.getElementById('copyBtn'); b.classList.add('done'); b.textContent='✓  Copied!';
 }
 function openViber(num){ window.location.href=`viber://chat?number=%2B${num}`; }
+
+// ── Allergy selection modal ──
+function abClose(){ const o=document.getElementById('ab-ov'); if(o) o.classList.remove('on'); }
+function abOpenViberAny(){ window.location.href='viber://chats'; }
+function abShowCopied(){
+  const ok=document.getElementById('ab-ok'); if(ok) ok.classList.add('on');
+  const b=document.getElementById('ab-copy'); if(b){ b.classList.add('done'); b.textContent='✓ Copied!'; }
+}
+function abCopy(){
+  const ta=document.getElementById('ab-ta');
+  const txt=window.__abMsg||(ta?ta.value:'');
+  if(!txt) return;
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(txt).then(abShowCopied).catch(()=>abFallbackCopy(ta));
+  } else abFallbackCopy(ta);
+}
+function abFallbackCopy(ta){
+  if(!ta) return;
+  ta.removeAttribute('readonly'); ta.focus(); ta.select(); ta.setSelectionRange(0,99999);
+  try{ if(document.execCommand('copy')) abShowCopied(); }catch(e){}
+  ta.setAttribute('readonly','');
+}
+document.addEventListener('click',function(e){ if(e.target&&e.target.id==='ab-ov') abClose(); });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') abClose(); });
 
 document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
 if (document.getElementById("wineList")) renderList();
@@ -4102,6 +4191,9 @@ class Dash{
     const outlet=(document.getElementById('pairing-outlet')||{value:'PROVENCE'}).value||'PROVENCE';
     const restaurants=scopeAll?Object.keys(PAIRING_DATA.restaurants):[outlet];
     const courses=this.allergCourse||new Set();
+    if(!this.allergPick) this.allergPick=new Map();
+    const picked=this.allergPick, liveKeys=new Set();
+    this._abMeta=new Map();
     let total=0,excluded=0,body='';
     restaurants.forEach(rk=>{
       const rd=PAIRING_DATA.restaurants[rk]; if(!rd)return; let block='';
@@ -4112,8 +4204,12 @@ class Dash{
         block+=`<div style="font-size:10px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.6px;margin:12px 0 6px;">${sec.name}</div>`;
         ok.forEach(d=>{ total++;
           const rem=(d.allergen_labels||[]);
+          this._abMeta.set(`${rk}␟${sec.name}␟${d.dish}`,{r:rk,sec:sec.name,dish:d.dish,desc:d.desc||'',rem});
+          const _k=`${rk}␟${sec.name}␟${d.dish}`;
+          liveKeys.add(_k);
           block+=`<div style="border:1px solid var(--border);border-radius:10px;padding:10px 13px;margin-bottom:7px;background:var(--card);">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <input type="checkbox" class="ab-pick" data-k="${this._abAttr(_k)}" ${picked.has(_k)?'checked':''} onchange="D.allergPickTog(this)" title="Select this dish">
               <span style="color:#16a34a;font-size:14px;">✔</span>
               <span style="font-weight:700;font-size:14px;">${d.dish}</span>
             </div>
@@ -4126,7 +4222,76 @@ class Dash{
     });
     const list=[...sel].join(', ');
     let head=`<div style="font-size:13px;color:var(--text);margin:4px 0 6px;padding:10px 12px;background:#f0fdf4;border:1px solid #a7f3d0;border-radius:9px;">✅ <b>${total}</b> suitable dishes ${scopeAll?'(all restaurants)':''} — without: <b>${list}</b>${excluded?` · <span style="color:#b91c1c;">${excluded} excluded</span>`:''}</div>`;
-    out.innerHTML=head+(body||`<div style="padding:12px;color:var(--muted);font-size:13px;">No suitable dish found with these allergies${scopeAll?'':' in this restaurant — try «all restaurants»'}.</div>`);
+    [...picked.keys()].forEach(k=>{ if(!liveKeys.has(k)) picked.delete(k); });
+    const bar=total?`<div class="ab-bar">
+        <span class="ab-bar-count"><b id="ab-n">${picked.size}</b> dish(es) selected</span>
+        <button class="ab-btn ab-btn-clear" onclick="D.allergPickClear()">Clear</button>
+        <button class="ab-btn ab-btn-send" id="ab-send" ${picked.size?'':'disabled'} onclick="D.allergSend()">Send Selection</button>
+      </div>`:'';
+    out.innerHTML=head+(body||`<div style="padding:12px;color:var(--muted);font-size:13px;">No suitable dish found with these allergies${scopeAll?'':' in this restaurant — try «all restaurants»'}.</div>`)+bar;
+  }
+
+  // ── Allergy selection → shareable message ──
+  _abAttr(v){ return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+  allergPickTog(el){
+    const k=el.dataset.k; if(!k) return;
+    if(!this.allergPick) this.allergPick=new Map();
+    if(el.checked) this.allergPick.set(k,1); else this.allergPick.delete(k);
+    const n=document.getElementById('ab-n'); if(n) n.textContent=this.allergPick.size;
+    const b=document.getElementById('ab-send'); if(b) b.disabled=!this.allergPick.size;
+  }
+
+  allergPickClear(){
+    if(this.allergPick) this.allergPick.clear();
+    document.querySelectorAll('.ab-pick').forEach(c=>{c.checked=false;});
+    const n=document.getElementById('ab-n'); if(n) n.textContent='0';
+    const b=document.getElementById('ab-send'); if(b) b.disabled=true;
+  }
+
+  _allergMsg(){
+    const RN={PROVENCE:'Provence',ANAYA:'Anaya',FRESCO:'Fresco',KOS:'Kos',OLIVA:'Oliva',SEASONS:'Seasons',OUZO:'Ouzo',FLAVORS:'Flavors'};
+    const keys=[...(this.allergPick||new Map()).keys()];
+    const rows=keys.map(k=>this._abMeta&&this._abMeta.get(k)).filter(Boolean);
+    if(!rows.length) return '';
+    const avoid=[...(this.allerg||new Set())].join(', ');
+    let auth={}; try{ auth=JSON.parse(sessionStorage.getItem('ikos_auth')||'{}'); }catch(e){}
+    const d=new Date();
+    const p2=n=>String(n).padStart(2,'0');
+    const stamp=`${p2(d.getDate())}/${p2(d.getMonth()+1)}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+
+    const byRest={};
+    rows.forEach(r=>{ (byRest[r.r]=byRest[r.r]||{})[r.sec]=((byRest[r.r]||{})[r.sec]||[]).concat([r]); });
+
+    let m='IKOS ARIA — ALLERGY-SAFE SELECTION\n';
+    if(avoid) m+=`Avoiding: ${avoid}\n`;
+    m+='\n';
+    Object.keys(byRest).forEach(rk=>{
+      if(Object.keys(byRest).length>1) m+=`— ${RN[rk]||rk} —\n`;
+      Object.keys(byRest[rk]).forEach(sec=>{
+        m+=`${String(sec).toUpperCase()}\n`;
+        byRest[rk][sec].forEach(r=>{
+          m+=`• ${r.dish}\n`;
+          if(r.desc) m+=`   ${r.desc}\n`;
+          if(r.rem&&r.rem.length) m+=`   contains: ${r.rem.join(', ')}\n`;
+        });
+        m+='\n';
+      });
+    });
+    m+=`${rows.length} dish(es)`;
+    if(auth.name) m+=` · prepared by ${auth.name}`;
+    m+=` · ${stamp}`;
+    return m;
+  }
+
+  allergSend(){
+    const msg=this._allergMsg();
+    if(!msg) return;
+    window.__abMsg=msg;
+    const ta=document.getElementById('ab-ta'); if(ta) ta.value=msg;
+    const ok=document.getElementById('ab-ok'); if(ok) ok.classList.remove('on');
+    const cp=document.getElementById('ab-copy'); if(cp){ cp.classList.remove('done'); cp.textContent='📋 Copy Message'; }
+    const ov=document.getElementById('ab-ov'); if(ov) ov.classList.add('on');
   }
   sommToggle(tok,el){
     if(!this.somm) this.somm=new Set();
