@@ -520,6 +520,9 @@ tr:last-child td{border-bottom:none;}
 .pager button:active,.pager button:hover{background:#f1f5f9;}
 .pager button:disabled{opacity:.35;cursor:default;}
 
+/* ═══════════════ ROLE ACCESS ═══════════════ */
+body.no-costs .col-cost{display:none !important;}
+
 /* ═══════════════ MOBILE ═══════════════ */
 @media(max-width:768px){
   .hamburger{display:inline-flex;align-items:center;justify-content:center;}
@@ -582,6 +585,55 @@ tr:last-child td{border-bottom:none;}
 <script>
 (function() {
   const USERS = {"stef":{"pin":"0001","name":"Dimitrios Stefanakos","role":"Restaurant Manager","outlet":"Flavors"},"doum":{"pin":"1001","name":"George Doumos","role":"Restaurant Manager","outlet":"Anaya"},"tzav":{"pin":"2001","name":"Anna Tzavela","role":"Restaurant Manager","outlet":"Provence"},"nasr":{"pin":"3001","name":"Athanasia Nasr","role":"Restaurant Manager","outlet":"Fresco"},"dina":{"pin":"4001","name":"Evangelos Dinas","role":"Restaurant Manager","outlet":"Ouzo"},"stav":{"pin":"5001","name":"Spirolari Stavros","role":"Restaurant Manager","outlet":"Kos"},"papa":{"pin":"6001","name":"Sofia Ioanna Papadopoulou","role":"Restaurant Manager","outlet":"Seasons"},"gkig":{"pin":"9001","name":"Sofia Gkigki","role":"Room Service Manager","outlet":"Room Service"},"gram":{"pin":"9002","name":"Konstantinos Grampolis","role":"Bar Supervisor","outlet":"Room Service"},"moum":{"pin":"0001","name":"Isik Moumin","role":"Bar Manager","outlet":"Lobby Area"},"chio":{"pin":"1001","name":"Chiotis Spyridon","role":"Bar Manager","outlet":"Beach Pool"},"patk":{"pin":"2001","name":"Zuzana Patkosova","role":"Bar Manager","outlet":"Deluxe Lobby Bar"},"kour":{"pin":"3001","name":"Vasileios Kouroutsalis","role":"Asst. Bars Manager","outlet":"Lagoon"},"kiri":{"pin":"4001","name":"Dimitrios Kiriakidis","role":"Bar Manager","outlet":"Beach Bar"},"topa":{"pin":"5001","name":"Andrea Topali","role":"Bar Manager","outlet":"Main Pool"},"kovi":{"pin":"6001","name":"Ioanna Kovi","role":"Bar Manager","outlet":"Deluxe Pool Bar"},"chat":{"pin":"8001","name":"Dimitrios Chatzigeorgantis","role":"Bar Manager","outlet":"Theater"},"koum":{"pin":"9001","name":"Vaggelis Koumianidis","role":"General Manager","outlet":"Administration"},"petr":{"pin":"9001","name":"Panagiotis Petrides","role":"Hotel Manager","outlet":"Administration"},"vasi":{"pin":"9001","name":"Stelios Vasios","role":"Asst. Hotel Manager","outlet":"Administration"},"foto":{"pin":"9002","name":"Fotopoulos Dimitrios","role":"Asst. Hotel Manager","outlet":"Administration"},"hatz":{"pin":"9001","name":"Vaggelis Hatzopoulos","role":"F&B Manager","outlet":"Administration"},"adam":{"pin":"6791","name":"Christoforos Adamopoulos","role":"Asst. F&B Manager","outlet":"Administration"},"tzim":{"pin":"9002","name":"Miltos Tzimkas","role":"Asst. F&B Manager","outlet":"Administration"},"kats":{"pin":"9003","name":"Ioannis Katsaros","role":"Asst. F&B Manager","outlet":"Administration"},"nasi":{"pin":"9004","name":"Kostas Nasis","role":"Asst. F&B Manager","outlet":"Administration"},"ziso":{"pin":"9001","name":"Paris Zisopoulos","role":"Bars Manager","outlet":"Administration"},"berh":{"pin":"7001","name":"Giulia Berhane","role":"Asst. Restaurant Manager","outlet":"Kos"},"dine":{"pin":"1111","name":"Dine Out","role":"Dine Out","outlet":"DINE OUT"},"goun":{"pin":"9005","name":"Christos Gounaras","role":"F&B Concierge","outlet":"Administration"}};
+
+  // ── ROLE ACCESS MAP ──
+  // tabs: which sidebar tabs the role may open. costs: may see cost/value columns.
+  // Roles not listed fall back to ADMIN_ACCESS.
+  const ALL_TABS = ['master','stock','special','beverages','bar','pairing','consumption','dineout','alerts','order','qr','requests'];
+  const ADMIN_ACCESS = {tabs: ALL_TABS, costs: true};
+  const ROLE_ACCESS = {
+    'General Manager':          ADMIN_ACCESS,
+    'Hotel Manager':            ADMIN_ACCESS,
+    'Asst. Hotel Manager':      ADMIN_ACCESS,
+    'F&B Manager':              ADMIN_ACCESS,
+    'Asst. F&B Manager':        ADMIN_ACCESS,
+    'Bars Manager':             ADMIN_ACCESS,
+    'Restaurant Manager':       {tabs:['master','stock','special','pairing','consumption','requests','qr'], costs:false},
+    'Asst. Restaurant Manager': {tabs:['master','stock','special','pairing','consumption','requests','qr'], costs:false},
+    'Bar Manager':              {tabs:['beverages','bar','requests'], costs:true},
+    'Bar Supervisor':           {tabs:['beverages','bar','requests'], costs:true},
+    'Asst. Bars Manager':       {tabs:['beverages','bar','requests'], costs:true},
+    'Room Service Manager':     {tabs:['beverages','bar','requests'], costs:true},
+    'F&B Concierge':            {tabs:['master','special','pairing','qr'], costs:false}
+  };
+
+  function applyRoleAccess(role) {
+    if (sessionStorage.getItem('ikos_dine_only') === '1') return; // dine-only handled separately
+    const acc = ROLE_ACCESS[role] || ADMIN_ACCESS;
+    const allowed = new Set(acc.tabs);
+    ALL_TABS.forEach(t => {
+      if (!allowed.has(t)) {
+        const el = document.getElementById('tab-' + t);
+        if (el) el.style.display = 'none';
+      }
+    });
+    if (!acc.costs) document.body.classList.add('no-costs');
+    // If the currently active tab is not permitted, move to the first one that is.
+    // D may not be constructed yet at auth time, so retry briefly until it exists.
+    const active = document.querySelector('.tab.active');
+    if (active && !allowed.has(active.id.replace('tab-',''))) {
+      active.classList.remove('active');
+      const first = acc.tabs[0];
+      if (first) {
+        let tries = 0;
+        (function go(){
+          if (typeof D !== 'undefined' && D && D.switchTab) { D.switchTab(first); return; }
+          if (++tries < 60) setTimeout(go, 50);
+        })();
+      }
+    }
+  }
+  window.applyRoleAccess = applyRoleAccess;
 
   function showGate() {
     document.body.innerHTML = '';
@@ -803,6 +855,11 @@ tr:last-child td{border-bottom:none;}
         `;
         hdrTop.appendChild(badge);
       }
+
+      // ── ROLE-BASED ACCESS ──
+      // UX-level gating only: this hides tabs and cost columns in the interface.
+      // It is not a security boundary — the data ships inside this file.
+      applyRoleAccess(info.role);
 
       // Stats panel — only for adam
       // Dine-only mode: hide all tabs except Dine Out
@@ -3955,7 +4012,7 @@ class Dash{
     h+=`<th onclick="D.sort('category')">Cat${arw('category')}</th>`;
     h+=`<th onclick="D.sort('country')">Country${arw('country')}</th>`;
     h+=`<th class="col-grape" onclick="D.sort('grape')">Grape${arw('grape')}</th>`;
-    h+=`<th onclick="D.sort('price')">Cost${arw('price')}</th>`;
+    h+=`<th class="col-cost" onclick="D.sort('price')">Cost${arw('price')}</th>`;
     h+=`<th onclick="D.sort('stock')">Stock${arw('stock')}</th>`;
     if(!isSpecial)h+=`<th onclick="D.sort('consumption')">2025${arw('consumption')}</th>`;
     h+=`<th class="col-cover" onclick="D.sort('stockCoverMonths')">Cover${arw('stockCoverMonths')}</th>`;
@@ -3994,7 +4051,7 @@ class Dash{
         <td><span class="cat c-${r.category}">${r.category}</span></td>
         <td>${r.country}</td>
         <td class="col-grape" style="font-size:11px">${r.grape||'—'}</td>
-        <td>\u20ac${r.price.toFixed(2)}</td>
+        <td class="col-cost">\u20ac${r.price.toFixed(2)}</td>
         <td><b>${r.stock.toLocaleString()}</b></td>`;
       if(!isSpecial)h+=`<td>${r.consumption.toLocaleString()}</td>`;
       h+=`<td class="col-cover">${cover}</td>`;
@@ -4472,8 +4529,8 @@ class Dash{
     h+='<th>Category</th>';
     h+='<th>Visibility</th>';
     h+='<th>Qty</th>';
-    h+='<th>Cost €</th>';
-    h+='<th>Total €</th>';
+    h+='<th class="col-cost">Cost €</th>';
+    h+='<th class="col-cost">Total €</th>';
     h+='</tr></thead><tbody>';
 
     const _stockMasterMap={};MASTER.forEach(x=>{_stockMasterMap[x.code]=x;});
@@ -4502,8 +4559,8 @@ class Dash{
         <td>${catBadge(r)}</td>
         <td>${visBadge(r.visibility)}</td>
         <td><b>${r.qty.toLocaleString()}</b></td>
-        <td>€${r.price.toFixed(2)}</td>
-        <td>€${parseFloat(total).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td class="col-cost">€${r.price.toFixed(2)}</td>
+        <td class="col-cost">€${parseFloat(total).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       </tr>`;
     });
     h+='</tbody></table>';
