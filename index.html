@@ -1087,7 +1087,7 @@ body.no-costs .col-cost{display:none !important;}
 
 <div class="filters" id="filter-panel">
   <div class="fg"><label>Category</label>
-    <select id="f-cat" onchange="D.mode==='stock'?D.stockTable():D.apply()" aria-label="Category filter">
+    <select id="f-cat" onchange="D.catSync('f-cat')" aria-label="Category filter">
       <option value="">All Categories</option>
       <option>WHITE</option><option>RED</option><option>ROSE</option>
       <option>SPARKLING</option><option>CHAMPAGNE</option><option>SWEET</option><option>FORTIFIED</option>
@@ -1174,7 +1174,7 @@ body.no-costs .col-cost{display:none !important;}
 <div class="card" style="margin-bottom:var(--gap)">
   <div class="search-row">
     <input type="text" id="srch" aria-label="Search wines" placeholder="Search F-code, name, grape, region…" oninput="D.search()">
-    <select id="s-cat" onchange="D.search()" aria-label="Category search filter">
+    <select id="s-cat" onchange="D.catSync('s-cat')" aria-label="Category search filter">
       <option value="">All Categories</option>
       <option>WHITE</option><option>RED</option><option>ROSE</option>
       <option>SPARKLING</option><option>CHAMPAGNE</option><option>SWEET</option><option>FORTIFIED</option>
@@ -3943,6 +3943,16 @@ class Dash{
     });
     this.search();
   }
+  // Both category dropdowns (top filter bar and search row) drive one filter.
+  // Mirror the changed one onto the other so they can never disagree.
+  catSync(srcId){
+    const src=document.getElementById(srcId);
+    if(!src) return;
+    const other=document.getElementById(srcId==='f-cat'?'s-cat':'f-cat');
+    if(other && other.value!==src.value) other.value=src.value;
+    if(this.mode==='stock') this.stockTable(); else this.apply();
+  }
+
   search(){
     if(this.mode==='stock'){this.stockTable();return;}
     const q=(document.getElementById('srch').value||'').toLowerCase();
@@ -4597,7 +4607,9 @@ class Dash{
     const srch=(document.getElementById('srch').value||'').toLowerCase();
     const vis=document.getElementById('s-stock-vis')?document.getElementById('s-stock-vis').value:'';
     const tagFilter=document.getElementById('f-tag')?document.getElementById('f-tag').value:'';
-    const catFilter=document.getElementById('f-cat')?document.getElementById('f-cat').value:'';
+    const _fc=document.getElementById('f-cat'), _sc=document.getElementById('s-cat');
+    // either category control may drive the stock table; they are kept in sync by catSync()
+    const catFilter=(_sc&&_sc.value)||(_fc&&_fc.value)||'';
     // Build tag lookup from MASTER+SPECIAL
     const tagMap={};
     [...MASTER,...SPECIAL].forEach(w=>{if(w.code&&w.tags&&w.tags.length)tagMap[w.code]=w.tags;});
