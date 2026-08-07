@@ -628,7 +628,7 @@ body.no-costs .col-cost{display:none !important;}
   // barSubs: optional — limits which Bar Operations sub-views the role may open
   //          ('menus','recipes','costing','calculator'). Omit for full access.
   // Roles not listed fall back to ADMIN_ACCESS.
-  const ALL_TABS = ['master','stock','special','beverages','bar','pairing','consumption','dineout','alerts','order','qr','requests'];
+  const ALL_TABS = ['master','stock','special','beverages','bar','pairing','consumption','dineout','jewels','alerts','order','qr','requests'];
   const ADMIN_ACCESS = {tabs: ALL_TABS, costs: true};
   const ROLE_ACCESS = {
     'General Manager':          ADMIN_ACCESS,
@@ -637,13 +637,13 @@ body.no-costs .col-cost{display:none !important;}
     'F&B Manager':              ADMIN_ACCESS,
     'Asst. F&B Manager':        ADMIN_ACCESS,
     'Bars Manager':             ADMIN_ACCESS,
-    'Restaurant Manager':       {tabs:['master','stock','special','beverages','bar','pairing','consumption','requests','qr'], costs:false, barSubs:['menus','recipes','calculator']},
-    'Asst. Restaurant Manager': {tabs:['master','stock','special','beverages','bar','pairing','consumption','requests','qr'], costs:false, barSubs:['menus','recipes','calculator']},
+    'Restaurant Manager':       {tabs:['master','stock','special','beverages','bar','pairing','consumption','jewels','requests','qr'], costs:false, barSubs:['menus','recipes','calculator']},
+    'Asst. Restaurant Manager': {tabs:['master','stock','special','beverages','bar','pairing','consumption','jewels','requests','qr'], costs:false, barSubs:['menus','recipes','calculator']},
     'Bar Manager':              {tabs:['beverages','bar','requests'], costs:true},
     'Bar Supervisor':           {tabs:['beverages','bar','requests'], costs:true},
     'Asst. Bars Manager':       {tabs:['beverages','bar','requests'], costs:true},
     'Room Service Manager':     {tabs:['beverages','bar','requests'], costs:true},
-    'Warehouse':               {tabs:['master','stock','special','beverages','consumption','alerts','order','requests'], costs:true},
+    'Warehouse':               {tabs:['master','stock','special','beverages','consumption','jewels','alerts','order','requests'], costs:true},
     'F&B Concierge':            {tabs:['master','special','pairing','qr'], costs:false}
   };
 
@@ -1053,6 +1053,9 @@ body.no-costs .col-cost{display:none !important;}
     <div class="tab" id="tab-dineout" onclick="D.switchTab('dineout')" style="border-left-color:#8c6d4f;">
       🍽️ Dine Out Order
     </div>
+    <div class="tab" id="tab-jewels" onclick="D.switchTab('jewels')" style="border-left-color:#b45309;">
+      💎 Last Jewels <span class="tbadge" style="background:#b45309" id="tab-jewels-badge">0</span>
+    </div>
 
     <div class="sb-section-label">Tools</div>
     <div class="tab" id="tab-alerts" onclick="D.switchTab('alerts')" style="border-left-color:#dc2626;">
@@ -1223,6 +1226,9 @@ body.no-costs .col-cost{display:none !important;}
 </div>
 <div id="qr-panel" style="display:none;padding:8px 0;">
   <div id="qr-content"></div>
+</div>
+<div id="jewels-panel" style="display:none;padding:8px 0;">
+  <div id="jewels-content"></div>
 </div>
 <div id="requests-panel" style="display:none;padding:8px 0;">
   <div id="requests-content"></div>
@@ -2225,6 +2231,36 @@ const SERVE_TEMP = {
 };
 
 // ── Static briefing notes for top wines (web-researched) ──
+/* ── LAST JEWELS ──
+   Depletion programme: idle SPECIAL and Not Visible labels placed at one
+   outlet at a time, with a printed service leaflet.
+   Record what was SENT here; everything else (price, remaining stock,
+   category, visibility) is read live from STOCK_DATA.
+   `par` = bottles to keep in the cellar for guest requests; 0 = close the line. */
+const LJ_SHIPMENTS = [
+  {outlet:'Seasons',  date:'2026-07-25', items:[
+    {code:'F24200386', sent:55, par:0},
+    {code:'F2420281',  sent:40, par:0},
+    {code:'F24200663', sent:25, par:0}]},
+  {outlet:'Provence', date:'2026-08-04', items:[
+    {code:'F24102179', sent:54, par:0},
+    {code:'F24102180', sent:51, par:0},
+    {code:'F24001769', sent:65, par:0}]},
+  {outlet:'Oliva',    date:'2026-08-06', items:[
+    {code:'F2410933',  sent:26, par:0},
+    {code:'F24200725', sent:50, par:0},
+    {code:'F24002145', sent:65, par:0}]}
+];
+/* Labels held deliberately — guest requests, dietary or religious needs.
+   These never appear as Last Jewels candidates and are excluded from
+   dead-stock counts. Add codes as they are confirmed. */
+const LJ_PROTECTED = {
+  'F24300045': 'Guest request — 0% sparkling, booked for September',
+  'F2401217':  'Kosher — held for Israeli guests'
+};
+/* Confirmed candidates for the next shipment. */
+const LJ_CANDIDATES = ['F2410123','F2410513'];
+
 const STATIC_NOTES = {
   // ── CHAMPAGNE ──
   "F2430060":  {t:"Pale gold with fine, persistent bubbles. Aromas of green apple, pear, brioche and white flowers. Crisp and elegant on the palate with citrus, stone fruit and a long fresh finish.", p:"Oysters · Smoked salmon · Grilled fish · Soft cheeses · Sushi"},
@@ -2891,7 +2927,7 @@ class Dash{
   }
   switchTab(tab){
     this.mode=tab;this.page=0;
-    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',consumption:'📉 Consumption 2026',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',qr:'📱 Guest QR',bar:'🍸 Bar Operations',requests:'📋 Special Requests'};
+    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',jewels:'💎 Last Jewels',consumption:'📉 Consumption 2026',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',qr:'📱 Guest QR',bar:'🍸 Bar Operations',requests:'📋 Special Requests'};
     const ttEl=document.getElementById('topbar-title');if(ttEl)ttEl.textContent=TAB_TITLES[tab]||'Master List';
     const sbEl=document.getElementById('sidebar');if(sbEl)sbEl.classList.remove('open');
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -2906,6 +2942,7 @@ class Dash{
     const alp=document.getElementById('alerts-panel');if(alp)alp.style.display='none';
     const orp=document.getElementById('order-panel');if(orp)orp.style.display='none';
     const qrp=document.getElementById('qr-panel');if(qrp)qrp.style.display='none';
+    const ljp=document.getElementById('jewels-panel');if(ljp)ljp.style.display='none';
     const brp=document.getElementById('bar-panel');if(brp)brp.style.display='none';
     const rqp=document.getElementById('requests-panel');if(rqp)rqp.style.display='none';
     const kpiRow2=document.querySelector('.kpi-row');if(kpiRow2)kpiRow2.style.display='';
@@ -3048,6 +3085,21 @@ class Dash{
       document.getElementById('bar-panel').style.display='block';
       this.mode='bar';
       this.renderBar();
+      return;
+    }
+    if(tab==='jewels'){
+      const hideIds=['charts-section','special-note','stock-note'];
+      hideIds.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+      const tblCard=document.getElementById('tbl');if(tblCard&&tblCard.closest('.card'))tblCard.closest('.card').style.display='none';
+      const srchRow=document.querySelector('.search-row');if(srchRow)srchRow.closest('.card').style.display='none';
+      const kpiRow=document.querySelector('.kpi-row');if(kpiRow)kpiRow.style.display='none';
+      outletFg.style.opacity='0.4';document.getElementById('f-outlet').disabled=true;
+      pcFg.style.opacity='0.4';document.getElementById('f-pc').disabled=true;
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.getElementById('tab-jewels').classList.add('active');
+      document.getElementById('jewels-panel').style.display='block';
+      this.mode='jewels';
+      this.renderJewels();
       return;
     }
     if(tab==='qr'){
@@ -3195,6 +3247,111 @@ class Dash{
 
     h+=`<div style="margin-top:16px;text-align:center;"><button onclick="window.print()" style="padding:10px 20px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;">🖨️ Print All</button></div>`;
     out.innerHTML=h;
+  }
+  /* ── LAST JEWELS ── programme tracker ── */
+  _ljRow(it){
+    const w = STOCK_DATA.find(x=>x.code===it.code) || null;
+    const qty = w ? w.qty : null;
+    const price = w ? w.price : null;
+    // A label whose remaining stock still equals the quantity sent almost
+    // certainly has not been posted in the ERP snapshot yet.
+    let status, tone;
+    if(!w)                          { status='Not in stock file'; tone='#64748b'; }
+    else if(qty===it.sent)          { status='Awaiting ERP';      tone='#64748b'; }
+    else if(qty===0)                { status='Closed';            tone='#16a34a'; }
+    else if(it.par>0 && qty<=it.par){ status='At par';            tone='#16a34a'; }
+    else if(qty < it.sent)          { status='Reducing';          tone='#c8952a'; }
+    else                            { status='Not moving';        tone='#dc2626'; }
+    return {w,qty,price,status,tone,value: (price!=null? price*it.sent : null)};
+  }
+  renderJewels(){
+    const out=document.getElementById('jewels-content'); if(!out)return;
+    const eur=n=>'€'+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    let h=`<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#92400e;">
+      💎 <b>Last Jewels</b> — idle Special Request and Not Visible labels placed at one outlet at a time, with a printed service leaflet. Quantities below are what was <b>sent</b>; remaining stock is read live from the Wine Stock file.</div>`;
+
+    let totSent=0, totVal=0, nClosed=0, nPending=0, nStuck=0, nLabels=0;
+    const blocks = LJ_SHIPMENTS.map(s=>{
+      let sSent=0, sVal=0;
+      const rows = s.items.map(it=>{
+        const r=this._ljRow(it);
+        sSent+=it.sent; if(r.value!=null) sVal+=r.value; nLabels++;
+        if(r.status==='Closed'||r.status==='At par') nClosed++;
+        else if(r.status==='Awaiting ERP') nPending++;
+        else if(r.status==='Not moving') nStuck++;
+        const name=r.w? (r.w.description||'') : it.code;
+        return `<tr>
+          <td><span class="cpill" style="font-size:10px">${it.code}</span></td>
+          <td style="font-size:12px">${name}</td>
+          <td style="text-align:right;font-weight:700">${it.sent}</td>
+          <td style="text-align:right" class="col-cost">${r.price!=null?eur(r.price):'—'}</td>
+          <td style="text-align:right;font-weight:700" class="col-cost">${r.value!=null?eur(r.value):'—'}</td>
+          <td style="text-align:right;font-weight:700">${r.qty!=null?r.qty:'—'}</td>
+          <td><span style="font-size:11px;font-weight:700;color:#fff;background:${r.tone};padding:2px 9px;border-radius:20px;white-space:nowrap">${r.status}</span></td>
+        </tr>`;
+      }).join('');
+      totSent+=sSent; totVal+=sVal;
+      const d=new Date(s.date+'T00:00:00');
+      const ds=d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+      return `<div class="card" style="padding:16px;margin-bottom:14px;">
+        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+          <span style="font-weight:800;font-size:15px;color:#b45309;">${s.outlet}</span>
+          <span style="font-size:12px;color:var(--muted);">${ds}</span>
+          <span style="margin-left:auto;font-size:12px;color:var(--muted);">${sSent} bottles<span class="col-cost"> · ${eur(sVal)}</span></span>
+        </div>
+        <div style="overflow-x:auto"><table style="width:100%;font-size:12px">
+          <thead><tr style="text-align:left;color:var(--muted)">
+            <th>Code</th><th>Wine</th><th style="text-align:right">Sent</th>
+            <th style="text-align:right" class="col-cost">€ / btl</th><th style="text-align:right" class="col-cost">Value</th>
+            <th style="text-align:right">In stock now</th><th>Status</th>
+          </tr></thead><tbody>${rows}</tbody>
+        </table></div>
+      </div>`;
+    }).join('');
+
+    const kpi=(lbl,v,sub,clr,cls)=>`<div class="kpi ${cls||''}" style="border-top:3px solid ${clr}"><div class="lbl">${lbl}</div><div class="val">${v}</div><div class="sub2">${sub}</div></div>`;
+    h+=`<div class="kpi-row" style="display:grid">
+      ${kpi('Outlets Done',LJ_SHIPMENTS.length,'shipments','#b45309')}
+      ${kpi('Bottles Placed',totSent.toLocaleString(),nLabels+' labels','#0891b2')}
+      ${kpi('Value Placed',eur(totVal),'at cost','#c8952a','col-cost')}
+      ${kpi('Lines Closed',nClosed+' / '+nLabels,nPending?nPending+' awaiting ERP':'all posted','#16a34a')}
+    </div>`;
+    if(nStuck) h+=`<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:13px;color:#991b1b;">
+      ⚠️ <b>${nStuck} label${nStuck>1?'s':''} not moving</b> — stock is higher than the quantity sent, so the outlet is not selling it. Consider moving it elsewhere rather than sending more.</div>`;
+    if(nPending) h+=`<div style="background:#f1f5f9;border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:14px 0;font-size:13px;color:#334155;">
+      ⏳ <b>${nPending} label${nPending>1?'s':''} awaiting ERP</b> — remaining stock still equals the quantity sent, so the despatch is probably not posted yet. Re-check after the next stock import.</div>`;
+    h+=`<div style="margin-top:16px">${blocks}</div>`;
+
+    // Protected labels
+    const prot=Object.keys(LJ_PROTECTED);
+    if(prot.length){
+      h+=`<div class="card" style="padding:16px;margin-bottom:14px;">
+        <div style="font-weight:700;font-size:13px;color:#0f766e;margin-bottom:4px;">🛡️ Protected — never a Last Jewels candidate</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px;">Held on purpose for guest requests or dietary and religious needs. Low consumption here is not dead stock.</div>`;
+      prot.forEach(c=>{ const w=STOCK_DATA.find(x=>x.code===c);
+        h+=`<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--border);">
+          <span class="cpill" style="font-size:10px">${c}</span>
+          <span style="font-size:12px;font-weight:600;">${w?w.description:'not in stock file'}</span>
+          <span style="font-size:11.5px;color:var(--muted);">${LJ_PROTECTED[c]}</span>
+          <span style="margin-left:auto;font-size:12px;font-weight:700;">${w?w.qty+' btl':''}</span>
+        </div>`; });
+      h+=`</div>`;
+    }
+    // Next-shipment candidates
+    if(typeof LJ_CANDIDATES!=='undefined' && LJ_CANDIDATES.length){
+      h+=`<div class="card" style="padding:16px;">
+        <div style="font-weight:700;font-size:13px;color:#b45309;margin-bottom:10px;">📋 Confirmed for the next shipment</div>`;
+      LJ_CANDIDATES.forEach(c=>{ const w=STOCK_DATA.find(x=>x.code===c);
+        h+=`<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--border);">
+          <span class="cpill" style="font-size:10px">${c}</span>
+          <span style="font-size:12px;font-weight:600;">${w?w.description:'not in stock file'}</span>
+          <span style="margin-left:auto;font-size:12px;font-weight:700;">${w?w.qty+' btl':''}</span>
+          <span class="col-cost" style="font-size:12px;color:var(--muted);">${w?eur(w.qty*w.price):''}</span>
+        </div>`; });
+      h+=`</div>`;
+    }
+    out.innerHTML=h;
+    const b=document.getElementById('tab-jewels-badge'); if(b)b.textContent=totSent;
   }
   /* ── BAR MODULE ── Outlet Menus + Recipe Book ── */
   _barAllergenBadges(code){
