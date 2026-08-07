@@ -625,6 +625,8 @@ body.no-costs .col-cost{display:none !important;}
 
   // ── ROLE ACCESS MAP ──
   // tabs: which sidebar tabs the role may open. costs: may see cost/value columns.
+  // barSubs: optional — limits which Bar Operations sub-views the role may open
+  //          ('menus','recipes','costing','calculator'). Omit for full access.
   // Roles not listed fall back to ADMIN_ACCESS.
   const ALL_TABS = ['master','stock','special','beverages','bar','pairing','consumption','dineout','alerts','order','qr','requests'];
   const ADMIN_ACCESS = {tabs: ALL_TABS, costs: true};
@@ -635,8 +637,8 @@ body.no-costs .col-cost{display:none !important;}
     'F&B Manager':              ADMIN_ACCESS,
     'Asst. F&B Manager':        ADMIN_ACCESS,
     'Bars Manager':             ADMIN_ACCESS,
-    'Restaurant Manager':       {tabs:['master','stock','special','pairing','consumption','requests','qr'], costs:false},
-    'Asst. Restaurant Manager': {tabs:['master','stock','special','pairing','consumption','requests','qr'], costs:false},
+    'Restaurant Manager':       {tabs:['master','stock','special','beverages','bar','pairing','consumption','requests','qr'], costs:false, barSubs:['menus','recipes','calculator']},
+    'Asst. Restaurant Manager': {tabs:['master','stock','special','beverages','bar','pairing','consumption','requests','qr'], costs:false, barSubs:['menus','recipes','calculator']},
     'Bar Manager':              {tabs:['beverages','bar','requests'], costs:true},
     'Bar Supervisor':           {tabs:['beverages','bar','requests'], costs:true},
     'Asst. Bars Manager':       {tabs:['beverages','bar','requests'], costs:true},
@@ -656,6 +658,7 @@ body.no-costs .col-cost{display:none !important;}
       }
     });
     if (!acc.costs) document.body.classList.add('no-costs');
+    window.BAR_SUBS_ALLOWED = acc.barSubs || null; // null = every sub-view
     // If the currently active tab is not permitted, move to the first one that is.
     // D may not be constructed yet at auth time, so retry briefly until it exists.
     const active = document.querySelector('.tab.active');
@@ -3106,17 +3109,18 @@ class Dash{
     const cats={}; BEVERAGES.forEach(b=>{cats[b.category]=cats[b.category]||{n:0,v:0}; cats[b.category].n++; cats[b.category].v+=val(b);});
     const catList=Object.keys(cats).sort((a,b)=>cats[b].v-cats[a].v);
     const maxV=Math.max(...catList.map(c=>cats[c].v),1);
-    const kpi=(lbl,v,sub,clr)=>`<div class="kpi" style="border-top:3px solid ${clr}"><div class="lbl">${lbl}</div><div class="val">${v}</div><div class="sub2">${sub}</div></div>`;
+    const kpi=(lbl,v,sub,clr,cls)=>`<div class="kpi ${cls||''}" style="border-top:3px solid ${clr}"><div class="lbl">${lbl}</div><div class="val">${v}</div><div class="sub2">${sub}</div></div>`;
+    const showCost=!document.body.classList.contains('no-costs');
 
     let h=`<div style="background:#ecfeff;border:1px solid #a5f3fc;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#155e75;">
       🥤 <b>Beverage Stock (excluding wine)</b> — from the ERP «Master Beverage Inventory». Wine appears in the Stock tab. Refreshed with each new Excel.</div>`;
     h+=`<div class="kpi-row" style="display:grid">
-      ${kpi('Stock Value',eur(totVal),'total beverages','#0891b2')}
+      ${kpi('Stock Value',eur(totVal),'total beverages','#0891b2','col-cost')}
       ${kpi('Items (Labels)',BEVERAGES.length,'codes','#7c3aed')}
       ${kpi('Categories',catList.length,'groups','#16a34a')}
-      ${kpi('Largest Group',EMO[catList[0]]+' '+catList[0],eur(cats[catList[0]].v),'#c8952a')}
+      ${kpi('Largest Group',EMO[catList[0]]+' '+catList[0],showCost?eur(cats[catList[0]].v):cats[catList[0]].n+' items','#c8952a')}
     </div>`;
-    h+=`<div class="card" style="padding:16px;margin-top:14px"><div style="font-weight:700;font-size:13px;margin-bottom:10px;color:var(--muted)">VALUE BY CATEGORY</div>`;
+    h+=`<div class="card col-cost" style="padding:16px;margin-top:14px"><div style="font-weight:700;font-size:13px;margin-bottom:10px;color:var(--muted)">VALUE BY CATEGORY</div>`;
     catList.forEach(c=>{const w=(cats[c].v/maxV*100).toFixed(1);
       h+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;cursor:pointer" onclick="document.getElementById('bev-cat').value='${c}';D.bevApply();">
         <span style="width:130px;font-size:12px">${EMO[c]||''} ${c}</span>
@@ -3149,15 +3153,15 @@ class Dash{
       return true;
     }).sort((a,b)=>b.qty*b.price-a.qty*a.price);
     const tv=rows.reduce((s,b)=>s+b.qty*b.price,0);
-    document.getElementById('bev-count').innerHTML=`${rows.length} items · value <b>${eur(tv)}</b>`;
-    let h='<table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Code</th><th>Description</th><th>Category</th><th style="text-align:right">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Value</th><th></th></tr></thead><tbody>';
+    document.getElementById('bev-count').innerHTML=`${rows.length} items<span class="col-cost"> · value <b>${eur(tv)}</b></span>`;
+    let h='<table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Code</th><th>Description</th><th>Category</th><th style="text-align:right">Qty</th><th style="text-align:right">Price</th><th class="col-cost" style="text-align:right">Value</th><th></th></tr></thead><tbody>';
     rows.slice(0,400).forEach(b=>{h+=`<tr>
       <td><span class="cpill" style="font-size:10px">${b.code}</span></td>
       <td>${b.description}</td>
       <td style="white-space:nowrap;color:var(--muted)">${b.category}</td>
       <td style="text-align:right;font-weight:700">${b.qty.toLocaleString()}</td>
       <td style="text-align:right">€${b.price.toFixed(2)}</td>
-      <td style="text-align:right;font-weight:700">${eur(b.qty*b.price)}</td>
+      <td class="col-cost" style="text-align:right;font-weight:700">${eur(b.qty*b.price)}</td>
       <td><button class="btn-request-wine" onclick="openRequestModal('${b.code}')">📋 Request</button></td></tr>`;});
     h+='</tbody></table>';
     if(rows.length>400)h+=`<div style="font-size:11px;color:var(--muted);margin-top:8px">Showing the first 400. Search to narrow down.</div>`;
@@ -3207,15 +3211,18 @@ class Dash{
     if(cats.includes('no_smoothies') && item.c==='Milkshakes')return false;
     return true;
   }
-  barSetSub(sub){ this.barSub=sub; this.renderBar(); }
+  _barSubAllowed(sub){
+    const allow=window.BAR_SUBS_ALLOWED;
+    return !allow || allow.indexOf(sub)>=0;
+  }
+  barSetSub(sub){ if(!this._barSubAllowed(sub))return; this.barSub=sub; this.renderBar(); }
   renderBar(){
     const out=document.getElementById('bar-content'); if(!out) return;
-    const sub=this.barSub||'menus';
+    let sub=this.barSub||'menus';
+    if(!this._barSubAllowed(sub)){ sub=(window.BAR_SUBS_ALLOWED||[])[0]||'menus'; this.barSub=sub; }
+    const SUBS=[['menus','🍹 Outlet Menus'],['recipes','📖 Recipe Book'],['costing','💰 Cost Analysis'],['calculator','🧮 Recipe Calculator']];
     let h=`<div class="card" style="padding:10px 14px;margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;">
-      <button onclick="D.barSetSub('menus')" style="padding:9px 16px;border-radius:8px;border:none;font-weight:700;font-size:12.5px;cursor:pointer;background:${sub==='menus'?'#9333ea':'#f1f5f9'};color:${sub==='menus'?'#fff':'#334155'};">🍹 Outlet Menus</button>
-      <button onclick="D.barSetSub('recipes')" style="padding:9px 16px;border-radius:8px;border:none;font-weight:700;font-size:12.5px;cursor:pointer;background:${sub==='recipes'?'#9333ea':'#f1f5f9'};color:${sub==='recipes'?'#fff':'#334155'};">📖 Recipe Book</button>
-      <button onclick="D.barSetSub('costing')" style="padding:9px 16px;border-radius:8px;border:none;font-weight:700;font-size:12.5px;cursor:pointer;background:${sub==='costing'?'#9333ea':'#f1f5f9'};color:${sub==='costing'?'#fff':'#334155'};">💰 Cost Analysis</button>
-      <button onclick="D.barSetSub('calculator')" style="padding:9px 16px;border-radius:8px;border:none;font-weight:700;font-size:12.5px;cursor:pointer;background:${sub==='calculator'?'#9333ea':'#f1f5f9'};color:${sub==='calculator'?'#fff':'#334155'};">🧮 Recipe Calculator</button>
+      ${SUBS.filter(s=>this._barSubAllowed(s[0])).map(([k,lbl])=>`<button onclick="D.barSetSub('${k}')" style="padding:9px 16px;border-radius:8px;border:none;font-weight:700;font-size:12.5px;cursor:pointer;background:${sub===k?'#9333ea':'#f1f5f9'};color:${sub===k?'#fff':'#334155'};">${lbl}</button>`).join('')}
     </div><div id="bar-sub"></div>`;
     out.innerHTML=h;
     if(sub==='recipes')this.renderBarRecipes(true); else if(sub==='costing')this.renderBarCosting(); else if(sub==='calculator')this.renderBarCalculator(); else this.renderBarMenus();
