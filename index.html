@@ -852,6 +852,31 @@ body.no-costs .col-cost{display:none !important;}
     return;
   }
 
+  /* ── LOGIN LOG CREDENTIALS ──
+     The bin id and API key are NOT stored in this file. This page is served
+     from a public repository, so anything written here is published with it.
+     They are read from the browser's localStorage instead, set once per
+     device by an administrator:
+
+       LOGSTORE.set('<bin id>', '<access key>')
+
+     Use a jsonbin Access Key limited to the log bin, never the account
+     Master Key: a Master Key grants access to every bin on the account.
+     With nothing set, login logging is skipped and the statistics screen
+     says so. Nothing else in the dashboard depends on it. */
+  const LOGSTORE = {
+    key(){ try { return localStorage.getItem('ikos_log_key') || ''; } catch(e){ return ''; } },
+    bin(){ try { return localStorage.getItem('ikos_log_bin') || ''; } catch(e){ return ''; } },
+    set(bin, key){
+      try { localStorage.setItem('ikos_log_bin', bin); localStorage.setItem('ikos_log_key', key);
+            return 'Login logging configured on this device.'; }
+      catch(e){ return 'Could not write to localStorage: ' + e.message; }
+    },
+    clear(){ try { localStorage.removeItem('ikos_log_bin'); localStorage.removeItem('ikos_log_key');
+                   return 'Login logging disabled on this device.'; } catch(e){ return String(e); } }
+  };
+  window.LOGSTORE = LOGSTORE;
+
   const auth = sessionStorage.getItem('ikos_auth');
   if (!auth) {
     document.addEventListener('DOMContentLoaded', showGate);
@@ -861,17 +886,18 @@ body.no-costs .col-cost{display:none !important;}
     if (pendingLog) {
       sessionStorage.removeItem('ikos_pending_log');
       (async () => {
-        const binId = '69ce656baaba882197ba6d43';
-        const apiKey = '$2a$10$J/rgnS7b6KLbUiKKI/JyW.JOpqsAyW7aZ0JNPyATneR5ukL16pkWu';
+        const binId = LOGSTORE.bin();
+        const apiKey = LOGSTORE.key();
+        if (!binId || !apiKey) return;   // logging not configured on this device
         try {
           const entry = JSON.parse(pendingLog);
-          const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {headers:{'X-Master-Key':apiKey}});
+          const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {headers:{'X-Master-Key':apiKey,'X-Access-Key':apiKey}});
           const data = await res.json();
           const log = data.record.log || [];
           log.push(entry);
           await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
             method:'PUT',
-            headers:{'Content-Type':'application/json','X-Master-Key':apiKey},
+            headers:{'Content-Type':'application/json','X-Master-Key':apiKey,'X-Access-Key':apiKey},
             body:JSON.stringify({log})
           });
         } catch(e) {}
@@ -942,11 +968,18 @@ body.no-costs .col-cost{display:none !important;}
   }
 
   async function showStats() {
-    const apiKey = '$2a$10$J/rgnS7b6KLbUiKKI/JyW.JOpqsAyW7aZ0JNPyATneR5ukL16pkWu';
-    const binId = '69ce656baaba882197ba6d43';
+    const apiKey = LOGSTORE.key();
+    const binId = LOGSTORE.bin();
+    if (!apiKey || !binId) {
+      alert('Login statistics are not configured on this device.\n\n'
+          + 'Run this once in the browser console, using a jsonbin Access Key\n'
+          + 'scoped to the log bin (never the account Master Key):\n\n'
+          + "  LOGSTORE.set('<bin id>', '<access key>')");
+      return;
+    }
     try {
       const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
-        headers: {'X-Master-Key': apiKey}
+        headers: {'X-Master-Key': apiKey, 'X-Access-Key': apiKey}
       });
       const data = await res.json();
       const log = data.record.log || [];
@@ -2275,8 +2308,7 @@ const LJ_SHIPMENTS = [
    These never appear as Last Jewels candidates and are excluded from
    dead-stock counts. Add codes as they are confirmed. */
 const LJ_PROTECTED = {
-  'F24300045': 'Guest request — 0% sparkling, booked for September',
-  'F2401217':  'Kosher — held for Israeli guests'
+  'F24300045': 'Guest request — 0% sparkling, booked for September'
 };
 /* Confirmed candidates for the next shipment. */
 const LJ_CANDIDATES = ['F2410123','F2410513'];
