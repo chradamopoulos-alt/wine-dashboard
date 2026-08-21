@@ -2293,7 +2293,20 @@ const SERVE_TEMP = {
    (the outlet already pours that grape), but it never travels itself.
    Record what was SENT here; everything else (price, remaining stock,
    category, visibility) is read live from STOCK_DATA.
-   `par` = bottles to keep in the cellar for guest requests; 0 = close the line. */
+   `par` = bottles to keep in the cellar for guest requests; 0 = close the line.
+
+   PRIORITY: clear "Not Visible" first, SPECIAL only gradually. A Not Visible
+   label is on no list and nobody requests it -- it has no reason to exist. A
+   SPECIAL label is deliberately request-only, and the hotel never places
+   orders for SPECIAL, so that pool only ever shrinks on its own; it does not
+   need chasing.
+
+   Do NOT "correct" a fast-moving SPECIAL to Visible. The property is all
+   inclusive, so Visible means the wine pours at no charge to the guest.
+   Premium labels such as Whispering Angel and Minuty are held at SPECIAL on
+   purpose, however many bottles they move; that movement is guests asking
+   for them by name, which is the system working as intended. A high despatch
+   figure on a SPECIAL label is not a misclassification. */
 const LJ_SHIPMENTS = [
   {outlet:'Seasons',  date:'2026-07-25', items:[
     {code:'F24200386', sent:55, atShip:170, par:0},

@@ -42,6 +42,27 @@ per-outlet data and no sales data anywhere in the file. Say so plainly when aske
 Depletion forecasting is only valid as **"how long until the cellar empties at the
 current despatch rate"** — say it that way, not as consumer demand.
 
+## Visibility means commercial intent, not data quality
+
+The property is **all inclusive**. There is no selling price, and `visibility`
+is a pricing decision, not a label:
+
+- **Visible** — on a restaurant list, poured at no charge to the guest.
+- **SPECIAL** — request only, deliberately kept off the lists. This is how
+  premium wine is controlled. The hotel **never places orders for SPECIAL**,
+  so the pool only shrinks.
+- **Not Visible** — in the warehouse, on no list, nobody requests it. This is
+  the real idle stock and the priority for the Last Jewels programme.
+
+Never recommend reclassifying a fast-moving SPECIAL label as Visible. A high
+despatch figure there means guests are asking for it by name and the hotel is
+absorbing the cost on purpose — Whispering Angel and Minuty are the standing
+examples. Making them Visible would put expensive wine into free pouring.
+
+So when ranking idle capital, treat SPECIAL and Not Visible separately, and
+say plainly that a SPECIAL label with steady despatches is working stock, not
+dead stock, whatever its value.
+
 ## What you do
 
 1. **Inventory analysis**
