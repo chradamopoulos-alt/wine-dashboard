@@ -1089,6 +1089,9 @@ body.no-costs .col-cost{display:none !important;}
     <div class="tab" id="tab-jewels" onclick="D.switchTab('jewels')" style="border-left-color:#b45309;">
       💎 Last Jewels <span class="tbadge" style="background:#b45309" id="tab-jewels-badge">0</span>
     </div>
+    <div class="tab" id="tab-jewels2" onclick="D.switchTab('jewels2')" style="border-left-color:#7c3aed;">
+      🔷 Jewels 2 <span class="tbadge" style="background:#7c3aed" id="tab-jewels2-badge">0</span>
+    </div>
 
     <div class="sb-section-label">Tools</div>
     <div class="tab" id="tab-alerts" onclick="D.switchTab('alerts')" style="border-left-color:#dc2626;">
@@ -1262,6 +1265,9 @@ body.no-costs .col-cost{display:none !important;}
 </div>
 <div id="jewels-panel" style="display:none;padding:8px 0;">
   <div id="jewels-content"></div>
+</div>
+<div id="jewels2-panel" style="display:none;padding:8px 0;">
+  <div id="jewels2-content"></div>
 </div>
 <div id="requests-panel" style="display:none;padding:8px 0;">
   <div id="requests-content"></div>
@@ -2343,6 +2349,49 @@ const LJ_PROTECTED = {
 /* Confirmed candidates for the next shipment. */
 const LJ_CANDIDATES = ['F2410123','F2410513'];
 
+/* ── JEWELS 2 ──
+   Separate campaign from Last Jewels: move 1,000 bottles out of the
+   NOT VISIBLE pool before the season closes. Unlike Last Jewels (which works
+   the SPECIAL pool one outlet at a time), Jewels 2 allocates a first batch to
+   several outlets at once, with a reserve held back to replenish whichever
+   outlet depletes first. A few rows below are marked programme:'Last Jewels'
+   because that outlet's next shipment was decided alongside this plan --
+   they still belong to the Last Jewels count, never to Jewels 2's target.
+   Prices, descriptions and current stock are never hardcoded here: they are
+   read live from STOCK_DATA by code, same as everywhere else in the app. */
+const J2_TARGET = 1000;
+const J2_PLAN = [
+  {outlet:'ANAYA',    programme:'Jewels 2',    code:'F24101505', qty:46},
+  {outlet:'ANAYA',    programme:'Jewels 2',    code:'F2411177',  qty:11},
+  {outlet:'FRESCO',   programme:'Jewels 2',    code:'F2401153',  qty:45},
+  {outlet:'FRESCO',   programme:'Jewels 2',    code:'F24002142', qty:30},
+  {outlet:'FRESCO',   programme:'Jewels 2',    code:'F24101579', qty:18},
+  {outlet:'PROVENCE', programme:'Jewels 2',    code:'F24002117', qty:49},
+  {outlet:'PROVENCE', programme:'Jewels 2',    code:'F24001535', qty:13},
+  {outlet:'KOS',      programme:'Jewels 2',    code:'F24101479', qty:43},
+  {outlet:'KOS',      programme:'Jewels 2',    code:'F24002128', qty:24},
+  {outlet:'KOS',      programme:'Last Jewels', code:'F2411142',  qty:30},
+  {outlet:'OUZO',     programme:'Jewels 2',    code:'F24002131', qty:46},
+  {outlet:'OUZO',     programme:'Jewels 2',    code:'F24002129', qty:29},
+  {outlet:'OUZO',     programme:'Jewels 2',    code:'F2410327',  qty:20},
+  {outlet:'OUZO',     programme:'Jewels 2',    code:'F2401181',  qty:19},
+  {outlet:'OUZO',     programme:'Jewels 2',    code:'F24200669', qty:18},
+  {outlet:'SEASONS',  programme:'Last Jewels', code:'F2430194',  qty:72},
+  {outlet:'SEASONS',  programme:'Last Jewels', code:'F2401164',  qty:40},
+  {outlet:'SEASONS',  programme:'Last Jewels', code:'F2411144',  qty:17},
+  {outlet:'OLIVA',    programme:'Last Jewels', code:'F24200725', qty:48},
+  {outlet:'OLIVA',    programme:'Last Jewels', code:'F24002386', qty:19}
+];
+/* Held back, not yet shipped -- tops up whichever outlet's first batch closes first. */
+const J2_RESERVE = [
+  {code:'F2400238',  qty:50}, {code:'F24002151', qty:36}, {code:'F24001546', qty:30},
+  {code:'F2401198',  qty:13}, {code:'F24101506', qty:12}, {code:'F24002132', qty:6}
+];
+/* Confirmed for the campaign, outlet not yet decided. */
+const J2_PENDING = [
+  {code:'F2400062', qty:30}, {code:'F24102392', qty:28}
+];
+
 const STATIC_NOTES = {
   // ── CHAMPAGNE ──
   "F2430060":  {t:"Pale gold with fine, persistent bubbles. Aromas of green apple, pear, brioche and white flowers. Crisp and elegant on the palate with citrus, stone fruit and a long fresh finish.", p:"Oysters · Smoked salmon · Grilled fish · Soft cheeses · Sushi"},
@@ -3009,7 +3058,7 @@ class Dash{
   }
   switchTab(tab){
     this.mode=tab;this.page=0;
-    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',jewels:'💎 Last Jewels',consumption:'📦 Despatches 2026',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',qr:'📱 Guest QR',bar:'🍸 Bar Operations',requests:'📋 Special Requests'};
+    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',jewels:'💎 Last Jewels',jewels2:'🔷 Jewels 2',consumption:'📦 Despatches 2026',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',qr:'📱 Guest QR',bar:'🍸 Bar Operations',requests:'📋 Special Requests'};
     const ttEl=document.getElementById('topbar-title');if(ttEl)ttEl.textContent=TAB_TITLES[tab]||'Master List';
     const sbEl=document.getElementById('sidebar');if(sbEl)sbEl.classList.remove('open');
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -3025,6 +3074,7 @@ class Dash{
     const orp=document.getElementById('order-panel');if(orp)orp.style.display='none';
     const qrp=document.getElementById('qr-panel');if(qrp)qrp.style.display='none';
     const ljp=document.getElementById('jewels-panel');if(ljp)ljp.style.display='none';
+    const j2p=document.getElementById('jewels2-panel');if(j2p)j2p.style.display='none';
     const brp=document.getElementById('bar-panel');if(brp)brp.style.display='none';
     const rqp=document.getElementById('requests-panel');if(rqp)rqp.style.display='none';
     const kpiRow2=document.querySelector('.kpi-row');if(kpiRow2)kpiRow2.style.display='';
@@ -3182,6 +3232,21 @@ class Dash{
       document.getElementById('jewels-panel').style.display='block';
       this.mode='jewels';
       this.renderJewels();
+      return;
+    }
+    if(tab==='jewels2'){
+      const hideIds=['charts-section','special-note','stock-note'];
+      hideIds.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+      const tblCard=document.getElementById('tbl');if(tblCard&&tblCard.closest('.card'))tblCard.closest('.card').style.display='none';
+      const srchRow=document.querySelector('.search-row');if(srchRow)srchRow.closest('.card').style.display='none';
+      const kpiRow=document.querySelector('.kpi-row');if(kpiRow)kpiRow.style.display='none';
+      outletFg.style.opacity='0.4';document.getElementById('f-outlet').disabled=true;
+      pcFg.style.opacity='0.4';document.getElementById('f-pc').disabled=true;
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.getElementById('tab-jewels2').classList.add('active');
+      document.getElementById('jewels2-panel').style.display='block';
+      this.mode='jewels2';
+      this.renderJewels2();
       return;
     }
     if(tab==='qr'){
@@ -3502,6 +3567,161 @@ class Dash{
     }
     out.innerHTML=h;
     const b=document.getElementById('tab-jewels-badge'); if(b)b.textContent=totSent;
+  }
+  /* ── JEWELS 2 ── separate campaign, Not Visible pool, 1,000-bottle target ── */
+  // Same wording as Last Jewels' _ljRow: Closed / Reducing / Unchanged / Restocked.
+  _j2Depletion(code,baseline){
+    const w=STOCK_DATA.find(x=>x.code===code)||null;
+    const qty=w?w.qty:null;
+    const drop=(baseline!=null&&qty!=null)?baseline-qty:null;
+    let status,tone;
+    if(!w)             { status='Not in stock file'; tone='#64748b'; }
+    else if(qty===0)   { status='Closed';             tone='#16a34a'; }
+    else if(drop>0)    { status='Reducing';           tone='#c8952a'; }
+    else if(drop===0)  { status='Unchanged';          tone='#dc2626'; }
+    else               { status='Restocked';          tone='#64748b'; }
+    return {w,qty,drop,status,tone};
+  }
+  renderJewels2(){
+    const out=document.getElementById('jewels2-content'); if(!out)return;
+    const eur=n=>'€'+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    let h=`<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#5b21b6;">
+      🔷 <b>Jewels 2</b> — a new campaign to move <b>1,000 bottles</b> out of the <b>Not Visible</b> cellar before the season closes. It is a separate programme from 💎 Last Jewels (which works the SPECIAL pool). Some outlets below received a Last Jewels bottle alongside this plan; those rows count only towards Last Jewels, never towards the Jewels 2 target — the two counters must never be added together.</div>`;
+
+    // Rows, priced and stocked live from STOCK_DATA.
+    const rows = J2_PLAN.map(r=>{
+      const w=STOCK_DATA.find(x=>x.code===r.code)||null;
+      const price=w?w.price:null;
+      const cost=price!=null?price*r.qty:null;
+      const dep=this._j2Depletion(r.code,r.qty);
+      return {...r,w,price,cost,dep};
+    });
+    const j2Rows=rows.filter(r=>r.programme==='Jewels 2');
+    const ljRows=rows.filter(r=>r.programme==='Last Jewels');
+    const j2Bottles=j2Rows.reduce((s,r)=>s+r.qty,0);
+    const j2Val=j2Rows.reduce((s,r)=>s+(r.cost||0),0);
+    const ljBottles=ljRows.reduce((s,r)=>s+r.qty,0);
+    const ljVal=ljRows.reduce((s,r)=>s+(r.cost||0),0);
+    const j2Left=j2Rows.reduce((s,r)=>s+(r.dep.drop>0?r.dep.drop:0),0);
+    const pct=Math.min(100,Math.round(j2Bottles/J2_TARGET*100));
+
+    const kpi=(lbl,v,sub,clr,cls)=>`<div class="kpi ${cls||''}" style="border-top:3px solid ${clr}"><div class="lbl">${lbl}</div><div class="val">${v}</div><div class="sub2">${sub}</div></div>`;
+    h+=`<div class="kpi-row" style="display:grid">
+      ${kpi('Jewels 2 Allocated',j2Bottles.toLocaleString(),'of 1,000 target','#7c3aed')}
+      ${kpi('Campaign Progress',pct+'%',j2Bottles+' / '+J2_TARGET.toLocaleString()+' bottles','#7c3aed')}
+      ${kpi('Jewels 2 Value',eur(j2Val),'at cost, allocated','#7c3aed','col-cost')}
+      ${kpi('Left the Cellar',j2Left.toLocaleString(),'Jewels 2 only, since allocation','#16a34a')}
+      ${kpi('Last Jewels (this plan)',ljBottles.toLocaleString(),eur(ljVal)+' — separate counter','#b45309','col-cost')}
+    </div>`;
+    h+=`<div style="background:#f1f5f9;border:1px solid var(--border);border-radius:10px;padding:6px 14px;margin:6px 0 14px;">
+      <div style="height:10px;border-radius:6px;background:#e2e8f0;overflow:hidden;margin:6px 0;">
+        <div style="height:100%;width:${pct}%;background:#7c3aed;"></div>
+      </div>
+      <div style="font-size:11.5px;color:var(--muted);">${j2Bottles.toLocaleString()} of ${J2_TARGET.toLocaleString()} bottles allocated toward the Jewels 2 target (${pct}%). This bar counts <b>only</b> Jewels 2 rows.</div>
+    </div>`;
+    h+=`<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:8px 14px;margin-bottom:14px;font-size:12.5px;color:#92400e;">
+      ⚖️ <b>In motion (combined, do not treat as one total):</b> ${(j2Bottles+ljBottles).toLocaleString()} bottles = ${j2Bottles.toLocaleString()} Jewels 2 <b>+</b> ${ljBottles.toLocaleString()} Last Jewels — two different programmes, shown together only for a whole-cellar view.</div>`;
+
+    // Per-outlet allocation table, grouped in first-appearance order.
+    const outlets=[...new Set(J2_PLAN.map(r=>r.outlet))];
+    let tbl=`<div class="card" style="padding:16px;margin-bottom:14px;">
+      <div style="font-weight:800;font-size:14px;margin-bottom:10px;">📋 Outlet Allocations</div>
+      <div style="overflow-x:auto"><table style="width:100%;font-size:12px">
+        <thead><tr style="text-align:left;color:var(--muted)">
+          <th>Outlet</th><th>Programme</th><th>Code</th><th>Wine</th>
+          <th style="text-align:right">Bottles</th><th style="text-align:right" class="col-cost">€ / btl</th>
+          <th style="text-align:right" class="col-cost">Batch Cost</th><th style="text-align:right">Cellar Now</th><th>Status</th>
+        </tr></thead><tbody>`;
+    outlets.forEach(o=>{
+      const oRows=rows.filter(r=>r.outlet===o);
+      let ob=0,oc=0;
+      oRows.forEach(r=>{
+        ob+=r.qty; oc+=(r.cost||0);
+        const progColor=r.programme==='Jewels 2'?'#7c3aed':'#b45309';
+        tbl+=`<tr>
+          <td style="font-weight:700">${r.outlet}</td>
+          <td><span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${progColor}1a;color:${progColor};white-space:nowrap">${r.programme}</span></td>
+          <td><span class="cpill" style="font-size:10px">${r.code}</span></td>
+          <td style="font-size:12px">${r.w?r.w.description:'not in stock file'}</td>
+          <td style="text-align:right;font-weight:700">${r.qty}</td>
+          <td style="text-align:right" class="col-cost">${r.price!=null?eur(r.price):'—'}</td>
+          <td style="text-align:right;font-weight:700" class="col-cost">${r.cost!=null?eur(r.cost):'—'}</td>
+          <td style="text-align:right;font-weight:700">${r.dep.qty!=null?r.dep.qty:'—'}</td>
+          <td><span style="font-size:11px;font-weight:700;color:#fff;background:${r.dep.tone};padding:2px 9px;border-radius:20px;white-space:nowrap">${r.dep.status}</span></td>
+        </tr>`;
+      });
+      tbl+=`<tr style="background:#f8fafc;font-weight:700;">
+        <td colspan="4" style="text-align:right;color:var(--muted);font-size:11.5px;">${o} subtotal</td>
+        <td style="text-align:right">${ob}</td><td class="col-cost"></td>
+        <td style="text-align:right" class="col-cost">${eur(oc)}</td><td></td><td></td>
+      </tr>`;
+    });
+    tbl+=`</tbody></table></div></div>`;
+    h+=tbl;
+
+    // Three-tier view of the whole Not Visible pool (live, excludes the 20L bag-in-box).
+    const nv=STOCK_DATA.filter(w=>w.visibility==='Not Visible'&&w.qty>0&&w.code!=='F2410011');
+    const tierA=nv.filter(w=>w.price>=4);
+    const tierB=nv.filter(w=>w.price>=2.10&&w.price<4);
+    const tierC=nv.filter(w=>w.price<2.10);
+    const tsum=t=>({n:t.length,b:t.reduce((s,w)=>s+w.qty,0),v:t.reduce((s,w)=>s+w.qty*w.price,0)});
+    const [tA,tB,tC]=[tsum(tierA),tsum(tierB),tsum(tierC)];
+    const tAll={n:nv.length,b:tA.b+tB.b+tC.b,v:tA.v+tB.v+tC.v};
+    h+=`<div class="card" style="padding:16px;margin-bottom:14px;">
+      <div style="font-weight:800;font-size:14px;margin-bottom:6px;">🧭 Not Visible Pool — Three Tiers</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px;">Computed live from Wine Stock (Not Visible, in stock). Excludes F2410011, a 20L bag-in-box for the kitchen, never counted as bottles.</div>
+      <div style="overflow-x:auto"><table style="width:100%;font-size:12px">
+        <thead><tr style="text-align:left;color:var(--muted)"><th>Tier</th><th>Rule</th><th style="text-align:right">Labels</th><th style="text-align:right">Bottles</th><th style="text-align:right" class="col-cost">Value</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:700;color:#166534">A · Table service</td><td style="font-size:11.5px;color:var(--muted)">price ≥ €4 — may be recommended by name</td><td style="text-align:right">${tA.n}</td><td style="text-align:right;font-weight:700">${tA.b.toLocaleString()}</td><td style="text-align:right;font-weight:700" class="col-cost">${eur(tA.v)}</td></tr>
+          <tr><td style="font-weight:700;color:#b45309">B · House pour</td><td style="font-size:11.5px;color:var(--muted)">€2.10 ≤ price &lt; €4 — by the glass only, never named</td><td style="text-align:right">${tB.n}</td><td style="text-align:right;font-weight:700">${tB.b.toLocaleString()}</td><td style="text-align:right;font-weight:700" class="col-cost">${eur(tB.v)}</td></tr>
+          <tr><td style="font-weight:700;color:#64748b">C · Bar &amp; events</td><td style="font-size:11.5px;color:var(--muted)">price &lt; €2.10 — never in front of a guest</td><td style="text-align:right">${tC.n}</td><td style="text-align:right;font-weight:700">${tC.b.toLocaleString()}</td><td style="text-align:right;font-weight:700" class="col-cost">${eur(tC.v)}</td></tr>
+          <tr style="background:#f8fafc;font-weight:700;"><td colspan="2" style="text-align:right;color:var(--muted);font-size:11.5px;">Whole pool</td><td style="text-align:right">${tAll.n}</td><td style="text-align:right">${tAll.b.toLocaleString()}</td><td style="text-align:right" class="col-cost">${eur(tAll.v)}</td></tr>
+        </tbody>
+      </table></div>
+    </div>`;
+
+    // Reserve
+    const resRows=J2_RESERVE.map(r=>({...r,w:STOCK_DATA.find(x=>x.code===r.code)||null}));
+    const resB=resRows.reduce((s,r)=>s+r.qty,0);
+    const resV=resRows.reduce((s,r)=>s+(r.w?r.w.price*r.qty:0),0);
+    h+=`<div class="card" style="padding:16px;margin-bottom:14px;">
+      <div style="font-weight:800;font-size:14px;margin-bottom:4px;">🗄️ Reserve — held back for replenishment</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px;">Not yet shipped. Tops up whichever outlet's first batch depletes first.</div>
+      <div style="overflow-x:auto"><table style="width:100%;font-size:12px">
+        <thead><tr style="text-align:left;color:var(--muted)"><th>Code</th><th>Wine</th><th style="text-align:right">Bottles</th><th style="text-align:right" class="col-cost">€ / btl</th><th style="text-align:right" class="col-cost">Value</th></tr></thead><tbody>
+        ${resRows.map(r=>`<tr>
+          <td><span class="cpill" style="font-size:10px">${r.code}</span></td>
+          <td style="font-size:12px">${r.w?r.w.description:'not in stock file'}</td>
+          <td style="text-align:right;font-weight:700">${r.qty}</td>
+          <td style="text-align:right" class="col-cost">${r.w?eur(r.w.price):'—'}</td>
+          <td style="text-align:right;font-weight:700" class="col-cost">${r.w?eur(r.w.price*r.qty):'—'}</td>
+        </tr>`).join('')}
+        <tr style="background:#f8fafc;font-weight:700;"><td colspan="2" style="text-align:right;color:var(--muted);font-size:11.5px;">Reserve total</td><td style="text-align:right">${resB}</td><td class="col-cost"></td><td style="text-align:right" class="col-cost">${eur(resV)}</td></tr>
+      </tbody></table></div>
+    </div>`;
+
+    // Pending decision
+    const penRows=J2_PENDING.map(r=>({...r,w:STOCK_DATA.find(x=>x.code===r.code)||null}));
+    const penB=penRows.reduce((s,r)=>s+r.qty,0);
+    const penV=penRows.reduce((s,r)=>s+(r.w?r.w.price*r.qty:0),0);
+    h+=`<div class="card" style="padding:16px;">
+      <div style="font-weight:800;font-size:14px;margin-bottom:4px;">❓ Pending Decision — outlet not yet assigned</div>
+      <div style="overflow-x:auto"><table style="width:100%;font-size:12px">
+        <thead><tr style="text-align:left;color:var(--muted)"><th>Code</th><th>Wine</th><th style="text-align:right">Bottles</th><th style="text-align:right" class="col-cost">€ / btl</th><th style="text-align:right" class="col-cost">Value</th></tr></thead><tbody>
+        ${penRows.map(r=>`<tr>
+          <td><span class="cpill" style="font-size:10px">${r.code}</span></td>
+          <td style="font-size:12px">${r.w?r.w.description:'not in stock file'}</td>
+          <td style="text-align:right;font-weight:700">${r.qty}</td>
+          <td style="text-align:right" class="col-cost">${r.w?eur(r.w.price):'—'}</td>
+          <td style="text-align:right;font-weight:700" class="col-cost">${r.w?eur(r.w.price*r.qty):'—'}</td>
+        </tr>`).join('')}
+        <tr style="background:#f8fafc;font-weight:700;"><td colspan="2" style="text-align:right;color:var(--muted);font-size:11.5px;">Pending total</td><td style="text-align:right">${penB}</td><td class="col-cost"></td><td style="text-align:right" class="col-cost">${eur(penV)}</td></tr>
+      </tbody></table></div>
+    </div>`;
+
+    out.innerHTML=h;
+    const b=document.getElementById('tab-jewels2-badge'); if(b)b.textContent=j2Bottles;
   }
   /* ── BAR MODULE ── Outlet Menus + Recipe Book ── */
   _barAllergenBadges(code){
