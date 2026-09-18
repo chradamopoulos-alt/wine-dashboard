@@ -4857,8 +4857,9 @@ class Dash{
   }
   _wineSweet(w){
     const s=((w.style||'')+' '+(w.name||'')).toLowerCase();
-    if(/γλυκ|sweet|doux|μοσχατ|moscato|sauternes|vin doux/.test(s) && !/ημιγλυκ/.test(s)) return 'sweet';
-    if(/ημιγλυκ|off.?dry|semi.?sweet|demi.?sec/.test(s)) return 'offdry';
+    if(/ημιξηρ|off.?dry|semi.?dry|feinherb|halbtrocken/.test(s)) return 'offdry';
+    if(/ημιγλυκ|semi.?sweet|demi.?sec|amabile/.test(s)) return 'semisweet';
+    if(/γλυκ|sweet|doux|μοσχατ|moscato|sauternes|vin doux|dolce/.test(s)) return 'sweet';
     return 'dry';
   }
   _wineColor(w){
@@ -4895,9 +4896,10 @@ class Dash{
     if(/white/.test(text))want.color='white';
     if(/rose|rosé/.test(text))want.color='rose';
     if(/champagne|sparkl|bubbl|prosecco|cava/.test(text))want.color='sparkling';
-    if(/sweet|doux/.test(text)&&!/off.?dry|semi/.test(text))want.sweet='sweet';
-    if(/off.?dry|semi/.test(text))want.sweet='offdry';
-    if(/dry/.test(text))want.sweet='dry';
+    if(/semi.?sweet|semisweet|ημίγλυκο|ημιγλυκο/.test(text))want.sweet='semisweet';
+    else if(/off.?dry|semi.?dry|ημίξηρο|ημιξηρο/.test(text))want.sweet='offdry';
+    else if(/sweet|doux/.test(text))want.sweet='sweet';
+    else if(/dry/.test(text))want.sweet='dry';
     if(/full|bold|heavy|robust/.test(text))want.body=3;
     if(/light/.test(text))want.body=1;
     if(/fruit/.test(text))want.char.add('fruity');
@@ -4925,7 +4927,7 @@ class Dash{
     return this._sommPool().map(w=>{
       const p=this._wineProfile(w); let s=0; const why=[];
       if(want.color){ if(p.color===want.color){s+=6;} else if(want.color==='sparkling'&&p.color==='sparkling'){s+=6;} else {s-=7;} }
-      if(want.sweet){ if(p.sweet===want.sweet){s+=5;why.push(want.sweet==='sweet'?'sweet':want.sweet==='offdry'?'off-dry':'dry');} else {s-=4;} }
+      if(want.sweet){ if(p.sweet===want.sweet){s+=5;why.push(want.sweet==='sweet'?'sweet':want.sweet==='offdry'?'off-dry':want.sweet==='semisweet'?'semi-sweet':'dry');} else {s-=4;} }
       if(want.body){ const d=Math.abs(p.body-want.body); s+=(3-d*2); if(d===0)why.push(want.body===3?'full body':want.body===1?'light':'medium body'); }
       want.char.forEach(c=>{ if(p.char.has(c)){s+=3;why.push(CHW[c]||c);} });
       const g=(w.grape||'').toLowerCase();
