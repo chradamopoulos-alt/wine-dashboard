@@ -2255,6 +2255,31 @@ function rejectWineRequestConfirm(id){
 const COLORS=['#7b3f9e','#c8952a','#2563eb','#16a34a','#dc2626','#0891b2','#d97706','#7c3aed','#0f766e','#b45309'];
 const CAT_C={WHITE:'#2563eb',RED:'#dc2626',ROSE:'#ec4899',SPARKLING:'#16a34a',CHAMPAGNE:'#d97706',SWEET:'#7c3aed',FORTIFIED:'#9a3412'};
 // Fallback category detection from ERP code prefix, used when a STOCK_DATA row has no category field.
+// Shared by the column-filter dropdowns on every table tab.
+// spec is '' (no filter), '0', 'a-b' or 'n+'.
+function numInRange(v,spec){
+  if(!spec)return true;
+  if(spec==='0')return v===0;
+  if(spec.endsWith('+'))return v>=parseFloat(spec);
+  const[a,b]=spec.split('-').map(parseFloat);
+  return v>=a&&v<=b;
+}
+// Builds the <option> list for a column filter, marking the active one.
+function colFilterOpts(list,cur){
+  return list.map(o=>{
+    const v=Array.isArray(o)?o[0]:o, l=Array.isArray(o)?o[1]:o;
+    return `<option value="${String(v).replace(/"/g,'&quot;')}"${String(cur)===String(v)?' selected':''}>${l}</option>`;
+  }).join('');
+}
+const COL_FILTER_STYLE='width:100%;max-width:150px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-size:11px;background:#fff;font-weight:400;color:var(--muted);cursor:pointer;';
+function colFilterSel(onchg,list,cur){
+  return `<select onchange="${onchg}" onclick="event.stopPropagation()" style="${COL_FILTER_STYLE}">${colFilterOpts(list,cur)}</select>`;
+}
+// Distinct, sorted, non-empty values of a field across a dataset.
+function colFilterVals(data,field){
+  return [...new Set(data.map(r=>r[field]).filter(v=>v!==null&&v!==undefined&&v!==''))].sort();
+}
+
 function stockCatFromCode(code){
   const c=String(code||'');
   if(/^F2400/.test(c))return'RED';
@@ -3375,19 +3400,37 @@ class Dash{
     document.getElementById('beverages-content').innerHTML=h;
     this.bevApply();
   }
+  // Column filters for the Beverages table.
+  bfSet(key,val){ if(!this.bfil)this.bfil={}; this.bfil[key]=val; this.bevApply(); }
+  bfClear(){ this.bfil={}; this.bevApply(); }
   bevApply(){
     const tbl=document.getElementById('bev-table'); if(!tbl) return;
     const q=(document.getElementById('bev-search')?document.getElementById('bev-search').value:'').toLowerCase();
     const cat=document.getElementById('bev-cat')?document.getElementById('bev-cat').value:'';
     const eur=n=>'€'+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    const BF=this.bfil||(this.bfil={});
     let rows=BEVERAGES.filter(b=>{
       if(cat&&b.category!==cat)return false;
+      if(BF.category&&b.category!==BF.category)return false;
+      if(!numInRange(b.qty,BF.qty))return false;
+      if(!numInRange(b.price,BF.price))return false;
+      if(!numInRange(b.qty*b.price,BF.value))return false;
       if(q&&!((b.code+' '+b.description+' '+b.category).toLowerCase().includes(q)))return false;
       return true;
     }).sort((a,b)=>b.qty*b.price-a.qty*a.price);
     const tv=rows.reduce((s,b)=>s+b.qty*b.price,0);
-    document.getElementById('bev-count').innerHTML=`${rows.length} items<span class="col-cost"> · value <b>${eur(tv)}</b></span>`;
-    let h='<table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Code</th><th>Description</th><th>Category</th><th style="text-align:right">Qty</th><th style="text-align:right">Price</th><th class="col-cost" style="text-align:right">Value</th><th></th></tr></thead><tbody>';
+    const bfActive=Object.values(BF).some(v=>v);
+    document.getElementById('bev-count').innerHTML=`${rows.length} items<span class="col-cost"> · value <b>${eur(tv)}</b></span>`
+      +(bfActive?` <button onclick="D.bfClear()" style="margin-left:8px;padding:2px 8px;font-size:10px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;color:var(--muted)">✕ Clear filters</button>`:'');
+    const bevCats=[...new Set(BEVERAGES.map(b=>b.category).filter(Boolean))].sort();
+    let h='<table style="width:100%;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th>Code</th><th>Description</th><th>Category</th><th style="text-align:right">Qty</th><th style="text-align:right">Price</th><th class="col-cost" style="text-align:right">Value</th><th></th></tr>';
+    h+='<tr class="col-filter-row">';
+    h+='<th></th><th></th>';
+    h+=`<th>${colFilterSel("D.bfSet('category',this.value)",[['','All Categories'],...bevCats],BF.category||'')}</th>`;
+    h+=`<th>${colFilterSel("D.bfSet('qty',this.value)",[['','All Qty'],['0','Sold out (0)'],['1-11','1 – 11'],['12-99','12 – 99'],['100-999','100 – 999'],['1000+','1,000+']],BF.qty||'')}</th>`;
+    h+=`<th>${colFilterSel("D.bfSet('price',this.value)",[['','All Prices'],['0-0.99','Under €1'],['1-4.99','€1 – €5'],['5-19.99','€5 – €20'],['20+','€20+']],BF.price||'')}</th>`;
+    h+=`<th class="col-cost">${colFilterSel("D.bfSet('value',this.value)",[['','All Values'],['0-99.99','Under €100'],['100-499.99','€100 – €500'],['500-1999.99','€500 – €2,000'],['2000+','€2,000+']],BF.value||'')}</th>`;
+    h+='<th></th></tr></thead><tbody>';
     rows.slice(0,400).forEach(b=>{h+=`<tr>
       <td><span class="cpill" style="font-size:10px">${b.code}</span></td>
       <td>${b.description}</td>
@@ -4636,6 +4679,16 @@ class Dash{
     const el=document.getElementById('s-stock-vis');
     if(el){ el.value=val; this.page=0; this.stockTable(); }
   }
+  // Column filters for the Master / Special tables. State is kept per tab mode.
+  tfSet(key,val){
+    if(!this.tfil)this.tfil={};
+    const t=this.tfil[this.mode]||(this.tfil[this.mode]={});
+    t[key]=val; this.page=0; this.table();
+  }
+  tfClear(){
+    if(this.tfil)this.tfil[this.mode]={};
+    this.page=0; this.table();
+  }
   sfClear(){
     this.sfil={sort:'qty_desc',country:'',qty:'',cost:'',total:''};
     ['s-stock-vis','s-cat','f-cat'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
@@ -4784,8 +4837,27 @@ class Dash{
   }
   table(){
     const isSpecial=this.mode==='special';
+    // Column filters (the dropdown row under the header). State per tab mode, so
+    // Master and Special keep their own selections.
+    if(!this.tfil)this.tfil={};
+    const TF=this.tfil[this.mode]||(this.tfil[this.mode]={});
+    const coverBand=v=>v===null?'none':v<2?'low':v>12?'high':'ok';
+    const filtered=this.searched.filter(r=>{
+      if(TF.supplier&&(r.supplier||'')!==TF.supplier)return false;
+      if(TF.producer&&(r.producer||'')!==TF.producer)return false;
+      if(TF.category&&r.category!==TF.category)return false;
+      if(TF.country&&r.country!==TF.country)return false;
+      if(TF.grape&&(r.grape||'')!==TF.grape)return false;
+      if(!numInRange(r.price,TF.price))return false;
+      if(!numInRange(r.stock,TF.stock))return false;
+      if(!numInRange(r.consumption,TF.consumption))return false;
+      if(TF.cover&&coverBand(r.stockCoverMonths)!==TF.cover)return false;
+      if(TF.outlet&&!(r.outlets||[]).includes(TF.outlet))return false;
+      if(TF.style&&(r.style||'')!==TF.style)return false;
+      return true;
+    });
     // Desktop cols vs mobile-hidden (via CSS class)
-    const sorted=[...this.searched].sort((a,b)=>{
+    const sorted=[...filtered].sort((a,b)=>{
       let av=a[this.sortCol],bv=b[this.sortCol];
       if(Array.isArray(av))av=av.length;if(Array.isArray(bv))bv=bv.length;
       const cmp=av===null?1:bv===null?-1:av<bv?-1:av>bv?1:0;
@@ -4807,6 +4879,28 @@ class Dash{
     h+=`<th class="col-cover" onclick="D.sort('stockCoverMonths')">Cover${arw('stockCoverMonths')}</th>`;
     if(!isSpecial)h+=`<th class="col-outlets" onclick="D.sort('outlets')">Restaurants${arw('outlets')}</th>`;
     else h+=`<th onclick="D.sort('style')">Style${arw('style')}</th>`;
+    h+='</tr>';
+
+    // Column filter row. Option lists are built from the full dataset for this tab,
+    // so a value never disappears from a dropdown just because another filter is on.
+    const src=isSpecial?SPECIAL:MASTER;
+    const F=k=>`D.tfSet('${k}',this.value)`;
+    h+='<tr class="col-filter-row">';
+    h+=`<th class="col-erp">${colFilterSel(F('supplier'),[['','All Suppliers'],...colFilterVals(src,'supplier')],TF.supplier||'')}</th>`;
+    h+=`<th>${colFilterSel(F('producer'),[['','All Producers'],...colFilterVals(src,'producer')],TF.producer||'')}</th>`;
+    h+=`<th>${colFilterSel(F('category'),[['','All Cats'],...colFilterVals(src,'category')],TF.category||'')}</th>`;
+    h+=`<th>${colFilterSel(F('country'),[['','All Countries'],...colFilterVals(src,'country')],TF.country||'')}</th>`;
+    h+=`<th class="col-grape">${colFilterSel(F('grape'),[['','All Grapes'],...colFilterVals(src,'grape')],TF.grape||'')}</th>`;
+    h+=`<th class="col-cost">${colFilterSel(F('price'),[['','All Costs'],['0-4.99','Under €5'],['5-9.99','€5 – €10'],['10-19.99','€10 – €20'],['20-49.99','€20 – €50'],['50+','€50+']],TF.price||'')}</th>`;
+    h+=`<th>${colFilterSel(F('stock'),[['','All Stock'],['0','Sold out (0)'],['1-11','1 – 11'],['12-49','12 – 49'],['50-199','50 – 199'],['200+','200+']],TF.stock||'')}</th>`;
+    if(!isSpecial)h+=`<th>${colFilterSel(F('consumption'),[['','All 2025'],['0','None (0)'],['1-99','1 – 99'],['100-499','100 – 499'],['500+','500+']],TF.consumption||'')}</th>`;
+    h+=`<th class="col-cover">${colFilterSel(F('cover'),[['','All Cover'],['low','Under 2m ⚠'],['ok','2 – 12m'],['high','Over 12m'],['none','No data']],TF.cover||'')}</th>`;
+    if(!isSpecial){
+      const outs=[...new Set(MASTER.flatMap(r=>r.outlets||[]))].sort();
+      h+=`<th class="col-outlets">${colFilterSel(F('outlet'),[['','All Restaurants'],...outs],TF.outlet||'')}</th>`;
+    } else {
+      h+=`<th>${colFilterSel(F('style'),[['','All Styles'],...colFilterVals(src,'style')],TF.style||'')}</th>`;
+    }
     h+='</tr></thead><tbody>';
 
     page.forEach(r=>{
@@ -4850,6 +4944,14 @@ class Dash{
     });
     h+='</tbody></table>';
     document.getElementById('tbl').innerHTML=h;
+
+    const rc=document.getElementById('res-count');
+    if(rc){
+      const active=Object.values(TF).some(v=>v);
+      rc.innerHTML=`${filtered.length} results`+(active
+        ? ` <span style="color:var(--muted)">of ${this.searched.length}</span> <button onclick="D.tfClear()" style="margin-left:8px;padding:2px 8px;font-size:10px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;color:var(--muted)">✕ Clear filters</button>`
+        : '');
+    }
 
     const total=sorted.length,pages=Math.ceil(total/this.ps);
     let pg=`<span>Showing ${Math.min(start+1,total)}&ndash;${Math.min(start+this.ps,total)} of ${total}</span>`;
