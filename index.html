@@ -295,6 +295,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sb-nav{flex:1;padding:12px 10px;}
 .sb-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.4);margin:16px 10px 6px;}
 .sb-section-label:first-child{margin-top:2px;}
+.sb-section-note{font-size:9px;line-height:1.35;color:rgba(255,255,255,.3);margin:-3px 10px 7px;}
+.sb-section-label+.sb-section-note{margin-top:-3px;}
 .sidebar .tab{display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:8px;background:transparent;border:none;border-left:4px solid transparent;color:rgba(255,255,255,.78);font-size:12.5px;font-weight:600;white-space:normal;line-height:1.25;margin-bottom:2px;transition:background .12s,color .12s;}
 .sidebar .tab:hover{background:rgba(255,255,255,.08);color:#fff;}
 .sidebar .tab.active{color:#fff;background:var(--acc);}
@@ -1087,11 +1089,14 @@ tr.col-filter-row select:focus{outline:2px solid var(--accent,#7c3aed);outline-o
     <div class="tab" id="tab-consumption" onclick="D.switchTab('consumption')" style="border-left-color:#16a34a;">
       📦 Despatches 2026
     </div>
-    <div class="tab" id="tab-clearance162" onclick="D.switchTab('clearance162')" style="border-left-color:#b91c1c;">
-      🏚️ 162 Clearance <span class="tbadge" style="background:#b91c1c" id="tab-clearance162-badge">1</span>
-    </div>
     <div class="tab" id="tab-dineout" onclick="D.switchTab('dineout')" style="border-left-color:#8c6d4f;">
       🍽️ Dine Out Order
+    </div>
+
+    <div class="sb-section-label">Clearance Programme</div>
+    <div class="sb-section-note">The target, and the policies that delivered it</div>
+    <div class="tab" id="tab-clearance162" onclick="D.switchTab('clearance162')" style="border-left-color:#b91c1c;">
+      🏚️ 162 Clearance <span class="tbadge" style="background:#b91c1c" id="tab-clearance162-badge">1</span>
     </div>
     <div class="tab" id="tab-jewels" onclick="D.switchTab('jewels')" style="border-left-color:#b45309;">
       💎 Last Jewels <span class="tbadge" style="background:#b45309" id="tab-jewels-badge">0</span>
