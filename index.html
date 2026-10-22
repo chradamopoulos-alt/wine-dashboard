@@ -522,6 +522,10 @@ tr:last-child td{border-bottom:none;}
 
 /* ═══════════════ ROLE ACCESS ═══════════════ */
 body.no-costs .col-cost{display:none !important;}
+/* Column filter row under the stock table header */
+tr.col-filter-row th{padding:5px 8px;background:#fff;border-bottom:1px solid var(--border);text-transform:none;letter-spacing:0;cursor:default;font-weight:400;vertical-align:top;}
+tr.col-filter-row select{cursor:pointer;}
+tr.col-filter-row select:focus{outline:2px solid var(--accent,#7c3aed);outline-offset:1px;}
 
 /* ═══════════════ ALLERGY ORDER → VIBER ═══════════════ */
 .ab-pick{width:17px;height:17px;accent-color:#16a34a;cursor:pointer;flex-shrink:0;}
@@ -4612,6 +4616,28 @@ class Dash{
     if(this.mode==='stock') this.stockTable(); else this.apply();
   }
 
+  // --- Stock table column filters -------------------------------------------
+  // Country / Qty / Cost / Total / Sort keep their own state. Category and
+  // Visibility drive the existing controls instead, so the two can never disagree.
+  sfSet(key,val){
+    if(!this.sfil)this.sfil={sort:'qty_desc',country:'',qty:'',cost:'',total:''};
+    this.sfil[key]=val; this.page=0; this.stockTable();
+  }
+  sfCat(val){
+    const el=document.getElementById('s-cat')||document.getElementById('f-cat');
+    if(el){ el.value=val; this.page=0; this.catSync(el.id); }
+  }
+  sfVis(val){
+    const el=document.getElementById('s-stock-vis');
+    if(el){ el.value=val; this.page=0; this.stockTable(); }
+  }
+  sfClear(){
+    this.sfil={sort:'qty_desc',country:'',qty:'',cost:'',total:''};
+    ['s-stock-vis','s-cat','f-cat'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    const s=document.getElementById('srch'); if(s)s.value='';
+    this.page=0; this.stockTable();
+  }
+
   search(){
     if(this.mode==='stock'){this.stockTable();return;}
     const q=(document.getElementById('srch').value||'').toLowerCase();
@@ -5271,6 +5297,17 @@ class Dash{
     const _fc=document.getElementById('f-cat'), _sc=document.getElementById('s-cat');
     // either category control may drive the stock table; they are kept in sync by catSync()
     const catFilter=(_sc&&_sc.value)||(_fc&&_fc.value)||'';
+    // Per-column filter state (column dropdowns in the table header).
+    // Category and Visibility reuse the existing controls, so they are not duplicated here.
+    if(!this.sfil)this.sfil={sort:'qty_desc',country:'',qty:'',cost:'',total:''};
+    const SF=this.sfil;
+    const inRange=(v,spec)=>{
+      if(!spec)return true;
+      if(spec==='0')return v===0;
+      if(spec.endsWith('+'))return v>=parseFloat(spec);
+      const[a,b]=spec.split('-').map(parseFloat);
+      return v>=a&&v<=b;
+    };
     // Build tag lookup from MASTER+SPECIAL
     const tagMap={};
     [...MASTER,...SPECIAL].forEach(w=>{if(w.code&&w.tags&&w.tags.length)tagMap[w.code]=w.tags;});
@@ -5278,6 +5315,10 @@ class Dash{
       if(vis&&r.visibility!==vis)return false;
       if(catFilter&&(r.category||stockCatFromCode(r.code))!==catFilter)return false;
       if(tagFilter&&!(tagMap[r.code]||[]).includes(tagFilter))return false;
+      if(SF.country&&(r.country||'')!==SF.country)return false;
+      if(!inRange(r.qty,SF.qty))return false;
+      if(!inRange(r.price,SF.cost))return false;
+      if(!inRange(r.qty*r.price,SF.total))return false;
       if(srch){
         const tags=(tagMap[r.code]||[]).join(' ').toLowerCase();
         const hay=(r.code+' '+r.description+' '+r.grape+' '+r.country+' '+r.supplier+' '+tags).toLowerCase();
@@ -5285,7 +5326,14 @@ class Dash{
       }
       return true;
     });
-    rows.sort((a,b)=>b.qty-a.qty);
+    const _sorters={
+      qty_desc:(a,b)=>b.qty-a.qty, qty_asc:(a,b)=>a.qty-b.qty,
+      cost_desc:(a,b)=>b.price-a.price, cost_asc:(a,b)=>a.price-b.price,
+      total_desc:(a,b)=>(b.qty*b.price)-(a.qty*a.price), total_asc:(a,b)=>(a.qty*a.price)-(b.qty*b.price),
+      code_asc:(a,b)=>a.code.localeCompare(b.code), code_desc:(a,b)=>b.code.localeCompare(a.code),
+      desc_asc:(a,b)=>a.description.localeCompare(b.description), desc_desc:(a,b)=>b.description.localeCompare(a.description)
+    };
+    rows.sort(_sorters[SF.sort]||_sorters.qty_desc);
     // KPI cards + summary follow the ACTIVE filter. Counts are based on in-stock codes
     // (qty>0) so sold-out/zeroed Labels don't inflate the numbers.
     const inStock=rows.filter(r=>r.qty>0);
@@ -5362,6 +5410,19 @@ class Dash{
     const ps=this.ps, start=this.page*ps;
     const page=displayRows.slice(start,start+ps);
 
+    // Column filter dropdowns. Every column gets one. Category and Country options are
+    // built from the data itself, so a category can never be missing from the list.
+    const _countries=[...new Set(STOCK_DATA.map(r=>r.country).filter(Boolean))].sort();
+    const _cats=[...new Set(STOCK_DATA.map(r=>r.category||stockCatFromCode(r.code)).filter(Boolean))].sort();
+    const _catLabel={RED:'Red',WHITE:'White',ROSE:'Rosé',SPARKLING:'Sparkling',CHAMPAGNE:'Champagne',SWEET:'Sweet',FORTIFIED:'Fortified'};
+    const _opts=(list,cur)=>list.map(o=>{
+      const v=Array.isArray(o)?o[0]:o, l=Array.isArray(o)?o[1]:o;
+      return `<option value="${v}"${String(cur)===String(v)?' selected':''}>${l}</option>`;
+    }).join('');
+    const _selStyle='width:100%;max-width:150px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-size:11px;background:#fff;font-weight:400;color:var(--muted);cursor:pointer;';
+    const _sel=(onchg,list,cur)=>`<select onchange="${onchg}" style="${_selStyle}">${_opts(list,cur)}</select>`;
+    const _anyFilter=SF.country||SF.qty||SF.cost||SF.total||catFilter||vis||SF.sort!=='qty_desc';
+
     let h='<table><thead><tr>';
     h+='<th class="col-erp">ERP Code</th>';
     h+='<th>Description</th>';
@@ -5370,6 +5431,15 @@ class Dash{
     h+='<th>Qty</th>';
     h+='<th class="col-cost">Cost €</th>';
     h+='<th class="col-cost">Total €</th>';
+    h+='</tr>';
+    h+='<tr class="col-filter-row">';
+    h+=`<th class="col-erp">${_sel("D.sfSet('sort',this.value)",[['qty_desc','Sort: Qty ↓'],['qty_asc','Sort: Qty ↑'],['code_asc','Sort: Code A–Z'],['code_desc','Sort: Code Z–A'],['desc_asc','Sort: Name A–Z'],['desc_desc','Sort: Name Z–A'],['cost_desc','Sort: Cost ↓'],['cost_asc','Sort: Cost ↑'],['total_desc','Sort: Total ↓'],['total_asc','Sort: Total ↑']],SF.sort)}</th>`;
+    h+=`<th>${_sel("D.sfSet('country',this.value)",[['','All Countries'],..._countries],SF.country)}</th>`;
+    h+=`<th>${_sel("D.sfCat(this.value)",[['','All Categories'],..._cats.map(c=>[c,_catLabel[c]||c])],catFilter)}</th>`;
+    h+=`<th>${_sel("D.sfVis(this.value)",[['','All Visibility'],['Visible','✅ Visible'],['Not Visible','🚫 Not Visible'],['SPECIAL','⭐ Special']],vis)}</th>`;
+    h+=`<th>${_sel("D.sfSet('qty',this.value)",[['','All Qty'],['0','Sold out (0)'],['1-11','1 – 11'],['12-49','12 – 49'],['50-199','50 – 199'],['200+','200+']],SF.qty)}</th>`;
+    h+=`<th class="col-cost">${_sel("D.sfSet('cost',this.value)",[['','All Costs'],['0-4.99','Under €5'],['5-9.99','€5 – €10'],['10-19.99','€10 – €20'],['20+','€20+']],SF.cost)}</th>`;
+    h+=`<th class="col-cost">${_sel("D.sfSet('total',this.value)",[['','All Totals'],['0-99.99','Under €100'],['100-499.99','€100 – €500'],['500-1999.99','€500 – €2,000'],['2000+','€2,000+']],SF.total)}</th>`;
     h+='</tr></thead><tbody>';
 
     const _stockMasterMap={};MASTER.forEach(x=>{_stockMasterMap[x.code]=x;});
@@ -5404,6 +5474,10 @@ class Dash{
     });
     h+='</tbody></table>';
     document.getElementById('tbl').innerHTML=h;
+    if(_anyFilter){
+      const rc=document.getElementById('res-count');
+      rc.innerHTML=rc.textContent+' <button onclick="D.sfClear()" style="margin-left:8px;padding:2px 8px;font-size:10px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;color:var(--muted)">✕ Clear filters</button>';
+    }
 
     const total2=displayRows.length, pages=Math.ceil(total2/ps);
     let pg=`<span>Showing ${Math.min(start+1,total2)}–${Math.min(start+ps,total2)} of ${total2}</span>`;
