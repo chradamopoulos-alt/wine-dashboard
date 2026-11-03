@@ -634,7 +634,7 @@ tr.col-filter-row select:focus{outline:2px solid var(--accent,#7c3aed);outline-o
   // barSubs: optional — limits which Bar Operations sub-views the role may open
   //          ('menus','recipes','costing','calculator'). Omit for full access.
   // Roles not listed fall back to ADMIN_ACCESS.
-  const ALL_TABS = ['master','stock','special','beverages','bar','pairing','consumption','dineout','jewels','alerts','order','qr','requests','tasting'];
+  const ALL_TABS = ['master','stock','special','beverages','bar','pairing','consumption','dineout','jewels','alerts','order','qr','requests','tasting','occupancy'];
   const ADMIN_ACCESS = {tabs: ALL_TABS, costs: true};
   const ROLE_ACCESS = {
     'General Manager':          ADMIN_ACCESS,
@@ -1121,6 +1121,9 @@ tr.col-filter-row select:focus{outline:2px solid var(--accent,#7c3aed);outline-o
     <div class="tab" id="tab-tasting" onclick="D.switchTab('tasting')" style="border-left-color:#8c2a3e;">
       🍷 Tasting 2027
     </div>
+    <div class="tab" id="tab-occupancy" onclick="D.switchTab('occupancy')" style="border-left-color:#1d4ed8;">
+      🏨 Occupancy 2026
+    </div>
   </div>
   <div class="sb-user" id="sb-user-slot"></div>
 </div>
@@ -1293,6 +1296,10 @@ tr.col-filter-row select:focus{outline:2px solid var(--accent,#7c3aed);outline-o
 
 <div id="tasting-panel" style="display:none;padding:8px 0;">
   <div id="tasting-content"></div>
+</div>
+
+<div id="occupancy-panel" style="display:none;padding:8px 0;">
+  <div id="occupancy-content"></div>
 </div>
 
 </div>
@@ -3058,6 +3065,29 @@ function copyCode(btn, code) {
   });
 }
 
+/* ── OCCUPANCY 2026 ──
+   The season's room nights, guest nights and room revenue, month by month.
+   Source: the "History and Forecast" PDF the PMS attaches to the nightly
+   Night Report. Guest nights are its "Adl. & Chl." column, which counts
+   adults and children together.
+   Rows: [month, room nights, guest nights, occupancy %, room revenue, ADR, note]
+   April and August each carry two forecast days at the end of the month: a
+   month's PDF stops being attached once the month closes, so the last report
+   inside the month is the best available. Every other month is full history. */
+const OCCUPANCY_2026 = {
+  season:'23 April – 31 October 2026', openDays:192,
+  source:'PMS History and Forecast, attached to the nightly Night Report',
+  months:[
+    ['Apr', 1856,  4696, 16.54,   822416.18, 443.11,  'From 23 April · last 2 days forecast'],
+    ['May', 10342, 26868, 89.20,  7130438.67, 689.46, ''],
+    ['Jun', 10652, 26050, 94.94,  8656537.33, 812.67, ''],
+    ['Jul', 11017, 31015, 95.02, 11637194.42, 1056.29, ''],
+    ['Aug', 11162, 33519, 96.27, 12100403.39, 1084.07, 'Last 2 days forecast'],
+    ['Sep', 10722, 24199, 95.56,  8385312.85, 782.07, ''],
+    ['Oct', 10202, 27899, 88.05,  6964753.14, 682.69, '']
+  ]
+};
+
 /* ── WINE TASTING CONCEPTS 2027 ──
    Five concepts for the 2027 tasting programme. Four are built on the open
    cellar; the fifth is the Deluxe Collection, the 30 labels fenced to the
@@ -3310,7 +3340,7 @@ class Dash{
   }
   switchTab(tab){
     this.mode=tab;this.page=0;
-    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',jewels:'💎 Last Jewels',jewels2:'🔷 Jewels 2',consumption:'📦 Despatches 2026',clearance162:'🏚️ 162 Clearance',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',qr:'📱 Guest QR',bar:'🍸 Bar Operations',requests:'📋 Special Requests',tasting:'🍷 Wine Tasting Concepts 2027'};
+    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',jewels:'💎 Last Jewels',jewels2:'🔷 Jewels 2',consumption:'📦 Despatches 2026',clearance162:'🏚️ 162 Clearance',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',qr:'📱 Guest QR',bar:'🍸 Bar Operations',requests:'📋 Special Requests',tasting:'🍷 Wine Tasting Concepts 2027',occupancy:'🏨 Occupancy 2026'};
     const ttEl=document.getElementById('topbar-title');if(ttEl)ttEl.textContent=TAB_TITLES[tab]||'Master List';
     const sbEl=document.getElementById('sidebar');if(sbEl)sbEl.classList.remove('open');
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -3331,6 +3361,7 @@ class Dash{
     const brp=document.getElementById('bar-panel');if(brp)brp.style.display='none';
     const rqp=document.getElementById('requests-panel');if(rqp)rqp.style.display='none';
     const tsp=document.getElementById('tasting-panel');if(tsp)tsp.style.display='none';
+    const ocp=document.getElementById('occupancy-panel');if(ocp)ocp.style.display='none';
     const kpiRow2=document.querySelector('.kpi-row');if(kpiRow2)kpiRow2.style.display='';
     const tblCard2=document.getElementById('tbl');
     if(tblCard2&&tblCard2.closest('.card'))tblCard2.closest('.card').style.display='';
@@ -3566,6 +3597,21 @@ class Dash{
       this.renderTasting();
       return;
     }
+    if(tab==='occupancy'){
+      const hideIds=['charts-section','special-note','stock-note'];
+      hideIds.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+      const tblCard=document.getElementById('tbl');if(tblCard&&tblCard.closest('.card'))tblCard.closest('.card').style.display='none';
+      const srchRow=document.querySelector('.search-row');if(srchRow)srchRow.closest('.card').style.display='none';
+      const kpiRow=document.querySelector('.kpi-row');if(kpiRow)kpiRow.style.display='none';
+      outletFg.style.opacity='0.4';document.getElementById('f-outlet').disabled=true;
+      pcFg.style.opacity='0.4';document.getElementById('f-pc').disabled=true;
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.getElementById('tab-occupancy').classList.add('active');
+      document.getElementById('occupancy-panel').style.display='block';
+      this.mode='occupancy';
+      this.renderOccupancy();
+      return;
+    }
     if(tab==='special'){
       document.getElementById('kpi6-lbl').textContent='Countries';
       document.getElementById('kpi6-sub').textContent='Represented';
@@ -3699,6 +3745,105 @@ class Dash{
     h+=`<div style="margin-top:16px;text-align:center;"><button onclick="window.print()" style="padding:10px 20px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;">🖨️ Print All</button></div>`;
     out.innerHTML=h;
   }
+  /* ── OCCUPANCY 2026 ── the season, and wine despatched against it ── */
+  renderOccupancy(){
+    const out=document.getElementById('occupancy-content'); if(!out) return;
+    const O=OCCUPANCY_2026, esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const FULL={Apr:'April',May:'May',Jun:'June',Jul:'July',Aug:'August',Sep:'September',Oct:'October'};
+    const n0=x=>x.toLocaleString('en-GB',{maximumFractionDigits:0});
+    // despatched bottles per month, from CONSUMPTION_2026 (Pi.E.N., warehouse to outlet)
+    const dm={};
+    if(typeof CONS_MONTHS!=='undefined'&&typeof CONSUMPTION_2026!=='undefined'){
+      CONS_MONTHS.forEach((m,i)=>{ dm[m]=0; });
+      Object.values(CONSUMPTION_2026).forEach(r=>{ (r.m||[]).forEach((q,i)=>{
+        const m=CONS_MONTHS[i]; if(m!==undefined) dm[m]+=q; }); });
+    }
+    let tr=0,tg=0,tv=0,db=0,dg=0;
+    O.months.forEach(m=>{ tr+=m[1]; tg+=m[2]; tv+=m[4];
+      if(dm[m[0]]!==undefined){ db+=dm[m[0]]; dg+=m[2]; } });
+
+    let h=`<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#1e3a8a;">
+      🏨 <b>Occupancy ${esc(O.season)}</b> — ${esc(O.source)}. Guest nights are the report&rsquo;s <b>Adl. &amp; Chl.</b> column, which counts adults and children together.</div>`;
+
+    h+=`<div class="card" style="padding:14px;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:800;color:#0f172a;margin-bottom:10px;">📅 The season, month by month</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr style="background:#0f172a;color:#fff;">
+          <th style="text-align:left;padding:7px 10px;">Month</th>
+          <th style="text-align:right;padding:7px 10px;">Room nights</th>
+          <th style="text-align:right;padding:7px 10px;">Guest nights</th>
+          <th style="text-align:right;padding:7px 10px;">Occ.</th>
+          <th style="text-align:right;padding:7px 10px;">Guests / room</th>
+          <th style="text-align:right;padding:7px 10px;">Room revenue</th>
+          <th style="text-align:right;padding:7px 10px;">ADR</th>
+        </tr>`;
+    O.months.forEach((m,i)=>{
+      h+=`<tr style="background:${i%2?'#f8fafc':'#fff'};border-bottom:1px solid #e2e8f0;">
+        <td style="padding:7px 10px;font-weight:700;">${esc(FULL[m[0]]||m[0])}${m[6]?' <span style="font-weight:400;font-size:10.5px;color:#94a3b8;">'+esc(m[6])+'</span>':''}</td>
+        <td style="padding:7px 10px;text-align:right;">${n0(m[1])}</td>
+        <td style="padding:7px 10px;text-align:right;font-weight:700;">${n0(m[2])}</td>
+        <td style="padding:7px 10px;text-align:right;">${m[3].toFixed(2)}%</td>
+        <td style="padding:7px 10px;text-align:right;color:#475569;">${(m[2]/m[1]).toFixed(2)}</td>
+        <td style="padding:7px 10px;text-align:right;">&euro;${n0(m[4])}</td>
+        <td style="padding:7px 10px;text-align:right;">&euro;${m[5].toFixed(2)}</td>
+      </tr>`;
+    });
+    h+=`<tr style="background:#0f172a;color:#fff;font-weight:800;">
+        <td style="padding:7px 10px;">Season</td>
+        <td style="padding:7px 10px;text-align:right;">${n0(tr)}</td>
+        <td style="padding:7px 10px;text-align:right;">${n0(tg)}</td>
+        <td style="padding:7px 10px;text-align:right;">&mdash;</td>
+        <td style="padding:7px 10px;text-align:right;">${(tg/tr).toFixed(2)}</td>
+        <td style="padding:7px 10px;text-align:right;">&euro;${n0(tv)}</td>
+        <td style="padding:7px 10px;text-align:right;">&euro;${(tv/tr).toFixed(2)}</td>
+      </tr></table>
+      <div style="display:flex;flex-wrap:wrap;gap:22px;margin-top:12px;font-size:12px;color:#475569;">
+        <div><b style="font-size:19px;color:#0f172a;">${n0(tg)}</b> guest nights</div>
+        <div><b style="font-size:19px;color:#0f172a;">${Math.round(tg/O.openDays)}</b> guests in house, average night</div>
+        <div><b style="font-size:19px;color:#0f172a;">${O.openDays}</b> days open</div>
+      </div>
+    </div>`;
+
+    // ── wine despatched against guest nights ──
+    h+=`<div class="card" style="padding:14px;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:800;color:#0f172a;margin-bottom:4px;">🍷 Wine despatched against guest nights</div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:10px;">From CONSUMPTION_2026 — <b>despatches</b> from the warehouse to the outlets (Π.Ε.Ν.), not what guests drank.</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;max-width:820px;">
+        <tr style="background:#0f172a;color:#fff;">
+          <th style="text-align:left;padding:7px 10px;">Month</th>
+          <th style="text-align:right;padding:7px 10px;">Guest nights</th>
+          <th style="text-align:right;padding:7px 10px;">Bottles</th>
+          <th style="text-align:right;padding:7px 10px;">Btl / 100 guest nights</th>
+        </tr>`;
+    let lo=Infinity, loM='';
+    O.months.forEach((m,i)=>{
+      const b=dm[m[0]];
+      const have=b!==undefined;
+      const rate=have?b/m[2]*100:null;
+      if(have&&m[0]!=='Apr'&&rate<lo){lo=rate;loM=m[0];}
+      h+=`<tr style="background:${have?(i%2?'#f8fafc':'#fff'):'#fffbeb'};border-bottom:1px solid #e2e8f0;">
+        <td style="padding:7px 10px;font-weight:700;${have?'':'color:#92400e;'}">${esc(FULL[m[0]]||m[0])}</td>
+        <td style="padding:7px 10px;text-align:right;">${n0(m[2])}</td>
+        <td style="padding:7px 10px;text-align:right;">${have?n0(b):'<i>not exported</i>'}</td>
+        <td style="padding:7px 10px;text-align:right;font-weight:700;${have?'':'color:#92400e;'}">${have?rate.toFixed(1):'&mdash;'}</td>
+      </tr>`;
+    });
+    h+=`<tr style="background:#0f172a;color:#fff;font-weight:800;">
+        <td style="padding:7px 10px;">Covered months</td>
+        <td style="padding:7px 10px;text-align:right;">${n0(dg)}</td>
+        <td style="padding:7px 10px;text-align:right;">${n0(db)}</td>
+        <td style="padding:7px 10px;text-align:right;">${dg?(db/dg*100).toFixed(1):'&mdash;'}</td>
+      </tr></table>`;
+    const missG=O.months.filter(m=>dm[m[0]]===undefined).reduce((s,m)=>s+m[2],0);
+    if(missG) h+=`<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px 12px;margin-top:10px;font-size:12px;color:#92400e;">
+      <b>${n0(missG)} guest nights — ${(missG/tg*100).toFixed(0)}% of the season — have no despatch data.</b> The ΑΝΑΛΩΣΕΙΣ export carries only ${CONS_MONTHS.length} month columns. Nothing about full-season wine consumption closes until those months are exported.</div>`;
+    h+=`<div style="font-size:11.5px;color:#64748b;margin-top:10px;line-height:1.6;max-width:1000px;">
+      <b>Read the ratio with care.</b> Guest nights count children. August runs ${(O.months.find(m=>m[0]==='Aug')[2]/O.months.find(m=>m[0]==='Aug')[1]).toFixed(2)} guests per room, the highest of the season, and September ${(O.months.find(m=>m[0]==='Sep')[2]/O.months.find(m=>m[0]==='Sep')[1]).toFixed(2)}, the lowest. The denominator swells in exactly the month the ratio falls, so a per-guest-night figure understates August and overstates September. Splitting adults from children would fix it; the PMS reports them together.</div>
+    </div>`;
+
+    out.innerHTML=h;
+  }
+
   /* ── WINE TASTING 2027 ── five concepts, the weekly plan, and what each costs ── */
   renderTasting(){
     const out=document.getElementById('tasting-content'); if(!out) return;
