@@ -3065,6 +3065,20 @@ function copyCode(btn, code) {
    Costs are ERP bottle costs — internal only, never shown on a guest page. */
 const TASTING_2027 = {
   session: { guests:12, pours:5, ml:50, slots:['13:00-14:30','15:00-17:00'] },
+  // One side plate per guest, the same for every concept. [bite, grams p.p., EUR p.p.]
+  // Source: IR MASTER WINE LISTS ALLOCATION 2026.xlsx, sheet WINE TASTING, rows 3-13.
+  // The 2026 costing, carried over unchanged.
+  food: [
+    ['Grapes',25,0.04],
+    ['Roasted walnuts, almonds and dried red fruits',15,0.11],
+    ['Aged hard cheese (Graviera) with a honey drop',20,0.18],
+    ['Melon with prosciutto',25,0.22],
+    ['Peach or apricot slices',15,0.04],
+    ['Citrus-marinated cucumber',15,0.04],
+    ['Smoked salmon rosette',10,0.21],
+    ['Beef carpaccio rosette',10,0.72],
+    ['Crostini',10,0.20]
+  ],
   // [day, concept, setting, sessions, slot]. The sommelier is off on Sunday and
   // Saturday is changeover, so five days carry the five concepts: Friday runs
   // two concepts, one per session.
@@ -3647,6 +3661,9 @@ class Dash{
     const bottlesWk=Math.ceil(sessions*(S.guests*S.pours/perBottle));
     const costWk=TASTING_2027.week.reduce((s,d)=>s+perGuest(byN[d[1]])*S.guests*sess(d),0);
     const days=new Set(TASTING_2027.week.map(d=>d[0])).size;
+    const foodPG=TASTING_2027.food.reduce((s,f)=>s+f[2],0);
+    const foodGr=TASTING_2027.food.reduce((s,f)=>s+f[1],0);
+    const foodWk=foodPG*guestsWk;
 
     let h=`<div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#312e81;">
       🍷 <b>Wine Tasting Concepts 2027</b> — five concepts for the season. Four are built on the open cellar; the fifth is the Deluxe Collection, the ${byN[5].wines.length} labels held for the deluxe area.
@@ -3682,8 +3699,43 @@ class Dash{
         <div><b style="font-size:19px;color:#0f172a;">${guestsWk}</b> guests / week</div>
         <div><b style="font-size:19px;color:#0f172a;">${bottlesWk}</b> bottles / week</div>
         <div><b style="font-size:19px;color:#c8952a;">&euro;${costWk.toFixed(0)}</b> wine cost / week</div>
+        <div><b style="font-size:19px;color:#0f172a;">&euro;${(costWk+foodWk).toFixed(0)}</b> wine and food / week</div>
       </div>
       <div style="font-size:11px;color:#94a3b8;margin-top:8px;">A proposal. Oliva was chosen for a Sunday, when it is quiet &mdash; moving it to a Thursday needs checking against the restaurant&rsquo;s own service.</div>
+    </div>`;
+
+    // ── the side plate ──
+    h+=`<div class="card" style="padding:14px;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:800;color:#0f172a;margin-bottom:4px;">🧀 The side plate</div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:10px;">One plate per guest, the same for every concept. The 2026 costing from the WINE TASTING sheet, carried over unchanged.</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+        <tr style="background:#0f172a;color:#fff;">
+          <th style="text-align:left;padding:6px 10px;">Bite</th>
+          <th style="text-align:right;padding:6px 10px;">gr p.p.</th>
+          <th style="text-align:right;padding:6px 10px;">&euro; p.p.</th>
+          <th style="text-align:right;padding:6px 10px;">&euro; / session</th>
+        </tr>`;
+    TASTING_2027.food.forEach((f,i)=>{
+      const top=f[2]>=0.5;
+      h+=`<tr style="background:${top?'#fdf2f4':(i%2?'#f8fafc':'#fff')};border-bottom:1px solid #eef2f7;">
+        <td style="padding:6px 10px;${top?'color:#8C2A3E;':''}">${esc(f[0])}</td>
+        <td style="padding:6px 10px;text-align:right;color:#64748b;">${f[1]}</td>
+        <td style="padding:6px 10px;text-align:right;${top?'color:#8C2A3E;font-weight:700;':''}">${f[2].toFixed(2)}</td>
+        <td style="padding:6px 10px;text-align:right;${top?'color:#8C2A3E;':''}">${(f[2]*S.guests).toFixed(2)}</td>
+      </tr>`;
+    });
+    h+=`<tr style="background:#0f172a;color:#fff;font-weight:800;">
+          <td style="padding:6px 10px;">Per guest</td>
+          <td style="padding:6px 10px;text-align:right;">${foodGr}</td>
+          <td style="padding:6px 10px;text-align:right;">${foodPG.toFixed(2)}</td>
+          <td style="padding:6px 10px;text-align:right;">${(foodPG*S.guests).toFixed(2)}</td>
+        </tr></table>
+      <div style="display:flex;flex-wrap:wrap;gap:22px;margin-top:12px;font-size:12px;color:#475569;">
+        <div><b style="font-size:19px;color:#0f172a;">&euro;${foodPG.toFixed(2)}</b> food / guest</div>
+        <div><b style="font-size:19px;color:#0f172a;">&euro;${(foodPG*S.guests).toFixed(2)}</b> food / session</div>
+        <div><b style="font-size:19px;color:#0f172a;">&euro;${foodWk.toFixed(0)}</b> food / week</div>
+      </div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:8px;">The beef carpaccio is &euro;${TASTING_2027.food.find(f=>/carpaccio/i.test(f[0]))[2].toFixed(2)} of the &euro;${foodPG.toFixed(2)} on its own &mdash; the only line worth touching if the plate has to come down.</div>
     </div>`;
 
     // ── the concepts ──
