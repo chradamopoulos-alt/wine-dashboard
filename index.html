@@ -3104,6 +3104,15 @@ const TASTING_2027 = {
       ['Spicy (chilli)','Alcohol burns hotter'],
       ['Intense flavours','The wine needs to be bold enough to stand up']
     ],
+    // Proposed for the 2027 edition. Not in the 2025 printing.
+    additions:[
+      { h:'Wine and Kos', place:'After the history, p.3', b:[
+        'This island carried a wine name long before it carried a holiday one. In antiquity Kos gave its name to a style — Coan wine — made by adding seawater to the must.',
+        'Cato the Elder wrote down a recipe for it in the second century BC and was particular about the water: drawn well out from the shore, on a calm day, long before the harvest.',
+        'The style travelled further than the island. Amphorae were made in the Coan manner far from Kos, and in time Coan described a method rather than a place. Not every Roman approved — Pliny and others preferred the unsalted wines of Chios. The practice has never quite died: a few winemakers have gone back to seawater in recent years.',
+        'Nothing poured today has seawater in it. But if you find a saline note in the Assyrtiko, it is worth a thought: the sea has been part of the taste of Greek wine for a very long time.'
+      ]}
+    ],
     sections:[
       { p:3, h:'Welcome, and a brief history of wine', b:[
         'Wine production dates back more than 8,000 years. The earliest evidence comes from Georgia, where clay jars holding wine residue were found. The Egyptians used wine in ritual; the Greeks saw it as a gift from Dionysus; the Romans spread viticulture across Europe.',
@@ -3857,7 +3866,19 @@ class Dash{
         <td style="padding:6px 10px;font-weight:600;">${esc(r[0])}</td><td style="padding:6px 10px;color:#475569;">${esc(r[1])}</td></tr>`; });
     h+=`</table>
       <div style="font-size:11px;color:#94a3b8;margin-top:8px;">This table prints garbled in the 2025 PDF \u2014 check the printed copy before the next run.</div>
-    </div></div>`;
+    </div>`;
+    // proposed additions for the 2027 edition
+    (BK.additions||[]).forEach(ad=>{
+      h+=`<div style="margin:14px 0 0;padding:12px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+        <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;">
+          <span style="font-size:10px;font-weight:800;background:#15803d;color:#fff;padding:2px 8px;border-radius:999px;">NEW FOR 2027</span>
+          <span style="font-size:13.5px;font-weight:800;color:#14532d;">${esc(ad.h)}</span>
+          <span style="font-size:11.5px;color:#4d7c57;">${esc(ad.place)}</span>
+        </div>`;
+      ad.b.forEach(par=>{ h+=`<div style="font-size:12.5px;color:#14532d;line-height:1.6;margin-top:7px;max-width:1040px;">${esc(par)}</div>`; });
+      h+=`</div>`;
+    });
+    h+=`</div>`;
 
     out.innerHTML=h;
   }
