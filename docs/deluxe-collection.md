@@ -21,8 +21,8 @@ independently. Forty-eight labels list SEASONS in total; the other eighteen are
 Ikos Private Cellar bottles poured in six to ten outlets, so they are **not**
 part of the collection.
 
-Do not identify them by price. The collection spans €4.15 to €14.44 and several
-cheaper labels sit above that floor without being fenced.
+Do not identify them by price. The collection's cheapest bottle costs less than
+several labels that are not fenced at all, so price separates nothing.
 
 ## The Peyrassol trap
 

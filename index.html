@@ -3070,7 +3070,11 @@ function copyCode(btn, code) {
    Source: the "History and Forecast" PDF the PMS attaches to the nightly
    Night Report. Guest nights are its "Adl. & Chl." column, which counts
    adults and children together.
-   Rows: [month, room nights, guest nights, occupancy %, room revenue, ADR, note]
+   Rows: [month, room nights, guest nights, occupancy %, note]
+   Room revenue and ADR are deliberately NOT held here. This file is served
+   publicly by GitHub Pages, so anything in it is readable by anyone with the
+   URL. Occupancy and guest nights are what the wine work needs; the hotel's
+   revenue is not, and does not belong in a public file.
    April and August each carry two forecast days at the end of the month: a
    month's PDF stops being attached once the month closes, so the last report
    inside the month is the best available. Every other month is full history. */
@@ -3078,13 +3082,13 @@ const OCCUPANCY_2026 = {
   season:'23 April – 31 October 2026', openDays:192,
   source:'PMS History and Forecast, attached to the nightly Night Report',
   months:[
-    ['Apr', 1856,  4696, 16.54,   822416.18, 443.11,  'From 23 April · last 2 days forecast'],
-    ['May', 10342, 26868, 89.20,  7130438.67, 689.46, ''],
-    ['Jun', 10652, 26050, 94.94,  8656537.33, 812.67, ''],
-    ['Jul', 11017, 31015, 95.02, 11637194.42, 1056.29, ''],
-    ['Aug', 11162, 33519, 96.27, 12100403.39, 1084.07, 'Last 2 days forecast'],
-    ['Sep', 10722, 24199, 95.56,  8385312.85, 782.07, ''],
-    ['Oct', 10202, 27899, 88.05,  6964753.14, 682.69, '']
+    ['Apr', 1856,  4696, 16.54, 'From 23 April · last 2 days forecast'],
+    ['May', 10342, 26868, 89.20, ''],
+    ['Jun', 10652, 26050, 94.94, ''],
+    ['Jul', 11017, 31015, 95.02, ''],
+    ['Aug', 11162, 33519, 96.27, 'Last 2 days forecast'],
+    ['Sep', 10722, 24199, 95.56, ''],
+    ['Oct', 10202, 27899, 88.05, '']
   ]
 };
 
@@ -3758,8 +3762,8 @@ class Dash{
       Object.values(CONSUMPTION_2026).forEach(r=>{ (r.m||[]).forEach((q,i)=>{
         const m=CONS_MONTHS[i]; if(m!==undefined) dm[m]+=q; }); });
     }
-    let tr=0,tg=0,tv=0,db=0,dg=0;
-    O.months.forEach(m=>{ tr+=m[1]; tg+=m[2]; tv+=m[4];
+    let tr=0,tg=0,db=0,dg=0;
+    O.months.forEach(m=>{ tr+=m[1]; tg+=m[2];
       if(dm[m[0]]!==undefined){ db+=dm[m[0]]; dg+=m[2]; } });
 
     let h=`<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#1e3a8a;">
@@ -3774,18 +3778,14 @@ class Dash{
           <th style="text-align:right;padding:7px 10px;">Guest nights</th>
           <th style="text-align:right;padding:7px 10px;">Occ.</th>
           <th style="text-align:right;padding:7px 10px;">Guests / room</th>
-          <th style="text-align:right;padding:7px 10px;">Room revenue</th>
-          <th style="text-align:right;padding:7px 10px;">ADR</th>
         </tr>`;
     O.months.forEach((m,i)=>{
       h+=`<tr style="background:${i%2?'#f8fafc':'#fff'};border-bottom:1px solid #e2e8f0;">
-        <td style="padding:7px 10px;font-weight:700;">${esc(FULL[m[0]]||m[0])}${m[6]?' <span style="font-weight:400;font-size:10.5px;color:#94a3b8;">'+esc(m[6])+'</span>':''}</td>
+        <td style="padding:7px 10px;font-weight:700;">${esc(FULL[m[0]]||m[0])}${m[4]?' <span style="font-weight:400;font-size:10.5px;color:#94a3b8;">'+esc(m[4])+'</span>':''}</td>
         <td style="padding:7px 10px;text-align:right;">${n0(m[1])}</td>
         <td style="padding:7px 10px;text-align:right;font-weight:700;">${n0(m[2])}</td>
         <td style="padding:7px 10px;text-align:right;">${m[3].toFixed(2)}%</td>
         <td style="padding:7px 10px;text-align:right;color:#475569;">${(m[2]/m[1]).toFixed(2)}</td>
-        <td style="padding:7px 10px;text-align:right;">&euro;${n0(m[4])}</td>
-        <td style="padding:7px 10px;text-align:right;">&euro;${m[5].toFixed(2)}</td>
       </tr>`;
     });
     h+=`<tr style="background:#0f172a;color:#fff;font-weight:800;">
@@ -3794,8 +3794,6 @@ class Dash{
         <td style="padding:7px 10px;text-align:right;">${n0(tg)}</td>
         <td style="padding:7px 10px;text-align:right;">&mdash;</td>
         <td style="padding:7px 10px;text-align:right;">${(tg/tr).toFixed(2)}</td>
-        <td style="padding:7px 10px;text-align:right;">&euro;${n0(tv)}</td>
-        <td style="padding:7px 10px;text-align:right;">&euro;${(tv/tr).toFixed(2)}</td>
       </tr></table>
       <div style="display:flex;flex-wrap:wrap;gap:22px;margin-top:12px;font-size:12px;color:#475569;">
         <div><b style="font-size:19px;color:#0f172a;">${n0(tg)}</b> guest nights</div>
