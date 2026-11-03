@@ -1,1 +1,4 @@
 node_modules/
+
+# Obsidian keeps its settings inside the vault folder
+.obsidian/
