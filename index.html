@@ -3065,13 +3065,16 @@ function copyCode(btn, code) {
    Costs are ERP bottle costs — internal only, never shown on a guest page. */
 const TASTING_2027 = {
   session: { guests:12, pours:5, ml:50, slots:['13:00-14:30','15:00-17:00'] },
+  // [day, concept, setting, sessions, slot]. The sommelier is off on Sunday and
+  // Saturday is changeover, so five days carry the five concepts: Friday runs
+  // two concepts, one per session.
   week: [
-    ['Sunday',    5, 'Oliva'],
-    ['Monday',    1, 'To be set'],
-    ['Tuesday',   2, 'To be set'],
-    ['Wednesday', 5, 'Deluxe Lobby'],
-    ['Thursday',  3, 'To be set'],
-    ['Friday',    4, 'To be set']
+    ['Monday',    5, 'Deluxe Lobby', 2, 'Both'],
+    ['Tuesday',   1, 'To be set',    2, 'Both'],
+    ['Wednesday', 2, 'To be set',    2, 'Both'],
+    ['Thursday',  5, 'Oliva',        2, 'Both'],
+    ['Friday',    3, 'To be set',    1, '13:00-14:30'],
+    ['Friday',    4, 'To be set',    1, '15:00-17:00']
   ],
   concepts: [
     { n:1, name:'The Regions', sub:'France', colour:'#1d4ed8',
@@ -3638,10 +3641,12 @@ class Dash{
       c._pc=c.wines.filter(w=>w[4]).length;
     });
     const byN={}; TASTING_2027.concepts.forEach(c=>byN[c.n]=c);
-    const sessions=TASTING_2027.week.length*2;
+    const sess=d=>d[3]||2;
+    const sessions=TASTING_2027.week.reduce((s,d)=>s+sess(d),0);
     const guestsWk=sessions*S.guests;
     const bottlesWk=Math.ceil(sessions*(S.guests*S.pours/perBottle));
-    const costWk=TASTING_2027.week.reduce((s,d)=>s+perGuest(byN[d[1]])*S.guests*2,0);
+    const costWk=TASTING_2027.week.reduce((s,d)=>s+perGuest(byN[d[1]])*S.guests*sess(d),0);
+    const days=new Set(TASTING_2027.week.map(d=>d[0])).size;
 
     let h=`<div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#312e81;">
       🍷 <b>Wine Tasting Concepts 2027</b> — five concepts for the season. Four are built on the open cellar; the fifth is the Deluxe Collection, the ${byN[5].wines.length} labels held for the deluxe area.
@@ -3650,12 +3655,13 @@ class Dash{
     // ── the week ──
     h+=`<div class="card" style="padding:14px;margin-bottom:16px;">
       <div style="font-size:15px;font-weight:800;color:#0f172a;margin-bottom:4px;">📅 The week</div>
-      <div style="font-size:12px;color:#64748b;margin-bottom:10px;">${S.guests} guests per session &middot; two sessions a day, ${S.slots.join(' and ')} &middot; ${S.pours} pours of ${S.ml} ml each. Saturday is left clear for changeover.</div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:10px;">${S.guests} guests per session &middot; two sessions a day, ${S.slots.join(' and ')} &middot; ${S.pours} pours of ${S.ml} ml each. No Sunday &mdash; the sommelier is off &mdash; and Saturday is changeover, so ${days} days carry the five concepts.</div>
       <table style="width:100%;border-collapse:collapse;font-size:13px;">
         <tr style="background:#0f172a;color:#fff;">
           <th style="text-align:left;padding:7px 10px;">Day</th>
           <th style="text-align:left;padding:7px 10px;">Concept</th>
           <th style="text-align:left;padding:7px 10px;">Setting</th>
+          <th style="text-align:left;padding:7px 10px;">Session</th>
           <th style="text-align:right;padding:7px 10px;">Guests</th>
           <th style="text-align:right;padding:7px 10px;">Wine cost</th>
         </tr>`;
@@ -3665,8 +3671,9 @@ class Dash{
         <td style="padding:7px 10px;font-weight:700;color:${dx?c.colour:'#0f172a'};">${d[0]}</td>
         <td style="padding:7px 10px;color:${dx?c.colour:'#334155'};">${c.n} &middot; ${esc(c.name)}</td>
         <td style="padding:7px 10px;color:${d[2]==='To be set'?'#94a3b8':(dx?c.colour:'#334155')};">${esc(d[2])}</td>
-        <td style="padding:7px 10px;text-align:right;">${S.guests*2}</td>
-        <td style="padding:7px 10px;text-align:right;">&euro;${(perGuest(c)*S.guests*2).toFixed(2)}</td>
+        <td style="padding:7px 10px;color:#64748b;">${esc(d[4]||'Both')}</td>
+        <td style="padding:7px 10px;text-align:right;">${S.guests*sess(d)}</td>
+        <td style="padding:7px 10px;text-align:right;">&euro;${(perGuest(c)*S.guests*sess(d)).toFixed(2)}</td>
       </tr>`;
     });
     h+=`</table>
@@ -3676,7 +3683,7 @@ class Dash{
         <div><b style="font-size:19px;color:#0f172a;">${bottlesWk}</b> bottles / week</div>
         <div><b style="font-size:19px;color:#c8952a;">&euro;${costWk.toFixed(0)}</b> wine cost / week</div>
       </div>
-      <div style="font-size:11px;color:#94a3b8;margin-top:8px;">Sunday at Oliva is fixed. The rest of the spread is a proposal.</div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:8px;">A proposal. Oliva was chosen for a Sunday, when it is quiet &mdash; moving it to a Thursday needs checking against the restaurant&rsquo;s own service.</div>
     </div>`;
 
     // ── the concepts ──
