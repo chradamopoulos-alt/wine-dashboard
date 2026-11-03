@@ -3090,6 +3090,52 @@ const TASTING_2027 = {
     ['Friday',    3, 'To be set',    1, '13:00-14:30'],
     ['Friday',    4, 'To be set',    1, '15:00-17:00']
   ],
+  // The printed guest booklet, 2025 edition, as handed out at the tasting.
+  // Level: roughly WSET 1-2. Source PDF: IAR Wine Tasting Booklet 2025 (printing).
+  // Pages 1-2 are the printed cover and are not reproduced here.
+  booklet: {
+    edition:'2025 printing', pages:8,
+    pairing:[
+      ['Sweet food','Wine seems drier and more bitter'],
+      ['Umami','Wine seems more bitter and less fruity'],
+      ['Salty','Wine seems softer and fruitier'],
+      ['Acidic','Wine seems less sharp and more fruity'],
+      ['Rich or fatty','The wine needs acidity to cut through'],
+      ['Spicy (chilli)','Alcohol burns hotter'],
+      ['Intense flavours','The wine needs to be bold enough to stand up']
+    ],
+    sections:[
+      { p:3, h:'Welcome, and a brief history of wine', b:[
+        'Wine production dates back more than 8,000 years. The earliest evidence comes from Georgia, where clay jars holding wine residue were found. The Egyptians used wine in ritual; the Greeks saw it as a gift from Dionysus; the Romans spread viticulture across Europe.',
+        'Through the Middle Ages wine was made and preserved largely by monasteries. Monks in Burgundy and Champagne developed and wrote down the techniques still recognisable today.',
+        'From the Renaissance on, bottles and corks improved storage. The nineteenth century brought the Bordeaux 1855 Classification and then phylloxera, which destroyed much of Europe’s vineyard and forced the grafting practices still used now.',
+        'In the twentieth century winemaking went global: California, Australia, South Africa and Chile became major producers.'
+      ]},
+      { p:4, h:'What wine is, and how it is made', b:[
+        'Wine is fermented grape juice. Yeast consumes the sugar and produces alcohol and carbon dioxide. Most wine sits between 10 and 15% abv.',
+        'The grape skin carries tannin, colour and flavour; the pulp carries water, sugar and acid.',
+        'White wines are made from white grapes, or from black grapes with no skin contact. Rosé takes a short skin contact. Red wines ferment with the skins, which is where colour and tannin come from.',
+        'Still wines have no bubbles. Sparkling wines carry carbon dioxide. Fortified wines have alcohol added.',
+        'White: harvest, crush and press, ferment, mature if wanted, bottle. Red and rosé: harvest, crush with skins, ferment, press, mature, bottle.'
+      ]},
+      { p:5, h:'Describing and tasting wine', b:[
+        'Primary aromas come from the grape and the fermentation — apple, lemon, rose. Secondary aromas come from the winemaking — bread, butter, yoghurt. Tertiary aromas come from age — dried fruit, nuts, coffee.',
+        'Look: colour intensity, clarity, brightness. Smell: how intense, and which families of scent. Taste: sweetness, acidity, tannin, body, finish.'
+      ]},
+      { p:6, h:'Wine colour chart', b:[
+        'White: pale lemon, gold, amber. Rosé: pale pink, salmon, deep pink. Red: ruby, garnet, tawny.',
+        'Colour points to grape variety, age and how much oxygen the wine has seen.'
+      ]},
+      { p:7, h:'A world map of wine', b:[
+        'France: Chardonnay, Merlot, Cabernet Sauvignon, Pinot Noir. Italy: Sangiovese, Nebbiolo, Barbera. Spain: Tempranillo, Garnacha. United States: Cabernet Sauvignon and Zinfandel, above all in California.',
+        'Australia: Shiraz and Chardonnay. Argentina: Malbec. Chile: Carmenère and Sauvignon Blanc. South Africa: Chenin Blanc and Pinotage. Germany: Riesling. Greece: Assyrtiko and Agiorgitiko.'
+      ]},
+      { p:8, h:'Grape varieties and where they come from', b:[
+        'Red — Cabernet Sauvignon (Bordeaux, Napa, Coonawarra): full body, high tannin and acidity, blackcurrant, cedar, green pepper. Merlot (Right Bank Bordeaux, California, Tuscany): soft tannin, plum, black cherry, chocolate. Pinot Noir (Burgundy, Oregon, Central Otago): light to medium, high acidity, red cherry, raspberry, earth. Syrah or Shiraz (Northern Rhône, Barossa): full body, high tannin, blackberry, black pepper, smoked meat. Grenache (Southern Rhône, Priorat, McLaren Vale): medium body, high alcohol, strawberry, white pepper, dried herbs.',
+        'White — Chardonnay (Chablis, Côte de Beaune, Sonoma, Margaret River): crisp green apple or rich tropical fruit and butter. Sauvignon Blanc (Loire, Marlborough, California): light, high acidity, lime, green apple, grass. Riesling (Mosel, Alsace, Clare Valley): light, high acidity, green apple and citrus through to honey. Assyrtiko (Santorini): medium body, high acidity, lemon, salt, mineral.'
+      ]}
+    ]
+  },
   concepts: [
     { n:1, name:'The Regions', sub:'France', colour:'#1d4ed8',
       story:'One country, six regions. Sauvignon Blanc from the Loire against Sauvignon Blanc from Bordeaux; Chardonnay from Burgundy against Chardonnay from the Mediterranean. The guest tastes what the map does to a grape.',
@@ -3776,6 +3822,42 @@ class Dash{
         <div style="font-size:11px;color:#94a3b8;margin-top:8px;">PC = Ikos Private Cellar &middot; cost per guest is ${S.pours} pours of ${S.ml} ml at the concept&rsquo;s average bottle cost</div>
       </div>`;
     });
+
+    // ── the guest booklet ──
+    const BK=TASTING_2027.booklet;
+    const bkGrapes=['Cabernet Sauvignon','Merlot','Pinot Noir','Syrah','Shiraz','Grenache','Chardonnay','Sauvignon Blanc','Riesling','Assyrtiko'];
+    // grapes a guest will taste that the booklet never names
+    const poured=new Set();
+    TASTING_2027.concepts.forEach(c=>c.wines.forEach(w=>{
+      String(w[0]).split(/[\s,\-]+/).forEach(()=>{});
+      poured.add(w[0]);
+    }));
+    const missing=['Macabeo','Parellada','Xarello','Glera','Garganega','Pinot Grigio','Vermentino','Malagousia','Savatiano','Moschofilero','Agiorgitiko','Xinomavro','Tempranillo','Nero d\u2019Avola','Montepulciano','Sangiovese','Gew\u00fcrztraminer','Melon de Bourgogne','Cinsault','Gamay','Carmen\u00e8re','Malbec','Zinfandel','Semillon','Chenin Blanc','Trepat','Muscat'];
+    h+=`<div class="card" style="padding:14px;margin-bottom:16px;border-left:4px solid #0f172a;">
+      <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;">
+        <div style="font-size:15px;font-weight:800;color:#0f172a;">\ud83d\udcd6 Guest booklet</div>
+        <div style="font-size:12px;color:#64748b;">${esc(BK.edition)} &middot; ${BK.pages} pages &middot; handed to the guest at the tasting</div>
+      </div>
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px 12px;margin:10px 0;font-size:12px;color:#92400e;">
+        <b>Carried over from 2025, not yet revised for the new concepts.</b> The booklet profiles ${bkGrapes.length} grapes; the five concepts pour roughly ${missing.length} more that it never names, among them ${missing.slice(0,6).map(esc).join(', ')} and ${esc(missing[6])}.</div>`;
+    BK.sections.forEach(sec=>{
+      h+=`<div style="margin:12px 0 0;padding-top:10px;border-top:1px solid #eef2f7;">
+        <div style="font-size:13.5px;font-weight:800;color:#0f172a;">p.${sec.p} &middot; ${esc(sec.h)}</div>`;
+      sec.b.forEach(par=>{ h+=`<div style="font-size:12.5px;color:#475569;line-height:1.55;margin-top:6px;max-width:1040px;">${esc(par)}</div>`; });
+      h+=`</div>`;
+    });
+    h+=`<div style="margin:12px 0 0;padding-top:10px;border-top:1px solid #eef2f7;">
+      <div style="font-size:13.5px;font-weight:800;color:#0f172a;margin-bottom:8px;">p.5 &middot; Food and wine pairing</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;max-width:760px;">
+        <tr style="background:#0f172a;color:#fff;">
+          <th style="text-align:left;padding:6px 10px;">If the food is&hellip;</th>
+          <th style="text-align:left;padding:6px 10px;">&hellip;the wine seems</th>
+        </tr>`;
+    BK.pairing.forEach((r,i)=>{ h+=`<tr style="background:${i%2?'#f8fafc':'#fff'};border-bottom:1px solid #eef2f7;">
+        <td style="padding:6px 10px;font-weight:600;">${esc(r[0])}</td><td style="padding:6px 10px;color:#475569;">${esc(r[1])}</td></tr>`; });
+    h+=`</table>
+      <div style="font-size:11px;color:#94a3b8;margin-top:8px;">This table prints garbled in the 2025 PDF \u2014 check the printed copy before the next run.</div>
+    </div></div>`;
 
     out.innerHTML=h;
   }
