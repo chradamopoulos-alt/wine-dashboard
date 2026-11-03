@@ -634,7 +634,7 @@ tr.col-filter-row select:focus{outline:2px solid var(--accent,#7c3aed);outline-o
   // barSubs: optional — limits which Bar Operations sub-views the role may open
   //          ('menus','recipes','costing','calculator'). Omit for full access.
   // Roles not listed fall back to ADMIN_ACCESS.
-  const ALL_TABS = ['master','stock','special','beverages','bar','pairing','consumption','dineout','jewels','alerts','order','qr','requests'];
+  const ALL_TABS = ['master','stock','special','beverages','bar','pairing','consumption','dineout','jewels','alerts','order','qr','requests','tasting'];
   const ADMIN_ACCESS = {tabs: ALL_TABS, costs: true};
   const ROLE_ACCESS = {
     'General Manager':          ADMIN_ACCESS,
@@ -1118,6 +1118,9 @@ tr.col-filter-row select:focus{outline:2px solid var(--accent,#7c3aed);outline-o
     <div class="tab" id="tab-requests" onclick="D.switchTab('requests')" style="border-left-color:#7b3f9e;">
       📋 Requests <span class="tbadge" style="background:#7b3f9e" id="badge-requests">0</span>
     </div>
+    <div class="tab" id="tab-tasting" onclick="D.switchTab('tasting')" style="border-left-color:#8c2a3e;">
+      🍷 Tasting 2027
+    </div>
   </div>
   <div class="sb-user" id="sb-user-slot"></div>
 </div>
@@ -1286,6 +1289,10 @@ tr.col-filter-row select:focus{outline:2px solid var(--accent,#7c3aed);outline-o
 </div>
 <div id="requests-panel" style="display:none;padding:8px 0;">
   <div id="requests-content"></div>
+</div>
+
+<div id="tasting-panel" style="display:none;padding:8px 0;">
+  <div id="tasting-content"></div>
 </div>
 
 </div>
@@ -3051,6 +3058,133 @@ function copyCode(btn, code) {
   });
 }
 
+/* ── WINE TASTING CONCEPTS 2027 ──
+   Five concepts for the 2027 tasting programme. Four are built on the open
+   cellar; the fifth is the Deluxe Collection, the 30 labels fenced to the
+   deluxe area. Wine rows: [name, country, category, cost EUR, privateCellar].
+   Costs are ERP bottle costs — internal only, never shown on a guest page. */
+const TASTING_2027 = {
+  session: { guests:12, pours:5, ml:50, slots:['13:00-14:30','15:00-17:00'] },
+  week: [
+    ['Sunday',    5, 'Oliva'],
+    ['Monday',    1, 'To be set'],
+    ['Tuesday',   2, 'To be set'],
+    ['Wednesday', 5, 'Deluxe Lobby'],
+    ['Thursday',  3, 'To be set'],
+    ['Friday',    4, 'To be set']
+  ],
+  concepts: [
+    { n:1, name:'The Regions', sub:'France', colour:'#1d4ed8',
+      story:'One country, six regions. Sauvignon Blanc from the Loire against Sauvignon Blanc from Bordeaux; Chardonnay from Burgundy against Chardonnay from the Mediterranean. The guest tastes what the map does to a grape.',
+      wines:[
+        ['Monmarte Brut','France','Sparkling',2.91,false],
+        ['Muscadet Melon de Bourgogne','France','White',2.80,true],
+        ['Marcel Martin Sauvignon Blanc','France','White',2.91,false],
+        ['Mediterranee Chardonnay-Vermentino','France','White',4.15,true],
+        ['Maison Castel Viognier','France','White',5.04,false],
+        ['Chateau Mezain Bordeaux Sauvignon','France','White',5.20,false],
+        ['Philippe Bouchard Bourgogne Chardonnay','France','White',6.40,false],
+        ['Peyrassol Mediterranee rose','France','Rose',3.80,true],
+        ['Terres Cortal Grenache-Cinsault rose','France','Rose',3.90,false],
+        ['Belrose Mediterranee IGP rose','France','Rose',4.80,false],
+        ['Cotes du Rhone Grenache','France','Red',1.75,true],
+        ['Bordeaux Cabernet-Merlot','France','Red',2.88,true],
+        ['Louis Eschenauer Syrah','France','Red',3.01,false],
+        ['Beaujolais Gamay','France','Red',4.00,true],
+        ['Villa des Croix Pinot Noir','France','Red',4.49,false],
+        ['Chateau Mezain Bordeaux Merlot-Cabernet','France','Red',5.20,false]
+      ] },
+    { n:2, name:'Three Coasts', sub:'Greece, Italy, Spain', colour:'#0d9488',
+      story:'One sea, one sun, three ideas about what to do with them. The widest concept we have, and the only open-cellar one that closes on a dessert wine.',
+      wines:[
+        ['Cava Macabeo-Parellada-Xarello','Spain','Sparkling',2.52,true],
+        ['Cava Pinot Noir-Trepat rose','Spain','Sparkling',2.65,true],
+        ['Prosecco Glera','Italy','Sparkling',2.69,true],
+        ['Fiorelli Spumante Brut rose','Italy','Sparkling',3.06,false],
+        ['Savatiano-Malagousia','Greece','White',1.45,true],
+        ['Pinot Grigio delle Venezie','Italy','White',1.70,true],
+        ['Sauvignon Blanc Rueda','Spain','White',2.17,true],
+        ['Soave Classico Garganega','Italy','White',2.40,true],
+        ['Lungarotti Vermentino','Italy','White',3.44,false],
+        ['Assyrtiko Peloponnese','Greece','White',3.50,true],
+        ['Malagousia Peloponnese','Greece','White',3.50,true],
+        ['Santi Colforte Soave Classico DOC','Italy','White',3.95,false],
+        ['Gaia Monograph Assyrtiko','Greece','White',5.59,false],
+        ['Torres Vina Esmeralda Gewurztraminer','Spain','White',6.40,false],
+        ['Pinot Grigio Blush','Italy','Rose',1.85,true],
+        ['Merlot-Agiorgitiko rose','Greece','Rose',2.20,true],
+        ['Vitis Nostra Pinot Grigio rose','Italy','Rose',4.28,false],
+        ['Villa Cardini Nero d’Avola','Italy','Red',2.70,false],
+        ['Rioja Tempranillo','Spain','Red',2.88,true],
+        ['Solarea Montepulciano d’Abruzzo','Italy','Red',3.30,false],
+        ['Arnegui Crianza Rioja','Spain','Red',4.10,false],
+        ['Natale Verga Chianti DOCG','Italy','Red',4.71,false],
+        ['Kyr-Yianni Paranga Merlot-Syrah-Xinomavro','Greece','Red',5.74,false],
+        ['Bosio Moscato d’Asti','Italy','Sweet',5.11,false],
+        ['EOS Muscat of Samos Vin Doux','Greece','Sweet',6.03,false]
+      ] },
+    { n:3, name:'The Andes', sub:'Chile, Argentina, United States', colour:'#b45309',
+      story:'Three grapes that left home and never went back. Carmenere was lost in Bordeaux and found in Chile. Malbec was a blending grape in Cahors and became Argentina. Zinfandel arrived from Croatia and the Californians made it theirs.',
+      wines:[
+        ['El Campo Reserva Privada Sauvignon','Chile','White',3.05,false],
+        ['Casa de Campo Chardonnay','Chile','White',3.63,false],
+        ['Sungate California White Zinfandel','United States','Rose',3.78,false],
+        ['Cambo do Chile Merlot','Chile','Red',3.15,false],
+        ['Echenor Malbec','Argentina','Red',3.48,false],
+        ['Casa de Campo Cabernet-Carmenere','Chile','Red',3.63,false],
+        ['Sungate California Zinfandel','United States','Red',3.74,false],
+        ['Mare Magnum Big Game Malbec-Syrah','Argentina','Red',5.18,false],
+        ['Mare Magnum No Bull Cabernet Sauvignon','United States','Red',5.84,false],
+        ['Mare Magnum Cocoon Zinfandel, Lodi','United States','Red',5.90,false]
+      ] },
+    { n:4, name:'Southern Ocean', sub:'Australia, New Zealand, South Africa', colour:'#0891b2',
+      story:'Three wine countries on three continents, cooled by the same cold water running up from the far south. The smallest concept, and the one where the geography does the explaining.',
+      wines:[
+        ['Cape Spring Sauvignon Blanc','South Africa','White',2.74,false],
+        ['Cape Creek Chenin Blanc','South Africa','White',2.74,false],
+        ['Karlu Karlu Chardonnay-Semillon','Australia','White',3.70,false],
+        ['Southern Ocean Sauvignon Blanc, Marlborough','New Zealand','White',5.60,false],
+        ['Fox Grove Shiraz-Cabernet','Australia','Red',3.18,false],
+        ['Next Kangaroo Syrah-Cabernet','Australia','Red',3.21,false],
+        ['Karlu Karlu Shiraz-Cabernet','Australia','Red',3.70,false]
+      ] },
+    { n:5, name:'Deluxe Collection', sub:'The 30 labels held for the deluxe area', colour:'#8C2A3E', deluxe:true,
+      story:'Thirty labels held for the deluxe area. Giving them a concept of their own is the alternative to letting them drift outward one bottle at a time: the guest who wants them books this session, at the Deluxe Lobby and at Oliva on a Sunday, and the fence holds everywhere else.',
+      wines:[
+        ['Mionetto Prosecco Rose','Italy','Sparkling',4.25,false],
+        ['Moillard Cremant de Bourgogne Blanc','France','Sparkling',6.20,false],
+        ['Mionetto Valdobbiadene Superiore','Italy','Sparkling',7.66,false],
+        ['Famille Perrin Cotes du Rhone Reserve Blanc','France','White',5.30,false],
+        ['Dreissigacker Riesling, Rheinhessen','Germany','White',6.70,false],
+        ['Martin Codax Albarino, Rias Baixas','Spain','White',6.86,false],
+        ['Moillard Bourgogne Chardonnay, futs','France','White',9.00,false],
+        ['Villa Maria Sauvignon, Marlborough','New Zealand','White',9.40,false],
+        ['Moillard Chablis','France','White',9.50,false],
+        ['Fleur de Cantelys, Pessac-Leognan Blanc','France','White',9.80,false],
+        ['Plessis-Duval Sancerre','France','White',10.75,false],
+        ['Gerovassiliou Malagousia, Epanomi','Greece','White',11.35,false],
+        ['Alpha Estate Assyrtiko, Amyndeon','Greece','White',14.44,false],
+        ['Chateau Cavalier, Cotes de Provence','France','Rose',5.60,false],
+        ['Domaine de la Rouviere Prestige','France','Rose',8.00,false],
+        ['Chateau Peyrassol, Cotes de Provence','France','Rose',10.15,false],
+        ['Alpha Estate Rose, Amyndeon','Greece','Rose',12.99,false],
+        ['Peyrassol Mediterranee IGP red','France','Red',4.22,true],
+        ['Melini Chianti Classico Riserva','Italy','Red',5.05,false],
+        ['Famille Perrin Cotes du Rhone Reserve','France','Red',5.30,false],
+        ['Villa Belvedere Valpolicella Ripasso','Italy','Red',5.50,false],
+        ['Lexis N Old Vines, Nemea','Greece','Red',6.70,false],
+        ['Chateau Lestage Simon, Haut-Medoc','France','Red',8.30,false],
+        ['Dona Paula Estate Malbec, Uco Valley','Argentina','Red',8.36,false],
+        ['Vieux Chateau des Combes, Saint-Emilion','France','Red',8.90,false],
+        ['Vina Real Reserva, Rioja','Spain','Red',9.60,false],
+        ['Moillard Bourgogne Hautes Cotes de Nuits','France','Red',9.90,false],
+        ['Parada de Atauta, Ribera del Duero','Spain','Red',9.95,false],
+        ['Fleur de Cantelys, Pessac-Leognan 2018','France','Red',10.00,false],
+        ['Chateau du Haut Pick Sauternes','France','Sweet',4.15,false]
+      ] }
+  ]
+};
+
 class Dash{
   constructor(){
     this.mode='master';
@@ -3099,7 +3233,7 @@ class Dash{
   }
   switchTab(tab){
     this.mode=tab;this.page=0;
-    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',jewels:'💎 Last Jewels',jewels2:'🔷 Jewels 2',consumption:'📦 Despatches 2026',clearance162:'🏚️ 162 Clearance',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',qr:'📱 Guest QR',bar:'🍸 Bar Operations',requests:'📋 Special Requests'};
+    const TAB_TITLES={master:'Master Wine List',stock:'📦 Wine Stock',pairing:'🍇 Food Pairing',special:'⭐ Special Request Wines',dineout:'🍽️ Dine Out Order',jewels:'💎 Last Jewels',jewels2:'🔷 Jewels 2',consumption:'📦 Despatches 2026',clearance162:'🏚️ 162 Clearance',beverages:'🥤 Beverages Inventory',alerts:'⚠️ Alerts',order:'🛒 Order',qr:'📱 Guest QR',bar:'🍸 Bar Operations',requests:'📋 Special Requests',tasting:'🍷 Wine Tasting Concepts 2027'};
     const ttEl=document.getElementById('topbar-title');if(ttEl)ttEl.textContent=TAB_TITLES[tab]||'Master List';
     const sbEl=document.getElementById('sidebar');if(sbEl)sbEl.classList.remove('open');
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -3119,6 +3253,7 @@ class Dash{
     const j2p=document.getElementById('jewels2-panel');if(j2p)j2p.style.display='none';
     const brp=document.getElementById('bar-panel');if(brp)brp.style.display='none';
     const rqp=document.getElementById('requests-panel');if(rqp)rqp.style.display='none';
+    const tsp=document.getElementById('tasting-panel');if(tsp)tsp.style.display='none';
     const kpiRow2=document.querySelector('.kpi-row');if(kpiRow2)kpiRow2.style.display='';
     const tblCard2=document.getElementById('tbl');
     if(tblCard2&&tblCard2.closest('.card'))tblCard2.closest('.card').style.display='';
@@ -3339,6 +3474,21 @@ class Dash{
       this.renderRequests();
       return;
     }
+    if(tab==='tasting'){
+      const hideIds=['charts-section','special-note','stock-note'];
+      hideIds.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+      const tblCard=document.getElementById('tbl');if(tblCard&&tblCard.closest('.card'))tblCard.closest('.card').style.display='none';
+      const srchRow=document.querySelector('.search-row');if(srchRow)srchRow.closest('.card').style.display='none';
+      const kpiRow=document.querySelector('.kpi-row');if(kpiRow)kpiRow.style.display='none';
+      outletFg.style.opacity='0.4';document.getElementById('f-outlet').disabled=true;
+      pcFg.style.opacity='0.4';document.getElementById('f-pc').disabled=true;
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.getElementById('tab-tasting').classList.add('active');
+      document.getElementById('tasting-panel').style.display='block';
+      this.mode='tasting';
+      this.renderTasting();
+      return;
+    }
     if(tab==='special'){
       document.getElementById('kpi6-lbl').textContent='Countries';
       document.getElementById('kpi6-sub').textContent='Represented';
@@ -3472,6 +3622,105 @@ class Dash{
     h+=`<div style="margin-top:16px;text-align:center;"><button onclick="window.print()" style="padding:10px 20px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;">🖨️ Print All</button></div>`;
     out.innerHTML=h;
   }
+  /* ── WINE TASTING 2027 ── five concepts, the weekly plan, and what each costs ── */
+  renderTasting(){
+    const out=document.getElementById('tasting-content'); if(!out) return;
+    const S=TASTING_2027.session;
+    const perBottle=750/S.ml;                       // pours out of one bottle
+    const perGuest=c=>(c._avg/perBottle)*S.pours;   // wine cost for one guest's flight
+    const CATS=['Sparkling','White','Rose','Red','Sweet'];
+    const CATC={Sparkling:'#c8952a',White:'#b7a23e',Rose:'#d4849b',Red:'#8C2A3E',Sweet:'#7b3f9e'};
+    const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    // derive the numbers rather than hard-coding them
+    TASTING_2027.concepts.forEach(c=>{
+      c._avg=c.wines.reduce((s,w)=>s+w[3],0)/c.wines.length;
+      c._pc=c.wines.filter(w=>w[4]).length;
+    });
+    const byN={}; TASTING_2027.concepts.forEach(c=>byN[c.n]=c);
+    const sessions=TASTING_2027.week.length*2;
+    const guestsWk=sessions*S.guests;
+    const bottlesWk=Math.ceil(sessions*(S.guests*S.pours/perBottle));
+    const costWk=TASTING_2027.week.reduce((s,d)=>s+perGuest(byN[d[1]])*S.guests*2,0);
+
+    let h=`<div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#312e81;">
+      🍷 <b>Wine Tasting Concepts 2027</b> — five concepts for the season. Four are built on the open cellar; the fifth is the Deluxe Collection, the ${byN[5].wines.length} labels held for the deluxe area.
+      <b>Costs below are ERP bottle costs — internal only, never shown to a guest.</b></div>`;
+
+    // ── the week ──
+    h+=`<div class="card" style="padding:14px;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:800;color:#0f172a;margin-bottom:4px;">📅 The week</div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:10px;">${S.guests} guests per session &middot; two sessions a day, ${S.slots.join(' and ')} &middot; ${S.pours} pours of ${S.ml} ml each. Saturday is left clear for changeover.</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr style="background:#0f172a;color:#fff;">
+          <th style="text-align:left;padding:7px 10px;">Day</th>
+          <th style="text-align:left;padding:7px 10px;">Concept</th>
+          <th style="text-align:left;padding:7px 10px;">Setting</th>
+          <th style="text-align:right;padding:7px 10px;">Guests</th>
+          <th style="text-align:right;padding:7px 10px;">Wine cost</th>
+        </tr>`;
+    TASTING_2027.week.forEach((d,i)=>{
+      const c=byN[d[1]], dx=!!c.deluxe;
+      h+=`<tr style="background:${dx?'#fdf2f4':(i%2?'#f8fafc':'#fff')};border-bottom:1px solid #e2e8f0;">
+        <td style="padding:7px 10px;font-weight:700;color:${dx?c.colour:'#0f172a'};">${d[0]}</td>
+        <td style="padding:7px 10px;color:${dx?c.colour:'#334155'};">${c.n} &middot; ${esc(c.name)}</td>
+        <td style="padding:7px 10px;color:${d[2]==='To be set'?'#94a3b8':(dx?c.colour:'#334155')};">${esc(d[2])}</td>
+        <td style="padding:7px 10px;text-align:right;">${S.guests*2}</td>
+        <td style="padding:7px 10px;text-align:right;">&euro;${(perGuest(c)*S.guests*2).toFixed(2)}</td>
+      </tr>`;
+    });
+    h+=`</table>
+      <div style="display:flex;flex-wrap:wrap;gap:22px;margin-top:12px;font-size:12px;color:#475569;">
+        <div><b style="font-size:19px;color:#0f172a;">${sessions}</b> sessions / week</div>
+        <div><b style="font-size:19px;color:#0f172a;">${guestsWk}</b> guests / week</div>
+        <div><b style="font-size:19px;color:#0f172a;">${bottlesWk}</b> bottles / week</div>
+        <div><b style="font-size:19px;color:#c8952a;">&euro;${costWk.toFixed(0)}</b> wine cost / week</div>
+      </div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:8px;">Sunday at Oliva is fixed. The rest of the spread is a proposal.</div>
+    </div>`;
+
+    // ── the concepts ──
+    TASTING_2027.concepts.forEach(c=>{
+      h+=`<div class="card" style="padding:14px;margin-bottom:16px;border-left:4px solid ${c.colour};">
+        <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;">
+          <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:${c.colour};">Concept ${c.n}</div>
+          <div style="font-size:17px;font-weight:800;color:#0f172a;">${esc(c.name)}</div>
+          <div style="font-size:12px;color:#64748b;">${esc(c.sub)}</div>
+          ${c.deluxe?'<span style="font-size:10px;font-weight:800;background:#8C2A3E;color:#fff;padding:2px 8px;border-radius:999px;">DELUXE ONLY</span>':''}
+        </div>
+        <div style="font-size:12.5px;color:#475569;line-height:1.55;margin:8px 0 10px;max-width:980px;">${esc(c.story)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:18px;margin-bottom:10px;font-size:12px;color:#475569;">
+          <div><b style="font-size:17px;color:#0f172a;">${c.wines.length}</b> labels</div>
+          <div><b style="font-size:17px;color:#0f172a;">&euro;${c._avg.toFixed(2)}</b> average bottle</div>
+          <div><b style="font-size:17px;color:${c.colour};">&euro;${perGuest(c).toFixed(2)}</b> per guest</div>
+          <div><b style="font-size:17px;color:#0f172a;">${c._pc}</b> Private Cellar</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+          <tr style="background:#0f172a;color:#fff;">
+            <th style="text-align:left;padding:6px 10px;">Wine</th>
+            <th style="text-align:left;padding:6px 10px;">From</th>
+            <th style="text-align:left;padding:6px 10px;">Style</th>
+            <th style="text-align:right;padding:6px 10px;">&euro;</th>
+          </tr>`;
+      let r=0;
+      CATS.forEach(cat=>{
+        c.wines.filter(w=>w[2]===cat).sort((a,b)=>a[3]-b[3]).forEach(w=>{
+          h+=`<tr style="background:${r++%2?'#f8fafc':'#fff'};border-bottom:1px solid #eef2f7;">
+            <td style="padding:6px 10px;">${esc(w[0])}${w[4]?' <span style="font-size:9.5px;font-weight:800;background:#eef2ff;color:#4338ca;padding:1px 5px;border-radius:4px;">PC</span>':''}</td>
+            <td style="padding:6px 10px;color:#64748b;">${esc(w[1])}</td>
+            <td style="padding:6px 10px;color:${CATC[w[2]]};font-weight:600;">${esc(w[2])}</td>
+            <td style="padding:6px 10px;text-align:right;">${w[3].toFixed(2)}</td>
+          </tr>`;
+        });
+      });
+      h+=`</table>
+        <div style="font-size:11px;color:#94a3b8;margin-top:8px;">PC = Ikos Private Cellar &middot; cost per guest is ${S.pours} pours of ${S.ml} ml at the concept&rsquo;s average bottle cost</div>
+      </div>`;
+    });
+
+    out.innerHTML=h;
+  }
+
   /* ── LAST JEWELS ── programme tracker ── */
   // Where a label went in 2025: its biggest outlet, and that outlet's share.
   _ljHome(code){
