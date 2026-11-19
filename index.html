@@ -3776,6 +3776,7 @@ class Dash{
     out.innerHTML=h;
   }
   /* ── OCCUPANCY 2026 ── the season, and wine despatched against it ── */
+  seasonSetView(v){ this.seasonView=v; this.renderSeason(); const p=document.getElementById('season-panel'); if(p&&p.scrollIntoView) p.scrollIntoView({block:'start'}); }
   renderSeason(){
     const out=document.getElementById('season-content'); if(!out) return;
     const S=SEASON_2026, esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -3805,10 +3806,11 @@ class Dash{
       <tr style="background:#0f172a;color:#fff;">${head}</tr>${rows}</table></div>`;
     const kpi=(lbl,val,sub,clr,cls)=>`<div class="kpi ${cls||''}" style="border-top:3px solid ${clr}"><div class="lbl">${lbl}</div><div class="val">${val}</div><div class="sub2">${sub}</div></div>`;
 
+    const sec={overview:'',outlets:'',wines:'',stock:''};
     let h=`<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:10px 14px;font-size:13px;color:#4c1d95;">
       📊 <b>Season Results 2026</b> — ${esc(S.period)}. Wine only. Figures are bottles issued from the warehouses to each outlet, the same measure as <b>Despatches 2026</b>; they are not till sales. Source: ${esc(S.source)}.</div>`;
 
-    h+=`<div class="kpi-row" style="display:grid;margin-top:14px;">
+    sec.overview+=`<div class="kpi-row" style="display:grid;margin-top:14px;">
       ${kpi('Wine bottles',n0(tq),'issued, Apr–Oct','#7c3aed')}
       ${kpi('Wine cost',eur(tv),'at ERP cost','#c8952a','col-cost')}
       ${kpi('Per 100 guest nights',tgn?(tq/tgn*100).toFixed(1):'—','bottles · '+n0(tgn)+' guest nights','#0891b2')}
@@ -3829,7 +3831,7 @@ class Dash{
         <td style="padding:7px 10px;width:28%;">${bar(mq[i]/maxM*100,'#7c3aed')}</td></tr>`;
     });
     mr+=`<tr style="background:#0f172a;color:#fff;font-weight:800;">${td('Season')}${td(n0(tq),1)}${td(eur(tv),1,'col-cost')}${td(n0(tgn),1)}${td(tgn?(tq/tgn*100).toFixed(1):'—',1)}<td></td></tr>`;
-    h+=card('📅 Month by month','October is the ERP column labelled November: the hotel closed on 1 November, so it holds October plus one day.',
+    sec.overview+=card('📅 Month by month','October is the ERP column labelled November: the hotel closed on 1 November, so it holds October plus one day.',
       tbl(th('Month')+th('Bottles',1)+th('Cost',1,'col-cost')+th('Guest nights',1)+th('Btl / 100 GN',1)+th(''),mr));
 
     // By outlet
@@ -3844,7 +3846,7 @@ class Dash{
           <td style="padding:7px 10px;width:22%;">${bar(r[2]/maxO*100,GCLR[g])}</td></tr>`;
       });
     });
-    h+=card('🏛️ By outlet','Bottles issued to each warehouse. Mini Bar is shown on its own, under In-room. Rooms Complimentary is the Dine Out warehouse.',
+    sec.outlets+=card('🏛️ By outlet','Bottles issued to each warehouse. Mini Bar is shown on its own, under In-room. Rooms Complimentary is the Dine Out warehouse.',
       tbl(th('Outlet')+th('Bottles',1)+th('Share',1)+th('Wines',1)+th('Cost',1,'col-cost')+th('€ / bottle',1,'col-cost')+th(''),or));
 
     // Top 20 wines
@@ -3853,7 +3855,7 @@ class Dash{
       trw+=`<tr style="border-bottom:1px solid #e2e8f0;background:${i%2?'#f8fafc':'#fff'};">${td(i+1,1,'','color:#94a3b8;width:34px;')}${td('<span class="cpill">'+esc(x.code)+'</span>')}${td(esc(x.desc))}${td(esc(x.cat),0,'','color:#64748b;white-space:nowrap;')}${td(n0(x.q),1,'','font-weight:700;')}${td(pct(x.q/tq),1)}${td(eur(x.v),1,'col-cost')}</tr>`;
     });
     const top20=top.reduce((t,x)=>t+x.q,0);
-    h+=card('🏆 Top 20 wines',`These 20 labels account for ${pct(top20/tq)} of all bottles issued. ${n0(moved.length)} wines moved during the season.`,
+    sec.wines+=card('🏆 Top 20 wines',`These 20 labels account for ${pct(top20/tq)} of all bottles issued. ${n0(moved.length)} wines moved during the season.`,
       tbl(th('#',1)+th('Code')+th('Wine')+th('Category')+th('Bottles',1)+th('Share',1)+th('Cost',1,'col-cost'),trw));
 
     // By category
@@ -3862,7 +3864,7 @@ class Dash{
     cats.forEach(([k,c])=>{
       cr+=`<tr style="border-bottom:1px solid #e2e8f0;">${td('<b>'+esc(k)+'</b>')}${td(n0(c.q),1,'','font-weight:700;')}${td(pct(c.q/tq),1)}${td(c.n,1)}${td(eur(c.v),1,'col-cost')}${td(eur2(c.v/c.q),1,'col-cost')}<td style="padding:7px 10px;width:26%;">${bar(c.q/maxC*100,'#16a34a')}</td></tr>`;
     });
-    h+=card('🍇 By category','Category as recorded on each wine in the stock list.',
+    sec.wines+=card('🍇 By category','Category as recorded on each wine in the stock list.',
       tbl(th('Category')+th('Bottles',1)+th('Share',1)+th('Wines',1)+th('Cost',1,'col-cost')+th('€ / bottle',1,'col-cost')+th(''),cr));
 
     // Stock carried into 2027
@@ -3873,7 +3875,7 @@ class Dash{
     const deadB=dead.reduce((t,x)=>t+x.s.qty,0), deadV=dead.reduce((t,x)=>t+x.v,0);
     const over=inst.filter(s=>{const q=seasonQ(s.code);return q>0&&s.qty>=q;}).map(s=>({s,q:seasonQ(s.code),v:s.qty*(s.price||0)})).sort((a,b)=>b.v-a.v);
     const overV=over.reduce((t,x)=>t+x.v,0);
-    h+=card('📦 Stock carried into 2027','What is left in the cellar at today\'s stock, against what each wine used this season.',
+    sec.stock+=card('📦 Stock carried into 2027','What is left in the cellar at today\'s stock, against what each wine used this season.',
       `<div class="kpi-row" style="display:grid;">
         ${kpi('Wines in stock',n0(inst.length),n0(stB)+' bottles','#0f172a')}
         ${kpi('Stock value',eur(stV),'at ERP cost','#c8952a','col-cost')}
@@ -3884,14 +3886,18 @@ class Dash{
     let dr=''; dead.slice(0,25).forEach(x=>{
       dr+=`<tr style="border-bottom:1px solid #e2e8f0;">${td('<span class="cpill">'+esc(x.s.code)+'</span>')}${td(esc(x.s.description))}${td(esc(x.s.category||'—'),0,'','color:#64748b;white-space:nowrap;')}${td(esc(x.s.visibility||'—'),0,'','color:#64748b;')}${td(n0(x.s.qty),1,'','font-weight:700;')}${td(eur(x.v),1,'col-cost')}</tr>`;
     });
-    h+=card('🛑 No movement in 2026',`${n0(dead.length)} wines in stock were not issued once this season.${dead.length>25?' The 25 largest by value:':' Largest value first:'}`,
+    sec.stock+=card('🛑 No movement in 2026',`${n0(dead.length)} wines in stock were not issued once this season.${dead.length>25?' The 25 largest by value:':' Largest value first:'}`,
       dead.length?tbl(th('Code')+th('Wine')+th('Category')+th('Visibility')+th('Stock',1)+th('Value',1,'col-cost'),dr):'<div style="font-size:13px;color:#16a34a;">Every wine in stock moved this season.</div>');
     let vr=''; over.slice(0,25).forEach(x=>{
       vr+=`<tr style="border-bottom:1px solid #e2e8f0;">${td('<span class="cpill">'+esc(x.s.code)+'</span>')}${td(esc(x.s.description))}${td(n0(x.s.qty),1,'','font-weight:700;')}${td(n0(x.q),1)}${td((x.s.qty/x.q).toFixed(1)+'×',1,'','font-weight:700;color:#b45309;')}${td(eur(x.v),1,'col-cost')}</tr>`;
     });
-    h+=card('⏳ Enough for another season',`Wines that moved, but whose stock is at least what they used in all of 2026 (${eur(overV)} in total). Hold back on reordering these.${over.length>25?' The 25 largest by value:':''}`,
+    sec.stock+=card('⏳ Enough for another season',`Wines that moved, but whose stock is at least what they used in all of 2026 (${eur(overV)} in total). Hold back on reordering these.${over.length>25?' The 25 largest by value:':''}`,
       over.length?tbl(th('Code')+th('Wine')+th('Stock',1)+th('Used 2026',1)+th('Seasons',1)+th('Value',1,'col-cost'),vr):'<div style="font-size:13px;color:#16a34a;">No wine holds a full season of stock.</div>');
-    out.innerHTML=h;
+    const VIEWS=[['overview','📅 Overview'],['outlets','🏛️ By outlet'],['wines','🏆 Wines'],['stock','📦 Stock 2027']];
+    const view=sec[this.seasonView]!==undefined?this.seasonView:'overview';
+    const nav=`<div role="tablist" aria-label="Season Results sections" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;position:sticky;top:0;z-index:5;background:var(--bg,#f1f5f9);padding:6px 0;">`+
+      VIEWS.map(([k,lbl])=>{const on=k===view;return `<button role="tab" aria-selected="${on}" onclick="D.seasonSetView('${k}')" style="padding:8px 16px;border-radius:999px;border:1px solid ${on?'#7c3aed':'var(--border,#e2e8f0)'};background:${on?'#7c3aed':'var(--card,#fff)'};color:${on?'#fff':'#0f172a'};font-weight:700;font-size:13px;cursor:pointer;">${lbl}</button>`;}).join('')+`</div>`;
+    out.innerHTML=nav+h+sec[view];
   }
   renderOccupancy(){
     const out=document.getElementById('occupancy-content'); if(!out) return;
