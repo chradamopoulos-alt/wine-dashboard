@@ -3787,7 +3787,13 @@ class Dash{
     out.innerHTML=h;
   }
   /* ── OCCUPANCY 2026 ── the season, and wine despatched against it ── */
-  projSet(k,v){ this.projIn=this.projIn||{}; const n=parseFloat(v); this.projIn[k]=isFinite(n)&&n>=0?n:0; this.renderSeason(); }
+  projSet(k,v,live){
+    this.projIn=this.projIn||{}; const n=parseFloat(String(v).replace(',','.'));
+    this.projIn[k]=isFinite(n)&&n>=0?n:0; this.renderSeason();
+    if(live){ const el=document.querySelector('#season-content input[data-k="'+k+'"]');
+      if(el){ el.value=v; el.focus(); try{ const L=String(v).length; el.setSelectionRange(L,L); }catch(e){} } }
+  }
+  projStep(k,d){ this.projIn=this.projIn||{}; const cur=+this.projIn[k]||0; const nx=Math.max(0,Math.round((cur+d)*100)/100); this.projSet(k,nx); }
   seasonSetView(v){ this.seasonView=v; this.renderSeason(); const p=document.getElementById('season-panel'); if(p&&p.scrollIntoView) p.scrollIntoView({block:'start'}); }
   renderSeason(){
     const out=document.getElementById('season-content'); if(!out) return;
@@ -4032,18 +4038,28 @@ class Dash{
       const wProp=xLD*(P.season.wine/P.season.ld);
       const wAdj=-(ra-rf)*res.lost + (ra-ra)*res.venFromOver + (ra-rf)*res.venFromFl + (rs-ra)*res.seaFromOver + (rs-rf)*res.seaFromFl;
       const wTot=wProp+wAdj;
-      const inp=(k,lbl,val,step,help)=>`<label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:#475569;font-weight:700;">${lbl}
-        <input type="number" min="0" step="${step}" value="${val}" onchange="D.projSet('${k}',this.value)" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;font-weight:700;color:#0f172a;width:100%;box-sizing:border-box;">
-        <span style="font-weight:400;color:#94a3b8;font-size:11px;">${help}</span></label>`;
+      const btn=(k,d,t)=>`<button type="button" aria-label="${d<0?'Decrease':'Increase'}" onclick="D.projStep('${k}',${d})" style="width:38px;flex:none;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;font-size:18px;font-weight:800;color:#334155;cursor:pointer;">${t}</button>`;
+      const inp=(k,lbl,val,step,help)=>`<div style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:#475569;font-weight:700;">${lbl}
+        <div style="display:flex;gap:6px;">${btn(k,-step,'−')}<input type="text" inputmode="decimal" data-k="${k}" value="${val}" oninput="D.projSet('${k}',this.value,true)" style="flex:1;min-width:0;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px;font-weight:800;color:#0f172a;text-align:center;">${btn(k,step,'+')}</div>
+        <span style="font-weight:400;color:#94a3b8;font-size:11px;">${help}</span></div>`;
       const pre=(k,v,lbl)=>`<button onclick="D.projSet('${k}',${v})" style="padding:5px 11px;border-radius:999px;border:1px solid ${(+I[k])===v?'#7c3aed':'#cbd5e1'};background:${(+I[k])===v?'#7c3aed':'#fff'};color:${(+I[k])===v?'#fff':'#334155'};font-size:12px;font-weight:700;cursor:pointer;">${lbl}</button>`;
-      let p=`<div class="card" style="padding:16px;margin-top:14px;">
+      let p=`<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:#3b0764;line-height:1.55;">
+        <b>How it works.</b> Set the four numbers below with − / + or by typing; every figure on this page updates at once.
+        <ol style="margin:6px 0 0 18px;padding:0;">
+          <li>It takes every night of the 2026 season and adds the guests of the new rooms (33 rooms ≈ +8.8% guests).</li>
+          <li>Each restaurant gets its share of the extra diners. An à la carte that goes past its usual busiest level is "full"; the diners who do not fit go to the buffet (Flavors).</li>
+          <li>A new restaurant, or extra Seasons covers, catches those diners first, then some buffet diners.</li>
+          <li>The red counts and the "Dinners 2028" column show the result; compare them with "Dinners 2026".</li>
+        </ol>
+        <div style="margin-top:6px;">Try: press <b>90</b> under "New restaurant" — dinners sent to the buffet drop to 0 and Flavors' busiest night falls below its record.</div></div>`;
+      p+=`<div class="card" style="padding:16px;margin-top:14px;">
         <div style="font-size:15px;font-weight:800;color:#0f172a;">🔮 2028 scenario</div>
         <div style="font-size:12px;color:#64748b;margin:2px 0 12px;">Change any number; the projection reruns every night of the 2026 season with the extra guests. Today: ${n0(P.rooms)} rooms, ${P.gpr.toFixed(2)} guests per room.</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;">
           ${inp('rooms','New rooms',I.rooms,1,`+${(up*100).toFixed(1)}% guests · about +${n0(up*P.season.gn/192)} a night`)}
-          ${inp('gpr','Guests per new room',I.gpr,0.01,'2026 average 2.64')}
-          ${inp('venue','New à la carte, covers a night',I.venue,5,'0 = no new restaurant')}
-          ${inp('seasons','Extra Seasons dinner covers a night',I.seasons,1,'36 ≈ Seasons back to its 2025 dinners')}
+          ${inp('gpr','Guests per new room',I.gpr,0.05,'2026 average 2.64')}
+          ${inp('venue','New à la carte, covers a night',I.venue,10,'0 = no new restaurant')}
+          ${inp('seasons','Extra Seasons dinner covers a night',I.seasons,6,'36 ≈ Seasons back to its 2025 dinners')}
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center;font-size:12px;color:#64748b;">New restaurant: ${pre('venue',0,'None')}${pre('venue',60,'60')}${pre('venue',90,'90')}${pre('venue',120,'120')} <span style="margin-left:8px;">Seasons:</span> ${pre('seasons',0,'As 2026')}${pre('seasons',36,'As 2025')}</div>
       </div>`;
