@@ -50,7 +50,7 @@ python3 -c "import re; h=open('index.html').read(); s=re.findall(r'<script>(.*?)
 node --check /tmp/app.js
 # 2. browser smoke test (Chromium is preinstalled)
 ```
-Playwright (CommonJS): `require('/opt/node22/lib/node_modules/playwright')`. Login is `#lg-user`=`adam`, `#lg-pin`=`9001` → click `#lg-btn`, wait ~1200ms. Then click the affected `#tab-<name>` and assert `pageerror`/console-error count is 0 (ignore `TUNNEL`/`qrserver`/`net::`/`Failed to load` — those are sandbox network blocks for CDN/QR, harmless). For guest pages, `goto` the file URL with `#menu/OUTLET` or `#food/OUTLET` (no login needed).
+Playwright (CommonJS): `require('/opt/node22/lib/node_modules/playwright')`. Login is `#lg-user`=`adam`, `#lg-pin`= the PIN in `USERS` → click `#lg-btn`, wait ~1200ms. Then open the affected tab with `page.evaluate(() => D.switchTab('<name>'))` (clicks time out behind the dine-out iframe) and assert `pageerror`/console-error count is 0 (ignore `TUNNEL`/`qrserver`/`net::`/`Failed to load` — those are sandbox network blocks for CDN/QR, harmless). For guest pages, `goto` the file URL with `#menu/OUTLET` or `#food/OUTLET` (no login needed).
 
 ## Style conventions
 Match the existing terse code style (single-line data, compact methods). **All UI text must be in English** — labels, buttons, tabs, headings, notes, placeholders, messages, modals. The hotel's official language is English and staff are multinational. **Exception:** ERP product data (wine names, descriptions, codes) stays as imported — never translate data from the ERP to avoid confusion. Reuse `_sommScore`/`_sommCards`/`_wineProfile`/`_prioTag` rather than duplicating. Keep everything self-contained (no new external deps beyond the Chart.js CDN and the QR image API already used).
