@@ -3789,10 +3789,13 @@ class Dash{
   /* ── OCCUPANCY 2026 ── the season, and wine despatched against it ── */
   projSet(k,v,live){
     this.projIn=this.projIn||{}; const n=parseFloat(String(v).replace(',','.'));
-    this.projIn[k]=isFinite(n)&&n>=0?n:0; this.renderSeason();
+    if(k.indexOf('cap:')===0&&String(v).trim()==='') delete this.projIn[k];
+    else this.projIn[k]=isFinite(n)&&n>=0?n:0;
+    this.renderSeason();
     if(live){ const el=document.querySelector('#season-content input[data-k="'+k+'"]');
       if(el){ el.value=v; el.focus(); try{ const L=String(v).length; el.setSelectionRange(L,L); }catch(e){} } }
   }
+  projResetCaps(){ const I=this.projIn||{}; Object.keys(I).forEach(k=>{ if(k.indexOf('cap:')===0) delete I[k]; }); this.renderSeason(); }
   projStep(k,d){ this.projIn=this.projIn||{}; const cur=+this.projIn[k]||0; const nx=Math.max(0,Math.round((cur+d)*100)/100); this.projSet(k,nx); }
   seasonSetView(v){ this.seasonView=v; this.renderSeason(); const p=document.getElementById('season-panel'); if(p&&p.scrollIntoView) p.scrollIntoView({block:'start'}); }
   renderSeason(){
@@ -4020,11 +4023,13 @@ class Dash{
       const up=(Math.max(0,+I.rooms||0)*(+I.gpr||P.gpr))/(P.rooms*P.gpr);
       const venue=Math.max(0,+I.venue||0), sx=Math.max(0,+I.seasons||0);
       const ra=P.rates.alc, rf=P.rates.flavors, rs=P.rates.seasons;
+      const capOf=i=>I['cap:'+ALC[i]]!=null?+I['cap:'+ALC[i]]:P.cap[i], flLim=I['cap:Flavors']!=null?+I['cap:Flavors']:P.flMax;
+      const capsEdited=Object.keys(I).some(k=>k.indexOf('cap:')===0);
       const res={alc:ALC.map(()=>0),base:ALC.map(()=>0),full:ALC.map(()=>0),fl:0,flBase:0,flPeak:0,flOver:0,rs:0,rsBase:0,ven:0,sea:0,lost:0,nightsFull:0,venFromOver:0,venFromFl:0,seaFromOver:0,seaFromFl:0};
       const MO={4:'Apr',5:'May',6:'Jun',7:'Jul',8:'Aug',9:'Sep',10:'Oct',11:'Oct'}, mFull={};
       P.days.forEach(d=>{
         const f=1+up; let over=0;
-        ALC.forEach((r,i)=>{ const a=d[i+1], dem=a*f, lim=Math.max(P.cap[i],a), served=Math.min(dem,lim);
+        ALC.forEach((r,i)=>{ const a=d[i+1], dem=a*f, lim=I['cap:'+r]!=null?capOf(i):Math.max(P.cap[i],a), served=Math.min(dem,lim);
           res.base[i]+=a; res.alc[i]+=served; const o=dem-served; if(o>0.5) res.full[i]++; over+=o; });
         if(over>0.5){ res.nightsFull++; const m=MO[d[0]]||d[0]; mFull[m]=(mFull[m]||0)+1; }
         let fl=d[iF]*f; res.flBase+=d[iF]; res.rs+=d[iRS]*f; res.rsBase+=d[iRS];
@@ -4032,7 +4037,7 @@ class Dash{
         const takeS=Math.min(sx,over+P.buffetShare*fl), sO=Math.min(takeS,over), sF=takeS-sO; over-=sO; fl-=sF;
         const takeV=Math.min(venue,over+P.buffetShare*fl), vO=Math.min(takeV,over), vF=takeV-vO; over-=vO; fl-=vF;
         res.sea+=takeS; res.seaFromOver+=sO; res.seaFromFl+=sF; res.ven+=takeV; res.venFromOver+=vO; res.venFromFl+=vF;
-        res.lost+=over; fl+=over; res.fl+=fl; res.flPeak=Math.max(res.flPeak,fl); if(fl>P.flMax) res.flOver++;
+        res.lost+=over; fl+=over; res.fl+=fl; res.flPeak=Math.max(res.flPeak,fl); if(fl>flLim) res.flOver++;
       });
       const xGN=P.season.gn*up, xDin=P.season.dinners*up, xLD=P.season.ld*up;
       const wProp=xLD*(P.season.wine/P.season.ld);
@@ -4068,19 +4073,20 @@ class Dash{
         ${kpi('Extra dinners','+'+n0(xDin),'+'+n0(xLD)+' lunch + dinner covers','#0891b2')}
         ${kpi('Nights today\'s à la carte are full',n0(res.nightsFull),res.nightsFull?Object.entries(mFull).map(([m,n])=>m+' '+n).join(' · '):'none','#b91c1c')}
         ${kpi('Dinners sent to the buffet',n0(res.lost),'could not get an à la carte table','#b45309')}
-        ${kpi('Flavors busiest night',n0(res.flPeak),res.flOver?res.flOver+' nights above its 2026 record ('+n0(P.flMax)+')':'within its 2026 record ('+n0(P.flMax)+')',res.flOver?'#b91c1c':'#15803d')}
+        ${kpi('Flavors busiest night',n0(res.flPeak),res.flOver?res.flOver+' nights above its limit ('+n0(flLim)+')':'within its limit ('+n0(flLim)+')',res.flOver?'#b91c1c':'#15803d')}
         ${kpi('Extra wine cost',(wTot>=0?'+':'−')+eur(Math.abs(wTot)),'a season, at 2026 cost per cover','#c8952a','col-cost')}
       </div>`;
+      const capIn=(key,val,def)=>`<input type="text" inputmode="numeric" data-k="cap:${key}" value="${val}" oninput="D.projSet('cap:${key}',this.value,true)" aria-label="Limit per night, ${key}" style="width:64px;padding:5px 6px;border:1px solid ${val!==def?'#7c3aed':'#cbd5e1'};border-radius:6px;text-align:right;font-weight:700;font-size:13px;color:#0f172a;${val!==def?'background:#f5f3ff;':''}">${val!==def?`<div style="font-size:10px;color:#94a3b8;">2026: ${n0(def)}</div>`:''}`;
       let tr=''; const row=(name,b,x,extra,st)=>`<tr style="border-bottom:1px solid #e2e8f0;${st||''}">${td('<b>'+esc(name)+'</b>')}${td(n0(b),1,'','color:#64748b;')}${td(n0(x),1,'','font-weight:700;')}${td(b?dP(b,x):'<span style="color:#7c3aed;font-weight:700;">new</span>',1)}${extra}</tr>`;
       const dP=(a,b)=>{const q=(b/a-1)*100;return `<span style="font-weight:700;color:${q>0.5?'#334155':'#64748b'}">${q>0?'+':''}${q.toFixed(1)}%</span>`;};
       ALC.map((r,i)=>i).sort((a,b)=>res.base[b]-res.base[a]).forEach(i=>{
-        tr+=row(ALC[i],res.base[i],res.alc[i]+(ALC[i]==='Seasons'?res.sea:0),`${td(n0(P.cap[i]),1,'','color:#64748b;')}${td(res.full[i]?`<span style="color:#b91c1c;font-weight:700;">${n0(res.full[i])}</span>`:'0',1)}`);
+        tr+=row(ALC[i],res.base[i],res.alc[i]+(ALC[i]==='Seasons'?res.sea:0),`${td(capIn(ALC[i],capOf(i),P.cap[i]),1)}${td(res.full[i]?`<span style="color:#b91c1c;font-weight:700;">${n0(res.full[i])}</span>`:'0',1)}`);
       });
       if(venue>0) tr+=row('New à la carte',0,res.ven,`${td(n0(venue),1,'','color:#64748b;')}${td('—',1)}`,'background:#f5f3ff;');
-      tr+=row('Flavors (buffet)',res.flBase,res.fl,`${td(n0(P.flMax)+' record',1,'','color:#64748b;')}${td(res.flOver?`<span style="color:#b91c1c;font-weight:700;">${res.flOver}</span>`:'0',1)}`,'background:#f8fafc;');
+      tr+=row('Flavors (buffet)',res.flBase,res.fl,`${td(capIn('Flavors',flLim,P.flMax),1)}${td(res.flOver?`<span style="color:#b91c1c;font-weight:700;">${res.flOver}</span>`:'0',1)}`,'background:#f8fafc;');
       tr+=row('Room Service',res.rsBase,res.rs,`${td('—',1)}${td('—',1)}`);
-      p+=card('🍽️ Dinners by restaurant, 2026 → 2028',`"Limit" is the dinner count a restaurant passed on only 5% of 2026 nights — a working ceiling, not its seat count. "Nights full" is how often 2028 demand goes past it. Extra Seasons covers count inside the Seasons row.`,
-        tbl(th('Restaurant')+th('Dinners 2026',1)+th('Dinners 2028',1)+th('Δ',1)+th('Limit / night',1)+th('Nights full',1),tr));
+      p+=card('🍽️ Dinners by restaurant, 2026 → 2028',`"Limit / night" is how many dinners a restaurant can serve in a night. It starts at the count each one passed on only 5% of 2026 nights (Flavors: its 2026 record); type a real figure — seats × turns — to replace it. New rooms add guests, not seats, so the limit does not move by itself; "Nights full" shows how often 2028 demand goes past it. Extra Seasons covers count inside the Seasons row.${capsEdited?` <button onclick="D.projResetCaps()" style="margin-left:6px;padding:3px 10px;border-radius:999px;border:1px solid #7c3aed;background:#fff;color:#7c3aed;font-size:11px;font-weight:700;cursor:pointer;">Reset limits to 2026</button>`:''}`,
+        tbl(th('Restaurant')+th('Dinners 2026',1)+th('Dinners 2028',1)+th('Δ',1)+th('Limit / night ✎',1)+th('Nights full',1),tr));
       p+=card('🍷 Wine',`<span class="col-cost">At 2026 cost per cover: ${eur(wProp)} if the extra guests eat as today, ${(wAdj>=0?'+':'−')+eur(Math.abs(wAdj))} for where they actually eat — à la carte €${ra.toFixed(2)}, buffet €${rf.toFixed(2)}, Seasons €${rs.toFixed(2)} of wine per lunch + dinner cover.</span>`,
         `<div style="font-size:13px;line-height:1.5;color:#334155;">A guest moved from the buffet to an à la carte table costs about <b class="col-cost">€${(ra-rf).toFixed(2)}</b> more in wine; to Seasons, <b class="col-cost">€${(rs-rf).toFixed(2)}</b> more. A new restaurant buys service and guest satisfaction, not wine savings.</div>`);
       p+=`<div style="font-size:11px;color:#94a3b8;margin-top:8px;line-height:1.5;">Assumptions: 2028 occupancy and guest habits as in 2026; the new guests spread across restaurants like today's; a restaurant that is full sends its extra diners to the buffet; extra capacity (Seasons, then the new venue) fills first from those diners and then from up to ${Math.round(P.buffetShare*100)}% of the night's buffet diners. Built from the 2026 daily meal reports.</div>`;
